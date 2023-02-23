@@ -1,0 +1,19 @@
+{
+  "name": "simple-mern",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "client-install": "cd client && npm install",
+    "server-install": "cd server && npm install",
+    "install-all-deps": "concurrently \"npm run server-install\" \"npm run client-install\"",
+    "client-start": "cd client && npm run start",
+    "server-start": "cd server && npm run start",
+    "dev": "concurrently \"npm run client-start\" \"npm run server-start\""
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^7.6.0"
+  }
+}
