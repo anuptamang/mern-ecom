@@ -1,6 +1,7 @@
 import axios from "axios"
+import { PRODUCTS_API } from "services/servicesConstants"
 import { IProduct, IProductSliceParams } from "types/store/productSliceTypes"
-import { PRODUCTS_API } from "../../constants"
+
 
 export const getProducts = async ({ category }: IProductSliceParams) => {
   return axios.get<IProduct[]>(

@@ -1,10 +1,10 @@
-interface NavProps {
+interface NavDataProps {
   key: number;
   text: string;
   to: string;
 }
 
-export const nav: NavProps[] = [
+export const navData: NavDataProps[] = [
   {
     key: 1,
     text: 'Home',
@@ -13,12 +13,13 @@ export const nav: NavProps[] = [
   {
     key: 2,
     text: 'About',
-    to: '/about',
+    to: '/about'
+
   },
   {
     key: 3,
-    text: 'Portfolio',
-    to: '/portfolio',
+    text: 'Products',
+    to: '/products',
   },
   {
     key: 4,

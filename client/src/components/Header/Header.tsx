@@ -5,7 +5,7 @@ type Props = {};
 export const Header = (props: Props) => {
   return (
     <>
-      <HeaderLayout style={{ color: 'white' }}>Header</HeaderLayout>
+      <HeaderLayout style={{ color: 'white' }}></HeaderLayout>
     </>
   );
 };

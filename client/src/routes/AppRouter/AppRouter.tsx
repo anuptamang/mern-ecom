@@ -18,10 +18,12 @@ const SingleProduct = lazy(() => import('pages/public/Products/Single'));
 const UserPrivacyPolicy = lazy(
   () => import('pages/private/User/PrivacyPolicy')
 );
-const Profile = lazy(() => import('pages/private/User/Profile'));
-const Dashboard = lazy(() => import('pages/private/User/Dashboard'));
+const UserProfile = lazy(() => import('pages/private/User/Profile'));
+const UserDashboard = lazy(() => import('pages/private/User/Dashboard'));
 const UserSettings = lazy(() => import('pages/private/User/Settings'));
-const UserProducts = lazy(() => import('pages/private/Products/Display'));
+const ProductsDashboard = lazy(
+  () => import('pages/private/Products/Dashboard')
+);
 
 const AppRouter = () => {
   const auth = useAuth();
@@ -40,11 +42,11 @@ const AppRouter = () => {
           <Route path="products/:id" element={<SingleProduct />} />
 
           <Route path="user" element={<PrivateRoute redirect="/login" />}>
-            <Route index element={<Profile />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="profile" element={<Profile />} />
+            <Route index element={<UserProfile />} />
+            <Route path="dashboard" element={<UserDashboard />} />
+            <Route path="profile" element={<UserProfile />} />
             <Route path="settings" element={<UserSettings />} />
-            <Route path="products" element={<UserProducts />} />
+            <Route path="products" element={<ProductsDashboard />} />
           </Route>
 
           {isAuthenticated ? (

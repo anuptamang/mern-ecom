@@ -1,7 +1,7 @@
 import { Loading } from 'components';
 import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { fetchProducts } from 'redux/action/productsAction';
+import { fetchProducts } from 'redux/action/products';
 import { productsFilterSelector, productsSelector } from 'redux/slice';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 
@@ -23,7 +23,7 @@ const Home = () => {
   return (
     <>
       <Helmet>
-        <title>Home | My App</title>
+        <title>Home | My Shop</title>
       </Helmet>
       {status.success && JSON.stringify(productList)}
       {status.loading && <Loading />}

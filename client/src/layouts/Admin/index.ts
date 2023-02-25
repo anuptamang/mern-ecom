@@ -1,1 +1,1 @@
-export { Admin as default } from './Admin';
+export { Admin as default } from './AdminLayout';
