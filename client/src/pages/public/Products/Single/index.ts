@@ -1,1 +1,1 @@
-export { Single as default } from './Single';
+export { ProductsSingle as default } from './ProductsSingle';
