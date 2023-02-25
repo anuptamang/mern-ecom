@@ -1,0 +1,10 @@
+@import 'assets/styles/variables';
+
+.logo {
+  color: $blue;
+
+  a {
+    color: inherit;
+    font-weight: bold;
+  }
+}
