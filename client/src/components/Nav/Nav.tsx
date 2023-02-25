@@ -1,18 +1,23 @@
 import { Menu, MenuProps } from 'antd';
 import { navData } from 'data/static/navData';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 type Props = {};
 
 const Nav = (props: Props) => {
-  const [current, setCurrent] = useState('/');
   const navigate = useNavigate();
+  const location = useLocation();
+  const [current, setCurrent] = useState(location?.pathname);
 
   const onClick: MenuProps['onClick'] = (e) => {
     navigate(e.key);
     setCurrent(e.key);
   };
+
+  useEffect(() => {
+    setCurrent(location.pathname);
+  }, [location.pathname]);
 
   return (
     <>

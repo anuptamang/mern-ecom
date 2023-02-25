@@ -1,10 +1,9 @@
-import React, { ReactNode } from 'react';
-import { ChildrenProps } from 'types';
-import styles from './List.module.scss';
 import classNames from 'classnames';
+import { ReactNode } from 'react';
+import styles from './List.module.scss';
 
 interface Ilist {
-  children: ReactNode[];
+  children: ReactNode | ReactNode[];
   mode?: 'vertical';
 }
 
