@@ -1,0 +1,24 @@
+@import 'assets/styles/variables';
+
+.list {
+  list-style-type: none;
+  color: $blue;
+  display: flex;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+
+  li {
+    margin-bottom: 5px;
+  }
+
+  &.vertical {
+    display: block;
+    gap: 0;
+  }
+
+  a {
+    color: inherit;
+    font-weight: bold;
+  }
+}
