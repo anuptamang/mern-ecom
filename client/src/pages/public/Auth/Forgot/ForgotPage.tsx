@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from 'hooks';
 
-const Forgot = () => {
+const ForgotPage = () => {
   let auth = useAuth();
   let location = useLocation();
 
@@ -25,4 +25,4 @@ const Forgot = () => {
   );
 };
 
-export { Forgot };
+export { ForgotPage };

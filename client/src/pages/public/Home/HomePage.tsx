@@ -5,7 +5,7 @@ import { fetchProducts } from 'redux/action/products';
 import { productsFilterSelector, productsSelector } from 'redux/slice';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 
-const Home = () => {
+const HomePage = () => {
   const dispatch = useAppDispatch();
   const { productList, status } = useAppSelector(productsSelector);
   const { category } = useAppSelector(productsFilterSelector);
@@ -31,4 +31,4 @@ const Home = () => {
   );
 };
 
-export { Home };
+export { HomePage };

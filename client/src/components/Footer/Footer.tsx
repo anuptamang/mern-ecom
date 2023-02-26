@@ -8,7 +8,7 @@ type Props = {};
 export const Footer = (props: Props) => {
   return (
     <FooterLayout className={styles.footer}>
-      <List>
+      <List style={{ justifyContent: 'center' }}>
         <li>
           <strong>&copy; 2023 - MY SHOP</strong>
         </li>

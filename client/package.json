@@ -78,6 +78,8 @@
     "eslint-plugin-react": "^7.31.11",
     "eslint-plugin-react-hooks": "^4.6.0",
     "prettier": "^2.8.1",
+    "resolve-url-loader": "^5.0.0",
+    "sass": "^1.58.3",
     "typed-scss-modules": "^7.0.2"
   }
 }
