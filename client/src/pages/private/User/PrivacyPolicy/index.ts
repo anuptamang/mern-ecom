@@ -1,1 +1,1 @@
-export { UserPrivacyPolicy as default } from './UserPrivacyPolicy';
+export { UserPrivacyPolicyPage as default } from './UserPrivacyPolicyPage';

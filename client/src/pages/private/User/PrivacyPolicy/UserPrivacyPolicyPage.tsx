@@ -1,7 +1,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
-export const UserPrivacyPolicy = () => {
+export const UserPrivacyPolicyPage = () => {
   return (
     <>
       <Helmet>

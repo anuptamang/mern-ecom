@@ -1,1 +1,1 @@
-export { UserDashboard as default } from './UserDashboard';
+export { UserDashboardPage as default } from './UserDashboardPage';

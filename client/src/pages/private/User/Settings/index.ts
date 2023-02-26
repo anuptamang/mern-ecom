@@ -1,1 +1,1 @@
-export { UserSettings as default } from './UserSettings';
+export { UserSettingsPage as default } from './UserSettingsPage';
