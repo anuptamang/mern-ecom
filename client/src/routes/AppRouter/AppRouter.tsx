@@ -1,3 +1,4 @@
+import { pageRoutes } from 'data/static/pageRoutes';
 import { useAuth } from 'hooks';
 import { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
@@ -32,36 +33,56 @@ const AppRouter = () => {
   return (
     <Suspense fallback={null}>
       <Routes>
-        <Route path="/" element={<General />}>
+        <Route path={pageRoutes.home} element={<General />}>
           <Route index element={<HomePage />} />
-          <Route path="contact" element={<ContactPage />} />
-          <Route path="about" element={<AboutPage />} />
-          <Route path="login" element={<LoginPage />} />
-          <Route path="register" element={<RegisterPage />} />
-          <Route path="forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="products/:id" element={<SingleProductPage />} />
+          <Route path={pageRoutes.contact} element={<ContactPage />} />
+          <Route path={pageRoutes.about} element={<AboutPage />} />
+          <Route path={pageRoutes.login} element={<LoginPage />} />
+          <Route path={pageRoutes.register} element={<RegisterPage />} />
+          <Route
+            path={pageRoutes.forgotPassword}
+            element={<ForgotPasswordPage />}
+          />
+          <Route
+            path={`${pageRoutes.products}/:id`}
+            element={<SingleProductPage />}
+          />
 
-          <Route path="user" element={<PrivateRoute redirect="/login" />}>
+          <Route
+            path={pageRoutes.user}
+            element={<PrivateRoute redirect={`/${pageRoutes.login}`} />}
+          >
             <Route index element={<UserProfilePage />} />
-            <Route path="dashboard" element={<UserDashboardPage />} />
-            <Route path="profile" element={<UserProfilePage />} />
-            <Route path="settings" element={<UserSettingsPage />} />
-            <Route path="products" element={<ProductsDashboardPage />} />
+            <Route
+              path={pageRoutes.dashboard}
+              element={<UserDashboardPage />}
+            />
+            <Route path={pageRoutes.profile} element={<UserProfilePage />} />
+            <Route path={pageRoutes.settings} element={<UserSettingsPage />} />
+            <Route
+              path={pageRoutes.products}
+              element={<ProductsDashboardPage />}
+            />
           </Route>
 
           {isAuthenticated ? (
             <Route
-              path="/"
-              element={<PrivateRoute redirect="/privacy-policy" />}
+              path={pageRoutes.home}
+              element={
+                <PrivateRoute redirect={`${pageRoutes.privacyPolicy}`} />
+              }
             >
               <Route
-                path="privacy-policy"
+                path={pageRoutes.contact}
                 element={<UserPrivacyPolicyPage />}
               />
             </Route>
           ) : (
-            <Route path="/">
-              <Route path="privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path={pageRoutes.home}>
+              <Route
+                path={pageRoutes.privacyPolicy}
+                element={<PrivacyPolicyPage />}
+              />
             </Route>
           )}
 
