@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 
-const UserDashboard = () => {
+const UserDashboardPage = () => {
   return (
     <>
       <Helmet>
@@ -11,4 +11,4 @@ const UserDashboard = () => {
   );
 };
 
-export { UserDashboard };
+export { UserDashboardPage };

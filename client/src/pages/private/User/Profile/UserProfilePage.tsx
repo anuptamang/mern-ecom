@@ -1,12 +1,12 @@
 import { Helmet } from 'react-helmet-async';
 
-export const UserSettings = () => {
+export const UserProfilePage = () => {
   return (
     <>
       <Helmet>
-        <title>User UserSettings | My App</title>
+        <title>User UserProfile | My App</title>
       </Helmet>
-      UserSettings
+      User
     </>
   );
 };

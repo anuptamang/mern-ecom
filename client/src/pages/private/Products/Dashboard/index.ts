@@ -1,1 +1,1 @@
-export { ProductsDashboard as default } from './ProductsDashboard';
+export { ProductsDashboardPage as default } from './ProductsDashboardPage';
