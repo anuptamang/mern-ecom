@@ -1,4 +1,4 @@
-import { Loading } from 'components';
+import { Container, Loading } from 'components';
 import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { fetchProducts } from 'redux/action/products';
@@ -25,8 +25,10 @@ const HomePage = () => {
       <Helmet>
         <title>Home | My Shop</title>
       </Helmet>
-      {status.success && JSON.stringify(productList)}
-      {status.loading && <Loading />}
+      <Container>
+        {status.success && JSON.stringify(productList)}
+        {status.loading && <Loading />}
+      </Container>
     </>
   );
 };

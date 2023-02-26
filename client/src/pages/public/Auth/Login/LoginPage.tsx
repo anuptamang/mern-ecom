@@ -1,6 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from 'hooks';
+import { Login } from 'features/Login';
 
 const LoginPage = () => {
   let auth = useAuth();
@@ -21,7 +22,7 @@ const LoginPage = () => {
         <title>Login | My App</title>
         <meta name="anup" />
       </Helmet>
-      {/* <Login /> */}
+      <Login />
     </>
   );
 };

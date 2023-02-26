@@ -1,6 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from 'hooks';
+import { Container } from 'components';
 
 const RegisterPage = () => {
   let auth = useAuth();
@@ -20,7 +21,9 @@ const RegisterPage = () => {
       <Helmet>
         <title>Register | My App</title>
       </Helmet>
-      Auth Register
+      <Container>
+        <h1>Register Page</h1>
+      </Container>
     </>
   );
 };

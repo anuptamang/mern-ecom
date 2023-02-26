@@ -1,3 +1,4 @@
+import { Container } from 'components';
 import { Helmet } from 'react-helmet-async';
 
 const ContactPage = () => {
@@ -6,7 +7,9 @@ const ContactPage = () => {
       <Helmet>
         <title>Contact | My App</title>
       </Helmet>
-      ContactPage
+      <Container>
+        <h1>Contact Page</h1>
+      </Container>
     </>
   );
 };

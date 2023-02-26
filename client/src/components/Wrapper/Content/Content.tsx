@@ -9,7 +9,7 @@ type Props = {
 export const Content = ({ children }: Props) => {
   return (
     <>
-      <ContentLayout>
+      <ContentLayout style={{ paddingTop: '80px', paddingBottom: '80px' }}>
         <Suspense fallback={<Loading />}>
           {children ? children : <Outlet />}
         </Suspense>

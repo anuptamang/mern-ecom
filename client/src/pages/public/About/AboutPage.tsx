@@ -1,4 +1,4 @@
-import React from 'react';
+import { Container } from 'components';
 import { Helmet } from 'react-helmet-async';
 
 export const AboutPage = () => {
@@ -7,7 +7,9 @@ export const AboutPage = () => {
       <Helmet>
         <title>About | My App</title>
       </Helmet>
-      <h1>About Page</h1>
+      <Container>
+        <h1>About Page</h1>
+      </Container>
     </>
   );
 };

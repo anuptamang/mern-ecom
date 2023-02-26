@@ -1,3 +1,4 @@
+import { Container } from 'components';
 import { Helmet } from 'react-helmet-async';
 
 const PrivacyPolicyPage = () => {
@@ -6,7 +7,9 @@ const PrivacyPolicyPage = () => {
       <Helmet>
         <title>Privacy Policy | My App</title>
       </Helmet>
-      <mark>Public Privacy Policy</mark>
+      <Container>
+        <h1>Privacy policy Page</h1>
+      </Container>
     </>
   );
 };

@@ -1,6 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from 'hooks';
+import { Container } from 'components';
 
 const ForgotPage = () => {
   let auth = useAuth();
@@ -20,7 +21,9 @@ const ForgotPage = () => {
       <Helmet>
         <title>Forgot Password | My App</title>
       </Helmet>
-      Auth forgot
+      <Container>
+        <h1>Forgot Page</h1>
+      </Container>
     </>
   );
 };
