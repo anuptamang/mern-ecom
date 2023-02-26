@@ -16,6 +16,8 @@ type TPageRoutes = {
   dashboard: string,
   profile: string,
   settings: string,
+  carts: string,
+  userCarts: string,
 }
 
 export const pageRoutes: TPageRoutes = {
@@ -31,9 +33,11 @@ export const pageRoutes: TPageRoutes = {
   dashboard: 'dashboard',
   profile: 'profile',
   settings: 'settings',
+  carts: 'carts',
   userDashboard: 'user/dashboard',
   userProfile: 'user/profile',
   userSettings: 'user/settings',
   userProducts: 'user/products',
   userPrivacyPolicy: 'user/privacy-policy',
+  userCarts: 'user/carts',
 }

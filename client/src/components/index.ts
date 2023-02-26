@@ -5,5 +5,5 @@ export * from './Header';
 export * from './Logo';
 export * from './Nav';
 export * from './UI';
-export * from './UserMenu';
+export * from '../features/UserMenu';
 export * from './Wrapper';
