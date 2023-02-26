@@ -2,6 +2,9 @@ import { Helmet } from 'react-helmet-async';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from 'hooks';
 import { Container } from 'components';
+import { pageRoutes } from 'data/static/pageRoutes';
+import { Col, Row } from 'antd';
+import { RegisterForm } from 'features/RegisterForm';
 
 const RegisterPage = () => {
   let auth = useAuth();
@@ -13,7 +16,11 @@ const RegisterPage = () => {
     // along to that page after they login, which is a nicer user experience
     // than dropping them off on the home page.
     return (
-      <Navigate to={'/user/dashboard'} state={{ from: location }} replace />
+      <Navigate
+        to={`/${pageRoutes.userDashboard}`}
+        state={{ from: location }}
+        replace
+      />
     );
   }
   return (
@@ -22,7 +29,11 @@ const RegisterPage = () => {
         <title>Register | My App</title>
       </Helmet>
       <Container>
-        <h1>Register Page</h1>
+        <Row justify={'center'}>
+          <Col md={10}>
+            <RegisterForm />
+          </Col>
+        </Row>
       </Container>
     </>
   );

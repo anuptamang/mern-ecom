@@ -16,19 +16,14 @@ const LoginForm = (props: TProps) => {
 
   return (
     <>
-      <Form
-        name="normal_login"
-        className="login-form"
-        initialValues={{ remember: true }}
-        onFinish={onFinish}
-      >
+      <Form initialValues={{ remember: true }} onFinish={onFinish}>
         <Form.Item
-          name="username"
-          rules={[{ required: true, message: 'Please input your Username!' }]}
+          name="email"
+          rules={[{ required: true, message: 'Please input your Email!' }]}
         >
           <Input
             prefix={<UserOutlined className="site-form-item-icon" />}
-            placeholder="Username"
+            placeholder="Email"
           />
         </Form.Item>
         <Form.Item
@@ -54,7 +49,6 @@ const LoginForm = (props: TProps) => {
             style={{ marginRight: '10px', display: 'inline-block' }}
             type="primary"
             htmlType="submit"
-            className="login-form-button"
             loading={loading}
           >
             Login

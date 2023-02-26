@@ -2,13 +2,14 @@ import { JSXElementConstructor, ReactElement } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { useAuth } from 'hooks';
 import { Admin } from 'layouts';
+import { pageRoutes } from 'data/static/pageRoutes';
 
 interface Iprops {
   children?: ReactElement<any, string | JSXElementConstructor<any>> | undefined;
   redirect?: string;
 }
 
-function PrivateRoute({ children, redirect = '/login' }: Iprops) {
+function PrivateRoute({ children, redirect = `/${pageRoutes.login}` }: Iprops) {
   let auth = useAuth();
   let location = useLocation();
 
