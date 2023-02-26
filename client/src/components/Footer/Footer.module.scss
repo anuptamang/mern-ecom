@@ -3,4 +3,12 @@
 .footer {
   background: $blue-800 !important;
   color: $white !important;
+
+  a {
+    color: inherit;
+
+    &:hover {
+      color: $blue;
+    }
+  }
 }

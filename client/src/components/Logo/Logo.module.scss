@@ -1,10 +1,17 @@
 @import 'assets/styles/variables';
 
 .logo {
-  color: $blue;
+  color: $white;
+  padding: 2px 10px;
+  background: $purple;
+  width: 140px;
+  transform: skewX(-10deg);
+  text-align: center;
 
   a {
     color: inherit;
     font-weight: bold;
+    font-size: 20px;
+    line-height: 1;
   }
 }

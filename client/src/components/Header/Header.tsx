@@ -19,7 +19,6 @@ export const Header = (props: Props) => {
                 style={{
                   display: 'flex',
                   justifyContent: 'flex-end',
-                  alignItems: 'center',
                 }}
               >
                 <Nav />
