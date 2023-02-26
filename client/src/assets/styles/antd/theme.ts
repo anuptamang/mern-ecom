@@ -12,7 +12,7 @@ export const theme = {
     colorPrimary: colors.blue,
     colorSecondary: colors.purple,
     colorPrimaryBg: colors.purple,
-    colorLink: colors.blue,
+    colorLink: colors.purple,
     colorText: colors.black,
     fontSize: 16,
     fontFamily: "Mulish, sans-serif"

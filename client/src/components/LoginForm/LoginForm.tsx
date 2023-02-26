@@ -1,12 +1,19 @@
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Checkbox, Form, Input } from 'antd';
+import { pageRoutes } from 'data/static/pageRoutes';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 type TProps = {};
 
 const LoginForm = (props: TProps) => {
+  const [loading, setLoading] = useState(false);
+
   const onFinish = (values: any) => {
+    setLoading(true);
     console.log('Received values of form: ', values);
   };
+
   return (
     <>
       <Form
@@ -39,20 +46,20 @@ const LoginForm = (props: TProps) => {
             <Checkbox>Remember me</Checkbox>
           </Form.Item>
 
-          <a className="login-form-forgot" href="">
-            Forgot password
-          </a>
+          <Link to={`/${pageRoutes.forgotPassword}`}>Forgot Password!</Link>
         </Form.Item>
 
         <Form.Item>
           <Button
+            style={{ marginRight: '10px', display: 'inline-block' }}
             type="primary"
             htmlType="submit"
             className="login-form-button"
+            loading={loading}
           >
-            Log in
+            Login
           </Button>
-          Or <a href="">register now!</a>
+          Or <Link to={`/${pageRoutes.register}`}>Register Now!</Link>
         </Form.Item>
       </Form>
     </>

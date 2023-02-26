@@ -31,7 +31,6 @@ export const pageRoutes: TPageRoutes = {
   dashboard: 'dashboard',
   profile: 'profile',
   settings: 'settings',
-
   userDashboard: 'user/dashboard',
   userProfile: 'user/profile',
   userSettings: 'user/settings',
