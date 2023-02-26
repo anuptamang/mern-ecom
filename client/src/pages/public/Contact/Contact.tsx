@@ -1,14 +1,14 @@
 import { Helmet } from 'react-helmet-async';
 
-const Contact = () => {
+const ContactPage = () => {
   return (
     <>
       <Helmet>
         <title>Contact | My App</title>
       </Helmet>
-      Contact
+      ContactPage
     </>
   );
 };
 
-export { Contact };
+export { ContactPage };

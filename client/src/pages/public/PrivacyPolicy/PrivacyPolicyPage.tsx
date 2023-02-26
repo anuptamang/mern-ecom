@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 
-const PrivacyPolicy = () => {
+const PrivacyPolicyPage = () => {
   return (
     <>
       <Helmet>
@@ -11,4 +11,4 @@ const PrivacyPolicy = () => {
   );
 };
 
-export { PrivacyPolicy };
+export { PrivacyPolicyPage };

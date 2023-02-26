@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from 'hooks';
 
-const Login = () => {
+const RegisterPage = () => {
   let auth = useAuth();
   let location = useLocation();
 
@@ -18,11 +18,11 @@ const Login = () => {
   return (
     <>
       <Helmet>
-        <title>Login | My App</title>
+        <title>Register | My App</title>
       </Helmet>
-      Auth Login
+      Auth Register
     </>
   );
 };
 
-export { Login };
+export { RegisterPage };
