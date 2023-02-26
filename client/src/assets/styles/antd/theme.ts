@@ -1,3 +1,4 @@
+import { ThemeConfig } from "antd"
 
 const colors = {
   blue: '#32a0d9',
@@ -7,10 +8,10 @@ const colors = {
 }
 
 
-export const theme = {
+export const theme: ThemeConfig = {
+
   token: {
     colorPrimary: colors.blue,
-    colorSecondary: colors.purple,
     colorPrimaryBg: colors.purple,
     colorLink: colors.purple,
     colorText: colors.black,

@@ -1,7 +1,7 @@
 import { Col, Row } from 'antd';
-import { Container, HeaderLayout } from 'components/UI';
 import { Logo, Nav } from 'components';
-import { UserMenu } from 'components/UserMenu/UserMenu';
+import { Container, HeaderLayout } from 'components/UI';
+import { UserPanel } from 'features/UserMenu/UserPanel';
 
 type Props = {};
 
@@ -22,7 +22,7 @@ export const Header = (props: Props) => {
                 }}
               >
                 <Nav />
-                <UserMenu />
+                <UserPanel />
               </div>
             </Col>
           </Row>
