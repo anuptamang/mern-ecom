@@ -1,6 +1,6 @@
 import React from 'react';
-import { ChildrenProps } from 'types';
+import { IChildren } from 'types';
 
-export const AdminContent = ({ children }: ChildrenProps) => {
+export const AdminContent = ({ children }: IChildren) => {
   return <div>{children}</div>;
 };

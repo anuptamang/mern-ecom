@@ -1,5 +1,4 @@
 import { Button, Checkbox, Form, Input } from 'antd';
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { register } from 'redux/action/auth/authAction';
 import { authSelector } from 'redux/slice';

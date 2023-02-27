@@ -1,4 +1,4 @@
-import { IProduct } from "./productSliceTypes";
+import { IProduct } from "../products/productSliceTypes";
 
 export interface ICartSlice {
   items: IProduct[];

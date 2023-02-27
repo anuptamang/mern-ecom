@@ -7,7 +7,7 @@ type TProps = {};
 const ForgotForm = (props: TProps) => {
   const [loading, setLoading] = useState(false);
 
-  const onFinish = (values: any) => {
+  const onFinish = (values: string) => {
     setLoading(true);
     console.log('Received values of form: ', values);
   };

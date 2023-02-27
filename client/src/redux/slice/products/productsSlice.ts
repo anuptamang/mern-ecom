@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { fetchProducts } from 'redux/action/products'
-import { IProductSlice } from 'types/store/productSliceTypes'
+import { IProductSlice } from 'types/store/products/productSliceTypes'
 
 const initialState: IProductSlice = {
   productList: {

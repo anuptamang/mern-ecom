@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-import { IProductsFilterSlice } from "types/store/productsFilterSliceTypes"
+import { IProductsFilterSlice } from "types/store/products/productsFilterSliceTypes"
 
 const initialState: IProductsFilterSlice = {
   category: '',
