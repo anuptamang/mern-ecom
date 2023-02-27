@@ -1,12 +1,12 @@
 import { Container } from 'components';
-import { Helmet } from 'react-helmet-async';
+import { usePageTitle } from 'hooks/usePageTitle';
+import { ReactNode } from 'react';
 
 export const AboutPage = () => {
+  const title: ReactNode = usePageTitle();
   return (
     <>
-      <Helmet>
-        <title>About | My App</title>
-      </Helmet>
+      {title}
       <Container>
         <h1>About Page</h1>
       </Container>

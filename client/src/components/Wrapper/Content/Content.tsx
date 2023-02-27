@@ -1,19 +1,14 @@
-import { ContentLayout, Loading } from 'components';
-import { ReactElement, Suspense } from 'react';
+import { Loading } from 'components';
+import { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
+import { IChildren } from 'types';
 
-type Props = {
-  children?: ReactElement;
-};
-
-export const Content = ({ children }: Props) => {
+export const Content = ({ children }: IChildren) => {
   return (
     <>
-      <ContentLayout style={{ paddingTop: '80px', paddingBottom: '80px' }}>
-        <Suspense fallback={<Loading />}>
-          {children ? children : <Outlet />}
-        </Suspense>
-      </ContentLayout>
+      <Suspense fallback={<Loading />}>
+        {children ? children : <Outlet />}
+      </Suspense>
     </>
   );
 };

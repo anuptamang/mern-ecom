@@ -7,7 +7,7 @@ type Iprops = {
   children?: ReactElement;
 };
 
-const General = ({ children }: Iprops) => {
+const GeneralLayout = ({ children }: Iprops) => {
   return (
     <>
       <Layout
@@ -21,14 +21,14 @@ const General = ({ children }: Iprops) => {
         }}
       >
         <Header />
-        <Layout
+        <div
           style={{
             flexGrow: 1,
             width: '100%',
           }}
         >
           <Content>{children}</Content>
-        </Layout>
+        </div>
         <Footer />
         <ToastContainer />
       </Layout>
@@ -36,4 +36,4 @@ const General = ({ children }: Iprops) => {
   );
 };
 
-export { General };
+export { GeneralLayout };

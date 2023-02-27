@@ -1,3 +1,4 @@
+export * from './capitalizeText';
 export * from './debounce';
 export * from './delay';
 export * from './getUsername';
