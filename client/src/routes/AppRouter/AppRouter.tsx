@@ -75,7 +75,7 @@ const AppRouter = () => {
               }
             >
               <Route
-                path={pageRoutes.contact}
+                path={pageRoutes.privacyPolicy}
                 element={<UserPrivacyPolicyPage />}
               />
             </Route>

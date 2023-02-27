@@ -1,3 +1,5 @@
+import { IStatus } from "types/status/statusTypes";
+
 export interface IProduct {
   id: number;
   title: string;
@@ -13,14 +15,10 @@ export interface IProductSlice {
     currentPage: number | null;
     numberOfPages: number
   };
-  status: IProductSliceStatus;
+  status: IStatus;
 }
 
-export interface IProductSliceStatus {
-  loading: boolean;
-  success: boolean;
-  error: boolean;
-}
+
 
 export interface IProductSliceParams {
   category: string

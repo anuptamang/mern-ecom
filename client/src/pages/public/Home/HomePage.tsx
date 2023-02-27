@@ -16,8 +16,8 @@ const HomePage = () => {
     }
   }, [category, dispatch, productList.data.length]);
 
-  if (status.error) {
-    return <div>Error</div>;
+  if (status.error.message) {
+    return <div>{status.error.message}</div>;
   }
 
   return (

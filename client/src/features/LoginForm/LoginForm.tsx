@@ -1,17 +1,20 @@
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Checkbox, Form, Input } from 'antd';
 import { pageRoutes } from 'data/static/pageRoutes';
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { login } from 'redux/action/auth/authAction';
+import { authSelector } from 'redux/slice';
+import { useAppDispatch, useAppSelector } from 'redux/store';
+import { ILogin } from 'types/store/auth/authSliceTypes';
 
 type TProps = {};
 
 const LoginForm = (props: TProps) => {
-  const [loading, setLoading] = useState(false);
+  const dispatch = useAppDispatch();
+  const { status } = useAppSelector(authSelector);
 
-  const onFinish = (values: any) => {
-    setLoading(true);
-    console.log('Received values of form: ', values);
+  const onFinish = (values: ILogin) => {
+    dispatch(login({ email: values.email, password: values.password }));
   };
 
   return (
@@ -49,7 +52,7 @@ const LoginForm = (props: TProps) => {
             style={{ marginRight: '10px', display: 'inline-block' }}
             type="primary"
             htmlType="submit"
-            loading={loading}
+            loading={status.loading}
           >
             Login
           </Button>

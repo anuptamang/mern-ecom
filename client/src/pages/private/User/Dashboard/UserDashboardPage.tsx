@@ -4,7 +4,7 @@ const UserDashboardPage = () => {
   return (
     <>
       <Helmet>
-        <title>User UserDashboard | My App</title>
+        <title>User | My App</title>
       </Helmet>
       UserDashboard section
     </>
