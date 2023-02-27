@@ -3,8 +3,9 @@ import { Avatar, Badge, Button, Dropdown, MenuProps, theme } from 'antd';
 import { LinkButton, List } from 'components/UI';
 import { pageRoutes } from 'data/static/pageRoutes';
 import { useAuth } from 'hooks';
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { signOut } from 'redux/slice';
+import { useAppDispatch } from 'redux/store';
 
 const { useToken } = theme;
 
@@ -13,11 +14,10 @@ type Props = {};
 export const UserPanel = (props: Props) => {
   const { token } = useToken();
   const auth = useAuth();
-  const [loading, setLoading] = useState(false);
+  const dispatch = useAppDispatch();
 
   const handleLogout = () => {
-    setLoading(true);
-    //
+    dispatch(signOut());
   };
 
   const items: MenuProps['items'] = [
@@ -36,7 +36,7 @@ export const UserPanel = (props: Props) => {
     {
       key: '4',
       label: (
-        <Button onClick={handleLogout} loading={loading} type="primary">
+        <Button onClick={handleLogout} type="primary">
           Logout
         </Button>
       ),

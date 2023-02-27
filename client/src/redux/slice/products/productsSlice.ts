@@ -11,7 +11,9 @@ const initialState: IProductSlice = {
   status: {
     loading: false,
     success: false,
-    error: false
+    error: {
+      message: ''
+    }
   }
 }
 
@@ -21,14 +23,16 @@ const productsSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder.addCase(fetchProducts.pending, (state) => {
-      state.status = { ...state.status, loading: true };
+      state.status.loading = true;
     });
     builder.addCase(fetchProducts.fulfilled, (state, action) => {
       state.productList = { ...state.productList, ...action.payload };
-      state.status = { ...state.status, loading: false, success: true };
+      state.status.loading = false;
+      state.status.success = true;
     });
-    builder.addCase(fetchProducts.rejected, (state) => {
-      state.status = { ...state.status, error: true };
+    builder.addCase(fetchProducts.rejected, (state, action) => {
+      state.status.loading = false;
+      state.status.error.message = action.error.message;
     });
   }
 })
