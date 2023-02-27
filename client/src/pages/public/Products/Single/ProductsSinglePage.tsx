@@ -1,14 +1,15 @@
 import { Container } from 'components';
-import { Helmet } from 'react-helmet-async';
+import { usePageTitle } from 'hooks/usePageTitle';
+import { ReactNode } from 'react';
 
 type Props = {};
 
 const ProductsSinglePage = (props: Props) => {
+  const title: ReactNode = usePageTitle();
+
   return (
     <>
-      <Helmet>
-        <title>Product Single | My App</title>
-      </Helmet>
+      {title}
       <Container>
         <h1>Product Single Page</h1>
       </Container>

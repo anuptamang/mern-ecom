@@ -1,8 +1,8 @@
 import { JSXElementConstructor, ReactElement } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { useAuth } from 'hooks';
-import { Admin } from 'layouts';
 import { pageRoutes } from 'data/static/pageRoutes';
+import { PrivateLayout } from 'layouts';
 
 interface Iprops {
   children?: ReactElement<any, string | JSXElementConstructor<any>> | undefined;
@@ -21,7 +21,7 @@ function PrivateRoute({ children, redirect = `/${pageRoutes.login}` }: Iprops) {
     return <Navigate to={redirect} state={{ from: location }} replace />;
   }
 
-  return <Admin>{children ? children : <Outlet />}</Admin>;
+  return <PrivateLayout>{children ? children : <Outlet />}</PrivateLayout>;
 }
 
 export { PrivateRoute };

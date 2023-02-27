@@ -5,5 +5,4 @@ export * from './LinkButton';
 export * from './List';
 export * from './Loading';
 export * from './ScrollToTop';
-export * from './Sidebar';
 export * from './Typography';

@@ -1,11 +1,14 @@
 import { Container, Loading } from 'components';
-import { useEffect } from 'react';
+import { usePageTitle } from 'hooks/usePageTitle';
+import { ReactNode, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { fetchProducts } from 'redux/action/products';
 import { productsFilterSelector, productsSelector } from 'redux/slice';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 
 const HomePage = () => {
+  const title: ReactNode = usePageTitle();
+
   const dispatch = useAppDispatch();
   const { productList, status } = useAppSelector(productsSelector);
   const { category } = useAppSelector(productsFilterSelector);
@@ -22,9 +25,7 @@ const HomePage = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Home | My Shop</title>
-      </Helmet>
+      {title}
       <Container>
         {status.success && JSON.stringify(productList)}
         {status.loading && <Loading />}

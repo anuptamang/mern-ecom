@@ -4,7 +4,7 @@ import { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import PrivateRoute from 'routes/PrivateRoute';
 
-const General = lazy(() => import('layouts/General'));
+const GeneralLayout = lazy(() => import('layouts/General'));
 
 const HomePage = lazy(() => import('pages/public/Home'));
 const ContactPage = lazy(() => import('pages/public/Contact'));
@@ -34,7 +34,7 @@ const AppRouter = () => {
   return (
     <Suspense fallback={null}>
       <Routes>
-        <Route path={pageRoutes.home} element={<General />}>
+        <Route path={pageRoutes.home} element={<GeneralLayout />}>
           <Route index element={<HomePage />} />
           <Route path={pageRoutes.contact} element={<ContactPage />} />
           <Route path={pageRoutes.about} element={<AboutPage />} />

@@ -1,12 +1,11 @@
-import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import { usePageTitle } from 'hooks/usePageTitle';
 
 export const UserPrivacyPolicyPage = () => {
+  const title = usePageTitle();
+
   return (
     <>
-      <Helmet>
-        <title>Privacy Policy | My App</title>
-      </Helmet>
+      {title}
       <h1>Private Privacy Policy</h1>
     </>
   );

@@ -1,2 +1,2 @@
-export * from './Admin/AdminLayout';
+export * from './Private/PrivateLayout';
 export * from './General/GeneralLayout';
