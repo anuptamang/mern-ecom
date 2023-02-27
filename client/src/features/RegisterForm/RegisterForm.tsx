@@ -1,6 +1,9 @@
 import { Button, Checkbox, Form, Input } from 'antd';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { register } from 'redux/action/auth/authAction';
+import { authSelector } from 'redux/slice';
+import { useAppDispatch, useAppSelector } from 'redux/store';
 
 const formItemLayout = {
   labelCol: {
@@ -29,12 +32,22 @@ const tailFormItemLayout = {
 type TProps = {};
 
 const RegisterForm = (props: TProps) => {
-  const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const dispatch = useAppDispatch();
+  const {
+    status: { loading },
+  } = useAppSelector(authSelector);
 
   const onFinish = (values: any) => {
-    setLoading(true);
-    console.log('Received values of form: ', values);
+    dispatch(
+      register({
+        email: values.email,
+        password: values.password,
+        confirmPassword: values.confirmPassword,
+        firstName: values.firstName,
+        lastName: values.lastName,
+      })
+    );
   };
 
   return (
