@@ -1,5 +1,5 @@
-import { ChildrenProps } from 'types';
+import { IChildren } from 'types';
 
-export const Sidebar = ({ children }: ChildrenProps) => {
+export const Sidebar = ({ children }: IChildren) => {
   return <div>{children}</div>;
 };

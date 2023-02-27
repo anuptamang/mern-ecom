@@ -1,4 +1,4 @@
-import { GenericObject } from "types";
+import { IGenericObject } from "types";
 
 export function loadState(KEY: string) {
   try {
@@ -10,7 +10,7 @@ export function loadState(KEY: string) {
   }
 }
 
-export async function saveState(state: GenericObject, KEY: string) {
+export async function saveState(state: IGenericObject, KEY: string) {
   try {
     const serializedState = JSON.stringify(state);
     localStorage.setItem(KEY, serializedState);

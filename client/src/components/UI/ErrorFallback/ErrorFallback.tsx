@@ -1,8 +1,8 @@
 import { ReactNode } from 'react';
-import { GenericObject } from 'types';
+import { IGenericObject } from 'types';
 
 interface IErrorFallback {
-  error: GenericObject<ReactNode>;
+  error: IGenericObject<ReactNode>;
   resetErrorBoundary?: () => void;
 }
 

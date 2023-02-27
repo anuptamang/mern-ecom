@@ -1,4 +1,4 @@
-type TPageRoutes = {
+interface IPageRoutes {
   home: string,
   about: string,
   products: string,
@@ -20,7 +20,7 @@ type TPageRoutes = {
   userCarts: string,
 }
 
-export const pageRoutes: TPageRoutes = {
+export const pageRoutes: IPageRoutes = {
   home: '/',
   about: 'about',
   products: 'products',
