@@ -10,7 +10,14 @@ import { pageRoutes } from 'data/static/pageRoutes';
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-export const SidePanel = () => {
+/**
+ * This is the user side panel component, which displays user dashboard, profile, store, carts and settings links.
+ * @component feature
+ * @param props none
+ * @returns User side panel component
+ */
+
+export const UserSidePanel = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [current, setCurrent] = useState(location?.pathname);

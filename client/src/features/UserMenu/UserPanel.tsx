@@ -12,6 +12,13 @@ const { useToken } = theme;
 
 type Props = {};
 
+/**
+ * This is the UserPanel component, which displays login button when user is not logged in. Otherwise, it displays cart icon and user avatar with dropdown menu.
+ * @component feature
+ * @param props none
+ * @returns User Panel component
+ */
+
 export const UserPanel = (props: Props) => {
   const { token } = useToken();
   const auth = useAuth();
