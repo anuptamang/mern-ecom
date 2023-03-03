@@ -1,14 +1,15 @@
-import { Helmet } from 'react-helmet-async';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from 'hooks';
+import { Col, Row } from 'antd';
+import { Container } from 'components';
 import { pageRoutes } from 'data/static/pageRoutes';
 import { LoginForm } from 'features';
-import { Container } from 'components';
-import { Col, Row } from 'antd';
+import { useAuth } from 'hooks';
+import { usePageTitle } from 'hooks/usePageTitle';
+import { Navigate, useLocation } from 'react-router-dom';
 
 const LoginPage = () => {
   let auth = useAuth();
   let location = useLocation();
+  const title = usePageTitle();
 
   if (auth?.token) {
     // Redirect them to the /login page, but save the current location they were
@@ -25,10 +26,8 @@ const LoginPage = () => {
   }
   return (
     <>
-      <Helmet>
-        <title>Login | My App</title>
-      </Helmet>
-      <Container>
+      {title}
+      <Container style={{ paddingTop: '50px', paddingBottom: '50px' }}>
         <Row justify={'center'}>
           <Col md={10}>
             <LoginForm />

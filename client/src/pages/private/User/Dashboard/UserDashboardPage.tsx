@@ -1,13 +1,11 @@
-import { usePageTitle } from 'hooks/usePageTitle';
-import { ReactNode } from 'react';
 import { Helmet } from 'react-helmet-async';
 
 const UserDashboardPage = () => {
-  const title: ReactNode = usePageTitle();
-
   return (
     <>
-      {title}
+      <Helmet>
+        <title>User Dashboard | My App</title>
+      </Helmet>
       UserDashboard section
     </>
   );

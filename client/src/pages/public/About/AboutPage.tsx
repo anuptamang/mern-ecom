@@ -7,7 +7,7 @@ export const AboutPage = () => {
   return (
     <>
       {title}
-      <Container>
+      <Container style={{ paddingTop: '50px' }}>
         <h1>About Page</h1>
       </Container>
     </>
