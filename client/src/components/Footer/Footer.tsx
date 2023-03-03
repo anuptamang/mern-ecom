@@ -5,9 +5,14 @@ import styles from './Footer.module.scss';
 import { pageRoutes } from 'data/static/pageRoutes';
 import { siteInfo } from 'configs/site';
 
-type Props = {};
+/**
+ * Component - Footer
+ * @component
+ * @props none
+ * @returns {JSX.Element}   Footer
+ */
 
-export const Footer = (props: Props) => {
+export const Footer = (): JSX.Element => {
   return (
     <FooterLayout className={styles.footer}>
       <List style={{ justifyContent: 'center' }}>

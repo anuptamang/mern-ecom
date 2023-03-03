@@ -13,7 +13,7 @@ export interface IRegister extends ILogin {
 }
 
 export interface IAuthSlice {
-  result: {} | IUser,
+  result: IUser,
   token: string,
   status: IStatus
 }

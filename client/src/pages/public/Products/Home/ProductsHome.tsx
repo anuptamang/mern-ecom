@@ -1,21 +1,20 @@
 import { Container } from 'components';
 import { usePageTitle } from 'hooks/usePageTitle';
-import { ReactNode } from 'react';
 import styles from 'assets/styles/Common.module.scss';
 
-type Props = {};
+type TProps = {};
 
-const ProductsSinglePage = (props: Props) => {
-  const title: ReactNode = usePageTitle();
+const ProductsHome = (props: TProps) => {
+  const title = usePageTitle();
 
   return (
     <>
       {title}
       <Container className={styles.pageContainer}>
-        <h1>Product Single Page</h1>
+        <h1>All Products</h1>
       </Container>
     </>
   );
 };
 
-export { ProductsSinglePage };
+export { ProductsHome };

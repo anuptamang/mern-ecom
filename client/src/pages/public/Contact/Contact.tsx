@@ -1,13 +1,14 @@
+import styles from 'assets/styles/Common.module.scss';
 import { Container } from 'components';
-import { Helmet } from 'react-helmet-async';
+import { usePageTitle } from 'hooks/usePageTitle';
 
 const ContactPage = () => {
+  const title = usePageTitle();
+
   return (
     <>
-      <Helmet>
-        <title>Contact | My App</title>
-      </Helmet>
-      <Container>
+      {title}
+      <Container className={styles.pageContainer}>
         <h1>Contact Page</h1>
       </Container>
     </>

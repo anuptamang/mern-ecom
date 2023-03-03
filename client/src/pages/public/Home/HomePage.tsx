@@ -1,10 +1,10 @@
 import { Container, Loading } from 'components';
 import { usePageTitle } from 'hooks/usePageTitle';
 import { ReactNode, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { fetchProducts } from 'redux/action/products';
 import { productsFilterSelector, productsSelector } from 'redux/slice';
 import { useAppDispatch, useAppSelector } from 'redux/store';
+import styles from 'assets/styles/Common.module.scss';
 
 const HomePage = () => {
   const title: ReactNode = usePageTitle();
@@ -26,7 +26,7 @@ const HomePage = () => {
   return (
     <>
       {title}
-      <Container>
+      <Container className={styles.pageContainer}>
         {status.success && JSON.stringify(productList)}
         {status.loading && <Loading />}
       </Container>

@@ -1,13 +1,14 @@
 import { Container } from 'components';
 import { usePageTitle } from 'hooks/usePageTitle';
 import { ReactNode } from 'react';
+import styles from 'assets/styles/Common.module.scss';
 
 export const AboutPage = () => {
   const title: ReactNode = usePageTitle();
   return (
     <>
       {title}
-      <Container style={{ paddingTop: '50px' }}>
+      <Container className={styles.pageContainer}>
         <h1>About Page</h1>
       </Container>
     </>

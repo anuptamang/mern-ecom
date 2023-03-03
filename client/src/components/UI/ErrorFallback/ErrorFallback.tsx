@@ -6,6 +6,12 @@ interface IErrorFallback {
   resetErrorBoundary?: () => void;
 }
 
+/**
+ * Component - Error Boundary Fallback
+ * @props {error} IErrorFallback
+ * @returns {JSX.Element}   Error Boundary Fallback Component
+ */
+
 export const ErrorFallback = ({ error }: IErrorFallback) => {
   return (
     <div>
