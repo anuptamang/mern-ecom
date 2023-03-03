@@ -3,9 +3,14 @@ import { Logo, Nav } from 'components';
 import { Container, HeaderLayout } from 'components/UI';
 import { UserPanel } from 'features/UserMenu/UserPanel';
 
-type Props = {};
+/**
+ * Component - Header
+ * @component
+ * @props none
+ * @returns {JSX.Element}   Header
+ */
 
-export const Header = (props: Props) => {
+export const Header = (): JSX.Element => {
   return (
     <>
       <HeaderLayout style={{ paddingInline: 0, height: 'auto' }}>

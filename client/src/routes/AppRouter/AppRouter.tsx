@@ -14,6 +14,7 @@ const RegisterPage = lazy(() => import('pages/public/Auth/Register'));
 const ForgotPasswordPage = lazy(() => import('pages/public/Auth/Forgot'));
 const PrivacyPolicyPage = lazy(() => import('pages/public/PrivacyPolicy'));
 const NotFoundPage = lazy(() => import('pages/public/NotFound'));
+const ProductsHome = lazy(() => import('pages/public/Products/Home'));
 const SingleProductPage = lazy(() => import('pages/public/Products/Single'));
 
 const UserPrivacyPolicyPage = lazy(
@@ -44,6 +45,7 @@ const AppRouter = () => {
             path={pageRoutes.forgotPassword}
             element={<ForgotPasswordPage />}
           />
+          <Route path={`${pageRoutes.products}`} element={<ProductsHome />} />
           <Route
             path={`${pageRoutes.products}/:id`}
             element={<SingleProductPage />}

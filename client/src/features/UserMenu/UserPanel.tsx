@@ -1,4 +1,4 @@
-import { ShoppingCartOutlined, UserOutlined } from '@ant-design/icons';
+import { ShoppingCartOutlined } from '@ant-design/icons';
 import { Avatar, Badge, Button, Dropdown, MenuProps, theme } from 'antd';
 import { LinkButton, List } from 'components/UI';
 import { pageRoutes } from 'data/static/pageRoutes';
@@ -6,6 +6,7 @@ import { useAuth } from 'hooks';
 import { Link } from 'react-router-dom';
 import { signOut } from 'redux/slice';
 import { useAppDispatch } from 'redux/store';
+import { getNameInitials } from 'utils';
 
 const { useToken } = theme;
 
@@ -43,6 +44,8 @@ export const UserPanel = (props: Props) => {
     },
   ];
 
+  auth?.result?.fullName && getNameInitials(auth?.result?.fullName);
+
   return (
     <>
       <List style={{ marginLeft: '10px' }}>
@@ -63,12 +66,14 @@ export const UserPanel = (props: Props) => {
             >
               <Avatar
                 src="https://joesch.me/api/v1/random"
-                icon={<UserOutlined />}
                 style={{
                   backgroundColor: token.colorPrimaryBg,
                   cursor: 'pointer',
                 }}
-              />
+              >
+                {auth?.result?.fullName &&
+                  getNameInitials(auth.result.fullName)}
+              </Avatar>
             </Dropdown>
           </li>
         ) : (

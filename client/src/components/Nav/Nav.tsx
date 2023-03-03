@@ -3,9 +3,14 @@ import { navData } from 'data/static/navData';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-type Props = {};
+/**
+ * Component - Nav
+ * @component
+ * @props none
+ * @returns {JSX.Element}   Nav
+ */
 
-const Nav = (props: Props) => {
+const Nav = (): JSX.Element => {
   const navigate = useNavigate();
   const location = useLocation();
   const [current, setCurrent] = useState(location?.pathname);

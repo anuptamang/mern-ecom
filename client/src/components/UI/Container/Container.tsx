@@ -1,14 +1,24 @@
-import { ReactNode } from 'react';
+import classNames from 'classnames';
+import { CSSProperties, ReactNode } from 'react';
 import styles from './Container.module.scss';
 
 type TContainer = {
   children: ReactNode | ReactNode[];
-  style?: React.CSSProperties;
+  className?: string;
+  style?: CSSProperties;
 };
 
-const Container = ({ children, style }: TContainer) => {
+/**
+ * Component - UI Container
+ * @component
+ * @props {children - required, style - optional}
+ * @returns {JSX.Element}   User Dashboard
+ */
+
+const Container = ({ children, style, className }: TContainer) => {
+  const classes = classNames(styles.container, className);
   return (
-    <div className={styles.container} style={{ ...style }}>
+    <div className={classes} style={{ ...style }}>
       {children}
     </div>
   );

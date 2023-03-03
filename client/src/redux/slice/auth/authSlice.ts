@@ -3,7 +3,13 @@ import { login, register } from "redux/action/auth/authAction";
 import { IAuthSlice } from "types/store/auth/authSliceTypes";
 
 const initialState: IAuthSlice = {
-  result: {},
+  result: {
+    email: "",
+    fullName: "",
+    password: "",
+    __v: 0,
+    _id: "",
+  },
   token: '',
   status: {
     loading: false,
