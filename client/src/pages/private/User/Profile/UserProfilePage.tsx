@@ -1,12 +1,25 @@
-import { Helmet } from 'react-helmet-async';
+import { useAuth } from 'hooks';
+import { usePageTitle } from 'hooks/usePageTitle';
+import { getUserName } from 'utils';
 
-export const UserProfilePage = () => {
+/**
+ * Component - User Profile Page
+ * @component
+ * @props  none
+ * @returns {JSX.Element}   User Profile
+ */
+
+const UserProfilePage = (): JSX.Element => {
+  const auth = useAuth();
+  const userName = getUserName(auth.result.email);
+  const title = usePageTitle();
+
   return (
     <>
-      <Helmet>
-        <title>User UserProfile | My App</title>
-      </Helmet>
-      User
+      {title}
+      Welcome {userName} !
     </>
   );
 };
+
+export { UserProfilePage };

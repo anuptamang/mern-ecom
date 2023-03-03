@@ -1,5 +1,5 @@
 import { useAuth } from 'hooks';
-import { Helmet } from 'react-helmet-async';
+import { usePageTitle } from 'hooks/usePageTitle';
 import { getUserName } from 'utils';
 
 /**
@@ -12,13 +12,12 @@ import { getUserName } from 'utils';
 const UserDashboardPage = (): JSX.Element => {
   const auth = useAuth();
   const userName = getUserName(auth.result.email);
+  const title = usePageTitle();
 
   return (
     <>
-      <Helmet>
-        <title>User Dashboard | My App</title>
-      </Helmet>
-      Welcome {userName}
+      {title}
+      Welcome {userName} !
     </>
   );
 };

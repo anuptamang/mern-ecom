@@ -1,6 +1,6 @@
 import { Layout } from 'antd';
 import { Container, ContentLayout, SiderLayout } from 'components';
-import { SidePanel } from 'features';
+import { UserSidePanel } from 'features';
 import { Outlet } from 'react-router';
 import { IChildren } from 'types';
 
@@ -10,7 +10,7 @@ const PrivateLayout = ({ children }: IChildren) => {
       <Container>
         <Layout>
           <SiderLayout style={{ borderRadius: 10, padding: 10 }}>
-            <SidePanel />
+            <UserSidePanel />
           </SiderLayout>
           <ContentLayout
             style={{

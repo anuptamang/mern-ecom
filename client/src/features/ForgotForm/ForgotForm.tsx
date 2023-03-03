@@ -2,9 +2,14 @@ import { UserOutlined } from '@ant-design/icons';
 import { Button, Form, Input } from 'antd';
 import { useState } from 'react';
 
-type TProps = {};
+/**
+ * This is the forgot password form, which takes email as an input and sends a submit request to the server.
+ * @component feature
+ * @param props none
+ * @returns Forgot password form component
+ */
 
-const ForgotForm = (props: TProps) => {
+const ForgotForm = () => {
   const [loading, setLoading] = useState(false);
 
   const onFinish = (values: string) => {

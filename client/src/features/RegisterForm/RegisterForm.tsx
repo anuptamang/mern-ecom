@@ -28,9 +28,14 @@ const tailFormItemLayout = {
   },
 };
 
-type TProps = {};
+/**
+ * This is the register form which takes email, password, confirm password, first name and last name as an input and sends a register request to the server.
+ * @component feature
+ * @param props none
+ * @returns Register form component
+ */
 
-const RegisterForm = (props: TProps) => {
+const RegisterForm = () => {
   const [form] = Form.useForm();
   const dispatch = useAppDispatch();
   const {

@@ -7,9 +7,14 @@ import { authSelector } from 'redux/slice';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 import { ILogin } from 'types/store/auth/authSliceTypes';
 
-type TProps = {};
+/**
+ * This is the login form, which takes email and password as an input and sends a logn request to the server.
+ * @component feature
+ * @param props none
+ * @returns Login form component
+ */
 
-const LoginForm = (props: TProps) => {
+const LoginForm = () => {
   const dispatch = useAppDispatch();
   const { status } = useAppSelector(authSelector);
 
