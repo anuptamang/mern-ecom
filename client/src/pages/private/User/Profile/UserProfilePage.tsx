@@ -1,23 +1,21 @@
-import { useAuth } from 'hooks';
+import { UserProfileDetails } from 'features/UserProfileDetails';
 import { usePageTitle } from 'hooks/usePageTitle';
-import { getUserName } from 'utils';
 
 /**
- * Component - User Profile Page
- * @component
+ * This is the component for the user's profile page.
+ * @component page
  * @props  none
  * @returns {JSX.Element}   User Profile
  */
 
 const UserProfilePage = (): JSX.Element => {
-  const auth = useAuth();
-  const userName = getUserName(auth.result.email);
   const title = usePageTitle();
 
   return (
     <>
       {title}
-      Welcome {userName} !
+      <h2 className="mb-6">Profile</h2>
+      <UserProfileDetails />
     </>
   );
 };

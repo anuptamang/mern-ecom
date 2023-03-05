@@ -1,10 +1,11 @@
+import { DashboardSummary } from 'components/DashboardSummary';
 import { useAuth } from 'hooks';
 import { usePageTitle } from 'hooks/usePageTitle';
-import { getUserName } from 'utils';
+import { capitalizeText, getUserName } from 'utils';
 
 /**
- * Component - User Dashboard Page
- * @component
+ * This is the component for the user's dashboard page.
+ * @component page
  * @props  none
  * @returns {JSX.Element}   User Dashboard
  */
@@ -17,7 +18,9 @@ const UserDashboardPage = (): JSX.Element => {
   return (
     <>
       {title}
-      Welcome {userName} !
+      <h2 className="mb-6">Dashboard</h2>
+      <h3 className="mb-6">Welcome, {capitalizeText(userName)} !</h3>
+      <DashboardSummary />
     </>
   );
 };

@@ -1,5 +1,5 @@
 import { Layout } from 'antd';
-import { Container, ContentLayout, SiderLayout } from 'components';
+import { Container, ContentLayout, SiderLayout } from 'components/UI';
 import { UserSidePanel } from 'features';
 import { Outlet } from 'react-router';
 import { IChildren } from 'types';

@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 /**
- * Component - Nav
- * @component
+ * This is the main navigation component for the app.
+ * @component general
  * @props none
  * @returns {JSX.Element}   Nav
  */

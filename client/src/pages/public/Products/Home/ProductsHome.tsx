@@ -1,4 +1,4 @@
-import { Container } from 'components';
+import { Container } from 'components/UI';
 import { usePageTitle } from 'hooks/usePageTitle';
 import styles from 'assets/styles/Common.module.scss';
 

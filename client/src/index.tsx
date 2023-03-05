@@ -8,6 +8,7 @@ import store from 'redux/store';
 import { debounce, saveState } from 'utils';
 import reportWebVitals from './reportWebVitals';
 
+import './index.css';
 import { theme } from 'assets/styles/antd/theme';
 
 import 'antd/dist/reset.css';

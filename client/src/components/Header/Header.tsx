@@ -1,7 +1,7 @@
 import { Col, Row } from 'antd';
 import { Logo, Nav } from 'components';
 import { Container, HeaderLayout } from 'components/UI';
-import { UserPanel } from 'features/UserMenu/UserPanel';
+import { UserPanel } from 'features/UserPanel/UserPanel';
 
 /**
  * Component - Header
