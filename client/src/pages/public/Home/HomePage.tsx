@@ -1,4 +1,4 @@
-import { Container, Loading } from 'components';
+import { Container, Loading } from 'components/UI';
 import { usePageTitle } from 'hooks/usePageTitle';
 import { ReactNode, useEffect } from 'react';
 import { fetchProducts } from 'redux/action/products';

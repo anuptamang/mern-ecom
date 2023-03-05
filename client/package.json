@@ -81,6 +81,7 @@
     "prettier": "^2.8.1",
     "resolve-url-loader": "^5.0.0",
     "sass": "^1.58.3",
+    "tailwindcss": "^3.2.7",
     "typed-scss-modules": "^7.0.2"
   }
 }

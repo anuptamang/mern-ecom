@@ -6,7 +6,13 @@ export const UserSettingsPage = () => {
       <Helmet>
         <title>User UserSettings | My App</title>
       </Helmet>
-      UserSettings
+      <div>
+        <div>
+          User Type: Buyer/Seller <br></br> | Buyer && show seller registration
+          btn
+        </div>
+        <div>Store theme: Auto/Light/Dark | show theme togglers</div>
+      </div>
     </>
   );
 };

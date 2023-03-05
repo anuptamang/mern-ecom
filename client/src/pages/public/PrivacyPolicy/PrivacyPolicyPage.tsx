@@ -1,4 +1,4 @@
-import { Container } from 'components';
+import { Container } from 'components/UI';
 import { Helmet } from 'react-helmet-async';
 
 const PrivacyPolicyPage = () => {

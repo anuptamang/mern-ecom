@@ -1,5 +1,5 @@
 import { Col, Row } from 'antd';
-import { Container } from 'components';
+import { Container } from 'components/UI';
 import { pageRoutes } from 'data/static/pageRoutes';
 import { ForgotForm } from 'features/ForgotForm';
 import { useAuth } from 'hooks';

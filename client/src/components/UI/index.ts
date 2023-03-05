@@ -1,4 +1,5 @@
 export * from './Container';
+export * from './ContentSkeleton';
 export * from './ErrorFallback';
 export * from './Layout';
 export * from './LinkButton';
