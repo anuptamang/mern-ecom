@@ -22,7 +22,7 @@ function useAuth() {
 
   if (auth?.token) {
     if (!isTokenValid(auth.token)) {
-      validAuth.token = '';
+      validAuth.tokenStatus = 'expired';
     }
   }
 

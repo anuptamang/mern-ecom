@@ -7,7 +7,7 @@ interface IDecodedToken {
 export const isTokenValid = (token: string) => {
   const decodedToken: IDecodedToken = jwtDecode(token);
   if (decodedToken.exp * 1000 < Date.now()) {
-    localStorage.removeItem('user');
+    // localStorage.removeItem('user');
     return false
   } else {
     return true

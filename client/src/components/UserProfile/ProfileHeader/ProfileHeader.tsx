@@ -47,9 +47,9 @@ export const ProfileHeader = ({
             Update Photo
           </div>
         </Upload>
-      </div>
-      <div className="description">
-        <h2>{fullName}</h2>
+        <div className="description">
+          <h2>{fullName}</h2>
+        </div>
       </div>
 
       <div className="right md:max-w-[30%]">

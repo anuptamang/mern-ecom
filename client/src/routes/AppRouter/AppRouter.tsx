@@ -30,7 +30,7 @@ const CartsDashboard = lazy(() => import('pages/private/Carts/Dashboard'));
 
 const AppRouter = () => {
   const auth = useAuth();
-  const isAuthenticated = auth?.token;
+  const isAuthenticated = auth?.tokenStatus === 'valid' ? true : false;
 
   return (
     <Suspense fallback={null}>

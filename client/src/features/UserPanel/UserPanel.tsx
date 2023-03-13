@@ -56,7 +56,7 @@ export const UserPanel = (props: Props) => {
   return (
     <>
       <List style={{ marginLeft: '10px' }}>
-        {auth?.token ? (
+        {auth?.tokenStatus === 'valid' ? (
           <li style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
             <Link to={`/${pageRoutes.userCarts}`}>
               <Badge size="small" count={0} color={token.colorPrimaryBg}>
