@@ -35,7 +35,8 @@ export const login = async (req, res) => {
 };
 
 export const registration = async (req, res) => {
-  const { email, password, confirmPassword, firstName, lastName } = req.body;
+  const { email, password, confirmPassword, firstName, lastName, role } =
+    req.body;
 
   try {
     const existingUser = await User.findOne({ email });
@@ -50,6 +51,7 @@ export const registration = async (req, res) => {
 
     const result = await User.create({
       email,
+      role,
       password: hashedPassword,
       fullName: `${firstName} ${lastName}`,
     });
@@ -65,6 +67,7 @@ export const registration = async (req, res) => {
         _id: result._id,
         fullName: result.fullName,
         email: result.email,
+        role: result.role,
       },
       token,
     });
@@ -115,6 +118,7 @@ export const getUsers = async (req, res) => {
       _id: user._id,
       fullName: user.fullName,
       email: user.email,
+      role: user.role,
     };
   });
   return res.json(privateFields);

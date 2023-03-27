@@ -10,6 +10,7 @@ export interface IRegister extends ILogin {
   confirmPassword: string;
   firstName: string;
   lastName: string;
+  role: string;
 }
 
 export interface IAuthSlice {
