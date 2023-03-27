@@ -21,7 +21,7 @@ export const ProfileStatus = () => {
           }}
         />
         <div className="text-center">
-          <Link className="underline" to={`/${pageRoutes.userProfile}`}>
+          <Link className="underline" to={`/${pageRoutes.userProfile}#update`}>
             Complete Now
           </Link>
         </div>

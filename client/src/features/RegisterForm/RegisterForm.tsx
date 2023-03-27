@@ -1,8 +1,10 @@
-import { Button, Checkbox, Form, Input } from 'antd';
+import { Button, Checkbox, Form, Input, Select } from 'antd';
 import { Link } from 'react-router-dom';
 import { register } from 'redux/action/auth/authAction';
 import { authSelector } from 'redux/slice';
 import { useAppDispatch, useAppSelector } from 'redux/store';
+
+const { Option } = Select;
 
 const formItemLayout = {
   labelCol: {
@@ -50,6 +52,7 @@ const RegisterForm = () => {
         confirmPassword: values.confirmPassword,
         firstName: values.firstName,
         lastName: values.lastName,
+        role: values.role,
       })
     );
   };
@@ -142,6 +145,16 @@ const RegisterForm = () => {
           <Input />
         </Form.Item>
         <Form.Item
+          name="role"
+          label="Role"
+          rules={[{ required: true, message: 'Please select role!' }]}
+        >
+          <Select placeholder="Select your role">
+            <Option value="customer">Customer</Option>
+            <Option value="seller">Seller</Option>
+          </Select>
+        </Form.Item>
+        <Form.Item
           name="agreement"
           valuePropName="checked"
           rules={[
@@ -158,6 +171,7 @@ const RegisterForm = () => {
             I have read the <Link to={'/'}>agreement</Link>
           </Checkbox>
         </Form.Item>
+
         <Form.Item {...tailFormItemLayout}>
           <Button type="primary" htmlType="submit" loading={loading}>
             Register

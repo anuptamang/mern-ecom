@@ -49,6 +49,7 @@ export const authSlice = createSlice({
       state.status.loading = false;
       state.result = action.payload.result;
       state.token = action.payload.token;
+      state.tokenStatus = 'valid';
       state.status.success = true;
     });
     builder.addCase(register.rejected, (state, action) => {

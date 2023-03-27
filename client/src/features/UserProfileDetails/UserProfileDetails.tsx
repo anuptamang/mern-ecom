@@ -1,27 +1,13 @@
-import {
-  ProfileBody,
-  ProfileCover,
-  ProfileHeader,
-} from 'components/UserProfile';
+import { UserProfileBody } from './UserProfileBody';
+import { UserProfileCover } from './UserProfileCover';
+import { UserProfileHeader } from './UserProfileHeader';
 
 export const UserProfileDetails = () => {
-  const onCoverPhotoChange = (photoUrl: string) => {
-    //
-  };
-
-  const onProfilePhotoChange = (photoUrl: string) => {
-    //
-  };
-
   return (
     <>
-      <ProfileCover onCoverPhotoChange={onCoverPhotoChange} coverPhotoUrl="" />
-      <ProfileHeader
-        onProfilePhotoChange={onProfilePhotoChange}
-        fullName={'Full Name'}
-        profilePhotoUrl={''}
-      />
-      <ProfileBody />
+      <UserProfileCover />
+      <UserProfileHeader />
+      <UserProfileBody />
     </>
   );
 };

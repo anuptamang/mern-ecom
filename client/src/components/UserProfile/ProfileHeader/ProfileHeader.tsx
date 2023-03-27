@@ -2,6 +2,7 @@ import { UserOutlined } from '@ant-design/icons';
 import { Avatar, Upload, UploadProps } from 'antd';
 import { LinkButton } from 'components/UI';
 import { pageRoutes } from 'data/static/pageRoutes';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 type TProfileHeader = {
   onProfilePhotoChange: (photoUrl: string) => void;
@@ -17,6 +18,9 @@ export const ProfileHeader = ({
   const handlePhotoChange = () => {
     onProfilePhotoChange('photoUrl');
   };
+  const navigate = useNavigate();
+  const { hash } = useLocation();
+  const action = hash?.slice(1);
 
   const props: UploadProps = {
     action: '//jsonplaceholder.typicode.com/posts/',
@@ -55,10 +59,17 @@ export const ProfileHeader = ({
       <div className="right md:max-w-[30%]">
         <ul className="list-none flex items-center gap-3">
           <li>
-            <LinkButton type="primary" to={`/${pageRoutes.userProfile}/update`}>
+            <LinkButton type="primary" to="#update">
               Update
             </LinkButton>
           </li>
+          {action === 'update' && (
+            <li>
+              <LinkButton type="link" to="#view">
+                Cancel
+              </LinkButton>
+            </li>
+          )}
         </ul>
       </div>
     </div>
