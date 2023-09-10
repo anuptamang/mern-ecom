@@ -13,7 +13,7 @@ const initialState: IProductSlice = {
     success: false,
     error: {
       message: ''
-    }
+    } || null
   }
 }
 
@@ -32,7 +32,7 @@ const productsSlice = createSlice({
     });
     builder.addCase(fetchProducts.rejected, (state, action) => {
       state.status.loading = false;
-      state.status.error.message = action.error.message;
+      // state.status.error.message = action.error.message;
     });
   }
 })

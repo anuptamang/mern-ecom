@@ -123,3 +123,44 @@ export const getUsers = async (req, res) => {
   });
   return res.json(privateFields);
 };
+
+export const validateUser = async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+
+    if (user) {
+      return res.status(200).json({ result: user });
+    } else {
+      return res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Something went wrong" });
+    console.log(error);
+  }
+};
+
+export const createNewPassword = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (user) {
+      const hashedPassword = await bcrypt.hash(password, 12);
+
+      const updatedUser = await User.findByIdAndUpdate(
+        user._id,
+        { password: hashedPassword },
+        { new: true }
+      );
+
+      return res.status(200).json({ result: updatedUser });
+    } else {
+      return res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Something went wrong" });
+    console.log(error);
+  }
+};

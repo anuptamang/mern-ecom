@@ -1,11 +1,13 @@
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Checkbox, Form, Input } from 'antd';
 import { pageRoutes } from 'data/static/pageRoutes';
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { login } from 'redux/action/auth/authAction';
-import { authSelector } from 'redux/slice';
+import { authSelector, resetLogin } from 'redux/slice';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 import { ILogin } from 'types/store/auth/authSliceTypes';
+import { notify } from 'utils';
 
 /**
  * This is the login form, which takes email and password as an input and sends a logn request to the server.
@@ -21,6 +23,16 @@ const LoginForm = () => {
   const onFinish = (values: ILogin) => {
     dispatch(login({ email: values.email, password: values.password }));
   };
+
+  useEffect(() => {
+    if (status.error.message && !status.success) {
+      notify(status.error.message, 'login-error', 'error');
+    }
+  }, [status.error.message, status.success]);
+
+  useEffect(() => {
+    dispatch(resetLogin());
+  }, []);
 
   return (
     <>
