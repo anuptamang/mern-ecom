@@ -3,7 +3,7 @@ import { IUser } from 'types/user/userType';
 
 export interface ILogin {
   email: string;
-  password: string;
+  password?: string;
 }
 
 export interface IRegister extends ILogin {
@@ -14,8 +14,8 @@ export interface IRegister extends ILogin {
 }
 
 export interface IAuthSlice {
-  result: IUser;
-  token: string;
+  result?: IUser;
+  token?: string;
   tokenStatus?: "valid" | "expired" | "not set";
   status: IStatus;
 }

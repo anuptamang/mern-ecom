@@ -12,14 +12,14 @@ import { capitalizeText, getUserName } from 'utils';
 
 const UserDashboardPage = (): JSX.Element => {
   const auth = useAuth();
-  const userName = getUserName(auth.result.email);
+  // const userName = getUserName(auth.user?.name);
   const title = usePageTitle();
 
   return (
     <>
       {title}
       <h2 className="mb-6">Dashboard</h2>
-      <h3 className="mb-6">Welcome, {capitalizeText(userName)} !</h3>
+      {/* <h3 className="mb-6">Welcome, {capitalizeText(userName)} !</h3> */}
       <DashboardSummary />
     </>
   );

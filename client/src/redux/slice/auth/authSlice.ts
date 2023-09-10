@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { login, register } from "redux/action/auth/authAction";
+import { changePassword, login, register, validateUser } from "redux/action/auth/authAction";
 import { IAuthSlice } from "types/store/auth/authSliceTypes";
 
 const initialState: IAuthSlice = {
@@ -14,7 +14,9 @@ const initialState: IAuthSlice = {
   tokenStatus: 'not set',
   status: {
     loading: false,
-    error: { message: '' },
+    error: {
+      message: ''
+    },
     success: false,
   }
 }
@@ -24,6 +26,9 @@ export const authSlice = createSlice({
   initialState,
   reducers: {
     signOut: () => {
+      return initialState;
+    },
+    resetLogin: (state) => {
       return initialState;
     }
   },
@@ -40,8 +45,13 @@ export const authSlice = createSlice({
     });
     builder.addCase(login.rejected, (state, action) => {
       state.status.loading = false;
-      state.status.error.message = action.error.message;
+      if (action.payload) {
+        state.status.error.message = action.payload.message;
+      }
+      state.status.success = false;
     });
+
+
     builder.addCase(register.pending, (state) => {
       state.status.loading = true;
     })
@@ -54,11 +64,43 @@ export const authSlice = createSlice({
     });
     builder.addCase(register.rejected, (state, action) => {
       state.status.loading = false;
-      state.status.error.message = action.error.message;
+      // state.status.error.message = action.error.message;
+    });
+
+    builder.addCase(validateUser.pending, (state) => {
+      state.status.loading = true;
+    })
+    builder.addCase(validateUser.fulfilled, (state, action) => {
+      state.status.loading = false;
+      state.result = action.payload.result;
+      state.status.success = true;
+    });
+    builder.addCase(validateUser.rejected, (state, action) => {
+      state.status.loading = false;
+      if (action.payload) {
+        state.status.error.message = action.payload.message;
+      }
+      state.status.success = false;
+    });
+
+    builder.addCase(changePassword.pending, (state) => {
+      state.status.loading = true;
+    })
+    builder.addCase(changePassword.fulfilled, (state, action) => {
+      state.status.loading = false;
+      state.result = action.payload.result;
+      state.status.success = true;
+    });
+    builder.addCase(changePassword.rejected, (state, action) => {
+      state.status.loading = false;
+      if (action.payload) {
+        state.status.error.message = action.payload.message;
+      }
+      state.status.success = false;
     });
   }
 })
 
-export const { signOut } = authSlice.actions;
+export const { signOut, resetLogin } = authSlice.actions;
 
 export const authSelector = (state: { auth: IAuthSlice }) => state.auth;

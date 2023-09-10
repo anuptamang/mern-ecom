@@ -1,11 +1,13 @@
 import express from "express";
 import {
-  login,
-  registration,
+  createNewPassword,
   deleteUser,
-  updateUserProfile,
   getUser,
   getUsers,
+  login,
+  registration,
+  updateUserProfile,
+  validateUser,
 } from "../controllers/user.js";
 
 import Auth from "../middlewares/auth.js";
@@ -18,5 +20,8 @@ router.get("/list", getUsers);
 router.get("/:id", getUser);
 router.patch("/:id", Auth, updateUserProfile);
 router.delete("/:id", Auth, deleteUser);
+
+router.post("/check-user", validateUser);
+router.put("/change-password", createNewPassword);
 
 export default router;
