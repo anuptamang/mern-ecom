@@ -94,8 +94,26 @@ export const listMyOrders = async (req, res) => {
   try {
     const userId = req.userId;
     const orders = await Order.find({ userId }).sort({ createdAt: -1 });
-    return res.json({ orders });
+    
+    // Include delivery tracking info (especially buyerAcceptance) for each order
+    const Delivery = (await import("../models/delivery.js")).default;
+    const ordersWithDelivery = await Promise.all(
+      orders.map(async (order) => {
+        const delivery = await Delivery.findOne({ orderId: order._id });
+        const orderObj = order.toObject();
+        if (delivery) {
+          orderObj.deliveryTracking = {
+            buyerAcceptance: delivery.buyerAcceptance,
+            deliveryProof: delivery.deliveryProof,
+          };
+        }
+        return orderObj;
+      })
+    );
+    
+    return res.json({ orders: ordersWithDelivery });
   } catch (error) {
+    console.error("Error fetching orders:", error);
     return res.status(500).json({ message: "Failed to fetch orders" });
   }
 };
