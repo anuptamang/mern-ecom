@@ -4,6 +4,7 @@ import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-de
 import { fetchMyProductsApi, deleteProductApi } from 'services/endPoints/products/productsEndpoints';
 import { getSellerOrdersApi } from 'services/endPoints/orders/ordersEndpoints';
 import { getDeliveryTrackingApi } from 'services/endPoints/delivery';
+import { getSellerReturnsApi, approveReturnApi, rejectReturnApi } from 'services/endPoints/return';
 import { DeliveryTracking, RefundStatus } from 'components';
 import { getSellerCartItemsApi } from 'services/endPoints/carts/cartsEndpoints';
 import { getUserStatsApi } from 'services/endPoints/user/userEndpoints';
@@ -33,12 +34,17 @@ const ProductsDashboardPage = (props: Props) => {
   const [cartLoading, setCartLoading] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [returnsLoading, setReturnsLoading] = useState(false);
   const [productModalVisible, setProductModalVisible] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('products');
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [deliveryTracking, setDeliveryTracking] = useState<any>(null);
   const [trackingModalVisible, setTrackingModalVisible] = useState(false);
+  const [returns, setReturns] = useState<any[]>([]);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectModalVisible, setRejectModalVisible] = useState(false);
+  const [rejectingReturnId, setRejectingReturnId] = useState<string | null>(null);
 
   useEffect(() => {
     loadProducts();
@@ -635,6 +641,26 @@ const ProductsDashboardPage = (props: Props) => {
               )}
             </div>
           )}
+        </Modal>
+
+        <Modal
+          title="Reject Return Request"
+          open={rejectModalVisible}
+          onOk={handleRejectReturn}
+          onCancel={() => {
+            setRejectModalVisible(false);
+            setRejectReason('');
+            setRejectingReturnId(null);
+          }}
+          okText="Confirm Rejection"
+          okButtonProps={{ danger: true }}
+        >
+          <Input.TextArea
+            placeholder="Please provide a reason for rejecting this return request"
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            rows={4}
+          />
         </Modal>
       </Container>
     </>

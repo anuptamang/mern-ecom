@@ -62,7 +62,17 @@ const ReturnsDashboard = (props: TProps) => {
       const order = data.orders?.find((o: any) => o._id === orderId);
       if (order && order.deliveryStatus === 'delivered') {
         setSelectedOrder(order);
+        // Initialize form with order items
+        const items = order.items.map((item: any) => ({
+          productId: item.productId,
+          return: false,
+          quantity: 0,
+          reason: '',
+        }));
+        form.setFieldsValue({ items, reason: '' });
         setCreateReturnModalVisible(true);
+      } else {
+        message.warning('Order must be delivered to create a return request');
       }
     } catch (error: any) {
       message.error('Failed to load order');
