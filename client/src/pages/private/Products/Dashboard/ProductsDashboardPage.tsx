@@ -50,9 +50,16 @@ const ProductsDashboardPage = (props: Props) => {
     if (!token) return;
     try {
       setLoading(true);
-      const { data } = await fetchMyProductsApi();
-      setProducts(data.data || []);
+      const response = await fetchMyProductsApi();
+      // Handle both response.data.data and response.data formats
+      const productsData = response.data?.data || response.data || [];
+      setProducts(Array.isArray(productsData) ? productsData : []);
+      
+      if (productsData.length === 0) {
+        console.log('No products found for user');
+      }
     } catch (e: any) {
+      console.error('Error loading products:', e);
       message.error(e?.response?.data?.message || 'Failed to load products');
     } finally {
       setLoading(false);
