@@ -225,13 +225,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess, on
         </Form.Item>
 
         <Form.Item
-          name="slug"
-          label="Slug (URL-friendly name)"
-        >
-          <Input placeholder="auto-generated from title" />
-        </Form.Item>
-
-        <Form.Item
           name="categories"
           label="Categories"
           rules={[{ required: true, message: 'Please select at least one category' }]}
