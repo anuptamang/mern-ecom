@@ -173,3 +173,13 @@ export const viewCount = async (req, res) => {
     res.status(404).json({ message: "Product not found" });
   }
 };
+
+export const getMyProducts = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const products = await Product.find({ userID: userId }).sort({ _id: -1 });
+    res.status(200).json({ data: products });
+  } catch (error) {
+    res.status(404).json({ message: error.message });
+  }
+};

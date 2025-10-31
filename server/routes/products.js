@@ -13,6 +13,7 @@ import {
   likeComment,
   replyComment,
   viewCount,
+  getMyProducts,
 } from "../controllers/products.js";
 import Auth from "../middlewares/auth.js";
 import { Upload } from "../middlewares/upload.js";
@@ -20,6 +21,7 @@ import { Upload } from "../middlewares/upload.js";
 const router = express.Router();
 
 router.get("/", getProducts);
+router.get("/me", Auth, getMyProducts);
 router.get("/:id", getProduct);
 router.post("/", Auth, Upload, createProduct);
 router.patch("/:id", Auth, updateProduct);
