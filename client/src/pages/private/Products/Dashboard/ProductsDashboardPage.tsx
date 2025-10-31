@@ -428,11 +428,31 @@ const ProductsDashboardPage = (props: Props) => {
                                   onClick={async () => {
                                     try {
                                       const { data } = await getDeliveryTrackingApi(order._id);
-                                      setDeliveries(data.deliveries || []);
-                                      setDeliveryTracking(data.deliveries?.find(
+                                      // Find delivery for this specific item
+                                      const itemDelivery = data.deliveries?.find(
                                         (d: any) => String(d.orderItemId) === String(item._id) || 
                                                    String(d.productId) === String(item.productId)
-                                      ) || data.deliveries?.[0] || data.delivery || null);
+                                      ) || data.delivery;
+                                      if (itemDelivery) {
+                                        setDeliveryTracking(itemDelivery);
+                                        setDeliveries([itemDelivery]);
+                                      } else {
+                                        // Fallback: create a delivery object from item data
+                                        setDeliveryTracking({
+                                          orderId: order._id,
+                                          orderItemId: item._id,
+                                          productId: item.productId,
+                                          status: itemStatus || 'packing',
+                                          ...itemDeliveryTracking,
+                                        });
+                                        setDeliveries([{
+                                          orderId: order._id,
+                                          orderItemId: item._id,
+                                          productId: item.productId,
+                                          status: itemStatus || 'packing',
+                                          ...itemDeliveryTracking,
+                                        }]);
+                                      }
                                       setSelectedOrder(order);
                                       setTrackingModalVisible(true);
                                     } catch (error: any) {
@@ -447,48 +467,6 @@ const ProductsDashboardPage = (props: Props) => {
                           </div>
                         );
                       })}
-                    </div>
-                    <div className="border-t pt-4 mt-4">
-                      <Space>
-                        <Button
-                          type="default"
-                          size="small"
-                          onClick={async () => {
-                            try {
-                              const { data } = await getDeliveryTrackingApi(order._id);
-                              // API now returns deliveries array (per-item tracking)
-                              setDeliveries(data.deliveries || []);
-                              // For backward compatibility, also set delivery if single item
-                              setDeliveryTracking(data.deliveries?.[0] || data.delivery || null);
-                              setSelectedOrder(order);
-                              setTrackingModalVisible(true);
-                            } catch (error: any) {
-                              message.error(error?.response?.data?.message || 'Failed to load delivery tracking');
-                            }
-                          }}
-                        >
-                          Track Delivery
-                        </Button>
-                        {(order.status === 'cancelled' || order.status === 'refunded' || order.refundStatus) && (
-                          <Button
-                            type="default"
-                            size="small"
-                            onClick={async () => {
-                              try {
-                                const { data } = await getDeliveryTrackingApi(order._id);
-                                setDeliveries(data.deliveries || []);
-                                setDeliveryTracking(data.deliveries?.[0] || data.delivery || null);
-                                setSelectedOrder(order);
-                                setTrackingModalVisible(true);
-                              } catch (error: any) {
-                                message.error(error?.response?.data?.message || 'Failed to load order details');
-                              }
-                            }}
-                          >
-                            View Refund Status
-                          </Button>
-                        )}
-                      </Space>
                     </div>
                   </Card>
                 </List.Item>
@@ -840,7 +818,7 @@ const ProductsDashboardPage = (props: Props) => {
         </Modal>
 
         <Modal
-          title="Order Details"
+          title="Delivery Tracking"
           open={trackingModalVisible}
           onCancel={() => {
             setTrackingModalVisible(false);
@@ -860,79 +838,52 @@ const ProductsDashboardPage = (props: Props) => {
           ]}
           width={900}
         >
-          {selectedOrder && (
+          {selectedOrder && deliveryTracking && (
             <div>
-              {deliveries.length > 0 ? (
-                // Per-item tracking display for sellers
-                <div>
-                  {deliveries.map((delivery: any, index: number) => {
-                    const orderItem = selectedOrder.items?.find(
-                      (item: any) => String(item._id) === String(delivery.orderItemId) || 
-                                    String(item.productId) === String(delivery.productId)
-                    );
-                    // Only show deliveries for seller's products
-                    if (!orderItem) return null;
-                    
-                    return (
-                      <div key={delivery._id || index} style={{ marginBottom: deliveries.length > 1 ? 24 : 0 }}>
-                        {deliveries.length > 1 && (
-                          <h4 style={{ marginBottom: 16 }}>
-                            {orderItem.title || `Item ${index + 1}`}
-                          </h4>
-                        )}
-                        <DeliveryTracking 
-                          delivery={delivery} 
-                          order={selectedOrder}
-                          isSeller={true}
-                          orderItemId={delivery.orderItemId}
-                          productId={delivery.productId}
-                          onStatusUpdate={async () => {
-                            // Reload delivery tracking after update
-                            try {
-                              const { data } = await getDeliveryTrackingApi(selectedOrder._id);
-                              setDeliveries(data.deliveries || []);
-                              setDeliveryTracking(data.deliveries?.find(
-                                (d: any) => String(d.orderItemId) === String(delivery.orderItemId) || 
-                                           String(d.productId) === String(delivery.productId)
-                              ) || data.deliveries?.[0] || data.delivery || null);
-                              // Also reload orders to refresh status
-                              loadOrders();
-                            } catch (error: any) {
-                              console.error('Failed to reload delivery tracking:', error);
-                            }
-                          }}
-                        />
+              {(() => {
+                const orderItem = selectedOrder.items?.find(
+                  (item: any) => String(item._id) === String(deliveryTracking.orderItemId) || 
+                                String(item.productId) === String(deliveryTracking.productId)
+                );
+                return (
+                  <div>
+                    {orderItem && (
+                      <div style={{ marginBottom: 16, padding: 12, background: '#f5f5f5', borderRadius: 4 }}>
+                        <div style={{ fontWeight: 600, marginBottom: 4 }}>Product:</div>
+                        <div>{orderItem.title}</div>
+                        <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+                          ${orderItem.price} × {orderItem.quantity}
+                        </div>
                       </div>
-                    );
-                  })}
-                </div>
-              ) : deliveryTracking ? (
-                // Backward compatibility: single delivery
-                <DeliveryTracking 
-                  delivery={deliveryTracking} 
-                  order={selectedOrder}
-                  isSeller={true}
-                  onStatusUpdate={async () => {
-                    // Reload delivery tracking after update
-                    try {
-                      const { data } = await getDeliveryTrackingApi(selectedOrder._id);
-                      setDeliveries(data.deliveries || []);
-                      setDeliveryTracking(data.deliveries?.[0] || data.delivery || null);
-                      // Also reload orders to refresh status
-                      loadOrders();
-                    } catch (error: any) {
-                      console.error('Failed to reload delivery tracking:', error);
-                    }
-                  }}
-                />
-              ) : (
-                <Empty description="No delivery tracking found for this order" />
-              )}
-              {(selectedOrder.status === 'cancelled' || selectedOrder.status === 'refunded' || selectedOrder.refundStatus) && (
-                <div style={{ marginTop: 24 }}>
-                  <RefundStatus orderId={selectedOrder._id} order={selectedOrder} />
-                </div>
-              )}
+                    )}
+                    <DeliveryTracking 
+                      delivery={deliveryTracking} 
+                      order={selectedOrder}
+                      isSeller={true}
+                      orderItemId={deliveryTracking.orderItemId}
+                      productId={deliveryTracking.productId}
+                      onStatusUpdate={async () => {
+                        // Reload delivery tracking after update
+                        try {
+                          const { data } = await getDeliveryTrackingApi(selectedOrder._id);
+                          const itemDelivery = data.deliveries?.find(
+                            (d: any) => String(d.orderItemId) === String(deliveryTracking.orderItemId) || 
+                                       String(d.productId) === String(deliveryTracking.productId)
+                          ) || data.delivery;
+                          if (itemDelivery) {
+                            setDeliveryTracking(itemDelivery);
+                            setDeliveries([itemDelivery]);
+                          }
+                          // Also reload orders to refresh status
+                          loadOrders();
+                        } catch (error: any) {
+                          console.error('Failed to reload delivery tracking:', error);
+                        }
+                      }}
+                    />
+                  </div>
+                );
+              })()}
             </div>
           )}
         </Modal>

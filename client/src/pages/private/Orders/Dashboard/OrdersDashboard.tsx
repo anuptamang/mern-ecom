@@ -62,19 +62,6 @@ const OrdersDashboard = (props: TProps) => {
     load();
   }, [isSeller]);
 
-  const loadDeliveryTracking = async (orderId: string) => {
-    try {
-      const { data } = await getDeliveryTrackingApi(orderId);
-      // API now returns deliveries array (per-item tracking)
-      setDeliveries(data.deliveries || []);
-      // For backward compatibility, also set delivery if single item
-      setDeliveryTracking(data.deliveries?.[0] || data.delivery || null);
-      setSelectedOrder(orders.find((o) => o._id === orderId));
-      setTrackingModalVisible(true);
-    } catch (error: any) {
-      message.error(error?.response?.data?.message || 'Failed to load delivery tracking');
-    }
-  };
 
   const handleAcceptDelivery = async (orderId: string, orderItemId?: string, productId?: string) => {
     try {
@@ -272,34 +259,6 @@ const OrdersDashboard = (props: TProps) => {
                         </div>
                       </div>
 
-                      <div className="order-actions" style={{ marginTop: 16, marginBottom: 16 }}>
-                        <Space>
-                          <Button
-                            type="default"
-                            onClick={() => loadDeliveryTracking(order._id)}
-                          >
-                            Track Delivery
-                          </Button>
-                          {order.status === 'paid' && 
-                           order.deliveryStatus !== 'cancelled' && 
-                           order.deliveryStatus !== 'delivered' && (
-                            <Popconfirm
-                              title="Cancel Order"
-                              description="Are you sure you want to cancel this order? A refund will be processed."
-                              onConfirm={() => {
-                                setCancellingOrderId(order._id);
-                                setCancelModalVisible(true);
-                              }}
-                              okText="Yes, Cancel"
-                              cancelText="No"
-                            >
-                              <Button type="default" danger icon={<StopOutlined />}>
-                                Cancel Order
-                              </Button>
-                            </Popconfirm>
-                          )}
-                        </Space>
-                      </div>
 
                       <div className="order-items">
                         <h4 className="order-items-title">Items:</h4>
@@ -352,6 +311,49 @@ const OrdersDashboard = (props: TProps) => {
                                     >
                                       View
                                     </Button>
+                                    {item.deliveryTracking && (
+                                      <Button
+                                        type="default"
+                                        icon={<EyeOutlined />}
+                                        size="small"
+                                        onClick={async () => {
+                                          try {
+                                            const { data } = await getDeliveryTrackingApi(order._id);
+                                            // Find delivery for this specific item
+                                            const itemDelivery = data.deliveries?.find(
+                                              (d: any) => String(d.orderItemId) === String(item._id) || 
+                                                         String(d.productId) === String(item.productId)
+                                            ) || data.delivery;
+                                            if (itemDelivery) {
+                                              setDeliveryTracking(itemDelivery);
+                                              setDeliveries([itemDelivery]);
+                                            } else {
+                                              // Fallback: create a delivery object from item data
+                                              setDeliveryTracking({
+                                                orderId: order._id,
+                                                orderItemId: item._id,
+                                                productId: item.productId,
+                                                status: item.deliveryStatus || 'packing',
+                                                ...item.deliveryTracking,
+                                              });
+                                              setDeliveries([{
+                                                orderId: order._id,
+                                                orderItemId: item._id,
+                                                productId: item.productId,
+                                                status: item.deliveryStatus || 'packing',
+                                                ...item.deliveryTracking,
+                                              }]);
+                                            }
+                                            setSelectedOrder(order);
+                                            setTrackingModalVisible(true);
+                                          } catch (error: any) {
+                                            message.error(error?.response?.data?.message || 'Failed to load delivery tracking');
+                                          }
+                                        }}
+                                      >
+                                        Track Delivery
+                                      </Button>
+                                    )}
                                     {item.deliveryStatus && item.deliveryStatus !== 'delivered' && item.deliveryStatus !== 'cancelled' && (
                                       <Popconfirm
                                         title="Cancel This Item"
@@ -433,17 +435,19 @@ const OrdersDashboard = (props: TProps) => {
         </Card>
 
         <Modal
-          title="Order Details"
+          title="Delivery Tracking"
           open={trackingModalVisible}
           onCancel={() => {
             setTrackingModalVisible(false);
             setDeliveryTracking(null);
+            setDeliveries([]);
             setSelectedOrder(null);
           }}
           footer={[
             <Button key="close" onClick={() => {
               setTrackingModalVisible(false);
               setDeliveryTracking(null);
+              setDeliveries([]);
               setSelectedOrder(null);
             }}>
               Close
@@ -451,39 +455,33 @@ const OrdersDashboard = (props: TProps) => {
           ]}
           width={900}
         >
-          {selectedOrder && (
+          {selectedOrder && deliveryTracking && (
             <div>
-              {deliveries.length > 0 ? (
-                // Per-item tracking display
-                <div>
-                  {deliveries.map((delivery: any, index: number) => {
-                    const orderItem = selectedOrder.items?.find(
-                      (item: any) => String(item._id) === String(delivery.orderItemId) || 
-                                    String(item.productId) === String(delivery.productId)
-                    );
-                    return (
-                      <div key={delivery._id || index} style={{ marginBottom: deliveries.length > 1 ? 24 : 0 }}>
-                        {deliveries.length > 1 && (
-                          <h4 style={{ marginBottom: 16 }}>
-                            {orderItem?.title || `Item ${index + 1}`}
-                          </h4>
-                        )}
-                        <DeliveryTracking delivery={delivery} order={selectedOrder} />
+              {(() => {
+                const orderItem = selectedOrder.items?.find(
+                  (item: any) => String(item._id) === String(deliveryTracking.orderItemId) || 
+                                String(item.productId) === String(deliveryTracking.productId)
+                );
+                return (
+                  <div>
+                    {orderItem && (
+                      <div style={{ marginBottom: 16, padding: 12, background: '#f5f5f5', borderRadius: 4 }}>
+                        <div style={{ fontWeight: 600, marginBottom: 4 }}>Product:</div>
+                        <div>{orderItem.title}</div>
+                        <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+                          ${orderItem.price} × {orderItem.quantity}
+                        </div>
                       </div>
-                    );
-                  })}
-                </div>
-              ) : deliveryTracking ? (
-                // Backward compatibility: single delivery
-                <DeliveryTracking delivery={deliveryTracking} order={selectedOrder} />
-              ) : (
-                <Empty description="No delivery tracking found" />
-              )}
-              {(selectedOrder.status === 'cancelled' || selectedOrder.status === 'refunded' || selectedOrder.refundStatus) && (
-                <div style={{ marginTop: 24 }}>
-                  <RefundStatus orderId={selectedOrder._id} order={selectedOrder} />
-                </div>
-              )}
+                    )}
+                    <DeliveryTracking 
+                      delivery={deliveryTracking} 
+                      order={selectedOrder}
+                      orderItemId={deliveryTracking.orderItemId}
+                      productId={deliveryTracking.productId}
+                    />
+                  </div>
+                );
+              })()}
             </div>
           )}
         </Modal>

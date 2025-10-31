@@ -8,6 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
 
 /**
  * Create delivery tracking for each order item
+ * Automatically assigns a delivery agency when status reaches ready_to_ship or picked_up
  */
 export const createDeliveryTracking = async (orderId, deliveryAddress) => {
   try {
@@ -16,6 +17,10 @@ export const createDeliveryTracking = async (orderId, deliveryAddress) => {
       throw new Error("Order not found");
     }
 
+    // Find an available delivery agency (first one found)
+    const User = (await import("../models/user.js")).default;
+    const deliveryAgency = await User.findOne({ role: "delivery_agency" });
+    
     // Calculate estimated delivery date (default 7 days from now)
     const estimatedDeliveryDate = new Date();
     estimatedDeliveryDate.setDate(estimatedDeliveryDate.getDate() + 7);
@@ -26,6 +31,7 @@ export const createDeliveryTracking = async (orderId, deliveryAddress) => {
       const item = order.items[i];
       
       // Create delivery tracking for this item
+      // Auto-assign delivery agency if available (will be assigned when status reaches ready_to_ship or picked_up)
       const delivery = await Delivery.create({
         orderId,
         orderItemId: String(item._id), // Use item's _id as unique identifier
@@ -34,11 +40,16 @@ export const createDeliveryTracking = async (orderId, deliveryAddress) => {
         deliveryAddress,
         estimatedDeliveryDate,
         buyerAcceptance: "pending",
+        // Auto-assign delivery agency if available
+        assignedDeliveryAgency: deliveryAgency?._id || null,
+        assignedAt: deliveryAgency ? new Date() : undefined,
         statusHistory: [
           {
             status: "packing",
             timestamp: new Date(),
-            note: `Order placed for ${item.title}, preparing for shipment`,
+            note: deliveryAgency 
+              ? `Order placed for ${item.title}, preparing for shipment. Auto-assigned to delivery agency: ${deliveryAgency.fullName || deliveryAgency.email}`
+              : `Order placed for ${item.title}, preparing for shipment`,
             updatedBy: null, // System created
             updatedByRole: "system",
           },

@@ -4,7 +4,7 @@ import User from "../models/user.js";
 
 /**
  * Assign delivery to a delivery agency
- * Can be done by admin or seller (after picked_up status)
+ * Can be done by admin only (sellers cannot assign - agency is auto-assigned)
  */
 export const assignToDeliveryAgency = async (req, res) => {
   try {
@@ -13,10 +13,10 @@ export const assignToDeliveryAgency = async (req, res) => {
     const userId = req.userId;
     const userRole = req.userRole;
 
-    // Only admin or seller can assign to delivery agency
-    if (userRole !== "admin" && userRole !== "seller") {
+    // Only admin can manually assign to delivery agency (agency is auto-assigned during creation)
+    if (userRole !== "admin") {
       return res.status(403).json({ 
-        message: "Only admins or sellers can assign orders to delivery agencies." 
+        message: "Only admins can manually assign orders to delivery agencies. Delivery agencies are automatically assigned during order creation." 
       });
     }
 
@@ -87,7 +87,7 @@ export const assignToDeliveryAgency = async (req, res) => {
 export const assignToDeliveryPerson = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { deliveryPersonId } = req.body;
+    const { deliveryPersonId, orderItemId, productId } = req.body; // Support per-item assignment
     const userId = req.userId;
     const userRole = req.userRole;
 
@@ -133,11 +133,14 @@ export const assignToDeliveryPerson = async (req, res) => {
       return res.status(404).json({ message: "Delivery person not found" });
     }
 
-    // Verify delivery person belongs to the assigned agency
-    if (delivery.assignedDeliveryAgency && String(deliveryPerson.deliveryAgencyId) !== String(delivery.assignedDeliveryAgency)) {
-      return res.status(400).json({ 
-        message: "Delivery person must belong to the assigned delivery agency." 
-      });
+    // Verify delivery person belongs to the assigned agency (check first delivery)
+    if (deliveries.length > 0 && deliveries[0].assignedDeliveryAgency) {
+      const agencyId = deliveries[0].assignedDeliveryAgency;
+      if (String(deliveryPerson.deliveryAgencyId) !== String(agencyId)) {
+        return res.status(400).json({ 
+          message: "Delivery person must belong to the assigned delivery agency." 
+        });
+      }
     }
 
     // Assign all deliveries
