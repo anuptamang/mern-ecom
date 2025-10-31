@@ -259,10 +259,15 @@ const ChatBox: React.FC<ChatBoxProps> = ({
         prevChats.map((c) => (c._id === currentChatId ? updatedChat : c))
       );
       
-      // Reload chat messages to ensure persistence
+      // Reload chat messages to ensure persistence and get updated seen status
       setTimeout(() => {
         loadChatMessages(currentChatId);
       }, 100);
+      
+      // Refresh chats list to update unread counts
+      setTimeout(() => {
+        loadAllChats();
+      }, 200);
       
       scrollToBottom();
     } catch (error: any) {
