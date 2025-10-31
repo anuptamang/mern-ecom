@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { createPaymentIntentApi } from 'services/endPoints/checkout/checkoutEndpoints';
 import { getToken } from 'utils/localStorage';
 import { createOrderApi } from 'services/endPoints/orders/ordersEndpoints';
-import { useAppSelector } from 'redux/store';
+import { useAppSelector, useAppDispatch } from 'redux/store';
+import { fetchMyCart } from 'redux/slice/carts/cartsSlice';
 
 type Props = {
   onSuccess: () => void;
@@ -13,6 +14,7 @@ type Props = {
 export const StripeCheckoutForm = ({ onSuccess }: Props) => {
   const stripe = useStripe();
   const elements = useElements();
+  const dispatch = useAppDispatch();
   const carts = useAppSelector((s) => s.carts);
 
   const [clientSecret, setClientSecret] = useState<string | null>(null);
@@ -59,6 +61,8 @@ export const StripeCheckoutForm = ({ onSuccess }: Props) => {
         amount: paymentIntent?.amount,
         currency: paymentIntent?.currency,
       });
+      // Refresh cart after successful order (cart is cleared on backend)
+      await dispatch(fetchMyCart());
       onSuccess();
     } catch (e: any) {
       setError(e?.message || 'Payment failed');
