@@ -13,8 +13,10 @@ async function resetDatabase() {
   console.log("Resetting database...");
   try {
     // Get all collection names
-    const collections = await mongoose.connection.db.listCollections().toArray();
-    
+    const collections = await mongoose.connection.db
+      .listCollections()
+      .toArray();
+
     // Drop each collection
     for (const collection of collections) {
       await mongoose.connection.db.dropCollection(collection.name);
@@ -27,15 +29,40 @@ async function resetDatabase() {
   }
 }
 
+async function runSeedScript() {
+  // Import seed functions
+  const { seedUser, seedProducts } = await import("./seed.js");
+  
+  // Run seeding (connection is already established from main())
+  const {
+    buyer,
+    seller,
+    admin,
+    deliveryAgency,
+    deliveryPerson1,
+    deliveryPerson2,
+    support,
+  } = await seedUser();
+  await seedProducts(seller._id);
+  console.log("Seeding completed successfully!");
+  console.log("\n=== Test Credentials ===");
+  console.log("Admin: admin@example.com / password123");
+  console.log("Buyer: buyer@example.com / password123");
+  console.log("Seller: seller@example.com / password123");
+  console.log("Delivery Agency: delivery@example.com / password123");
+  console.log("Delivery Person 1: deliverer1@example.com / password123");
+  console.log("Delivery Person 2: deliverer2@example.com / password123");
+  console.log("Support: support@example.com / password123");
+}
+
 async function main() {
   try {
     await connect();
     await resetDatabase();
     
-    // Import and run seed script
+    // Run seed script functions directly (connection already established)
     console.log("Running seed script...\n");
-    const seedModule = await import("./seed.js");
-    await seedModule.default();
+    await runSeedScript();
     
     console.log("\n✓ Database reset and seeded successfully!");
   } catch (e) {
@@ -47,4 +74,3 @@ async function main() {
 }
 
 main();
-
