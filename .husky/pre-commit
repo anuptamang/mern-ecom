@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running ESLint on client directory..."
+cd client
+
+echo "🔧 Attempting to auto-fix linting errors..."
+npm run lint:fix
+
+echo "✅ Checking for remaining linting errors..."
+if ! npm run lint; then
+  echo "❌ Linting errors still exist after auto-fix. Please fix them manually."
+  exit 1
+fi
+
+echo "✨ Client linting passed!"

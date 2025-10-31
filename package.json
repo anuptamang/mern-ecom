@@ -9,11 +9,17 @@
     "install-all-deps": "concurrently \"npm run server-install\" \"npm run client-install\"",
     "client-start": "cd client && npm run start",
     "server-start": "cd server && npm run start",
-    "dev": "concurrently \"npm run client-start\" \"npm run server-start\""
+    "dev": "concurrently \"npm run client-start\" \"npm run server-start\"",
+    "client:lint": "cd client && npm run lint",
+    "client:lint:fix": "cd client && npm run lint:fix",
+    "prepare": "husky install"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "concurrently": "^7.6.0"
+  },
+  "devDependencies": {
+    "husky": "^8.0.3"
   }
 }

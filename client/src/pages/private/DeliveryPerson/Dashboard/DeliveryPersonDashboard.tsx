@@ -320,11 +320,11 @@ const DeliveryPersonDashboard = () => {
           </div>
           <div>
             <Text strong>Note (Optional):</Text>
-            <TextArea
+            <Input.TextArea
               rows={3}
               placeholder="Add a note about the delivery..."
               value={deliveryNote}
-              onChange={(e) => setDeliveryNote(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDeliveryNote(e.target.value)}
               style={{ marginTop: 8 }}
             />
           </div>

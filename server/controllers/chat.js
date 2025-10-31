@@ -22,7 +22,9 @@ export const createOrGetChat = async (req, res) => {
         return res.status(404).json({ message: "Product seller not found" });
       }
       // product.userID is either ObjectId (not populated) or populated User object
-      const sellerId = product.userID?._id ? product.userID._id : product.userID;
+      const sellerId = product.userID?._id
+        ? product.userID._id
+        : product.userID;
       recipientId = String(sellerId);
     }
 
@@ -228,7 +230,8 @@ export const sendMessage = async (req, res) => {
     // Update unread count for other participants
     chat.participants.forEach((participant) => {
       if (String(participant.userId) !== String(userId)) {
-        const currentUnread = chat.unreadCount.get(participant.userId.toString()) || 0;
+        const currentUnread =
+          chat.unreadCount.get(participant.userId.toString()) || 0;
         chat.unreadCount.set(participant.userId.toString(), currentUnread + 1);
       }
     });
@@ -274,7 +277,9 @@ export const markChatResolved = async (req, res) => {
 
     // Only seller, support, or admin can mark as resolved
     if (!["seller", "support", "admin"].includes(userRole)) {
-      return res.status(403).json({ message: "Unauthorized to mark chat as resolved" });
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to mark chat as resolved" });
     }
 
     chat.status = "resolved";
