@@ -100,7 +100,9 @@ const CartsDashboard = (props: TProps) => {
             try {
               await dispatch(updateCartItem({ productId: item.productId, quantity: Number(value) })).unwrap();
             } catch (error: any) {
-              message.error(error?.message || 'Failed to update quantity');
+              // Extract error message from rejected value (set by rejectWithValue)
+              const errorMessage = typeof error === 'string' ? error : (error?.payload || error?.message || 'Failed to update quantity');
+              message.error(errorMessage);
               // Refresh cart to get updated values
               dispatch(fetchMyCart());
             }

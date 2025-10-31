@@ -90,7 +90,7 @@ export const updateItem = async (req, res) => {
 
     if (requestedQuantity > availableStock) {
       return res.status(400).json({ 
-        message: `Insufficient stock. Available: ${availableStock}, Requested: ${requestedQuantity}` 
+        message: `Only ${availableStock} ${availableStock === 1 ? 'item is' : 'items are'} available in stock` 
       });
     }
 

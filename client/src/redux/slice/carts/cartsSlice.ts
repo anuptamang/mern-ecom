@@ -15,11 +15,19 @@ export const addToCart = createAsyncThunk('carts/addToCart', async (payload: { p
   return res.data;
 });
 
-export const updateCartItem = createAsyncThunk('carts/updateCartItem', async (payload: { productId: string; quantity: number }) => {
-  const token = getToken();
-  const res = await updateCartItemApi(token || '', payload);
-  return res.data;
-});
+export const updateCartItem = createAsyncThunk(
+  'carts/updateCartItem',
+  async (payload: { productId: string; quantity: number }, { rejectWithValue }) => {
+    try {
+      const token = getToken();
+      const res = await updateCartItemApi(token || '', payload);
+      return res.data;
+    } catch (error: any) {
+      // Return the error message from the backend
+      return rejectWithValue(error?.response?.data?.message || error?.message || 'Failed to update cart item');
+    }
+  }
+);
 
 export const removeFromCart = createAsyncThunk('carts/removeFromCart', async (productId: string) => {
   const token = getToken();
