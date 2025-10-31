@@ -3,9 +3,19 @@ import User from '../models/user.js'
 
 const Auth = async (req, res, next) => {
     try {
+        if (!req.headers.authorization) {
+            return res.status(401).json({ message: "Unauthorized" })
+        }
+
         const token = req.headers.authorization.split(" ")[1]
+        
+        if (!token) {
+            return res.status(401).json({ message: "Unauthorized" })
+        }
+
         const iscustomAuth = token.length < 500
         let decodedData
+        
         if (token && iscustomAuth) {
             decodedData = jwt.verify(token, 'some very secret key')
             req.userId = decodedData?.id
