@@ -104,7 +104,7 @@ export const createProduct = async (req, res) => {
   }
 
   const newProduct = new Product({
-    userID: req.userId,
+    userID: new mongoose.Types.ObjectId(req.userId),
     createdAt: new Date().toISOString(),
     title,
     body: bodyObj,

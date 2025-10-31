@@ -5,7 +5,7 @@ const productSchema = mongoose.Schema({
   body: { type: Object },
   status: String,
   name: String,
-  userID: String,
+  userID: { type: mongoose.Types.ObjectId, ref: "User" },
   tag: [{ type: String }],
   categories: [{ type: String }],
   slug: { type: String },
