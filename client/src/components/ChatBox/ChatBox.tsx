@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Button, Input, Card, Avatar, Badge, Spin, Empty, message as antMessage } from 'antd';
+import { Button, Input, Card, Avatar, Badge, Spin, Empty, message as antMessage, List, Typography } from 'antd';
 import {
   MessageOutlined,
   CloseOutlined,
   SendOutlined,
   MinusOutlined,
   UserOutlined,
+  MenuOutlined,
 } from '@ant-design/icons';
 import {
   createOrGetChatApi,
   getChatByIdApi,
   sendMessageApi,
+  getMyChatsApi,
 } from 'services/endPoints/chat/chatEndpoints';
 import { useAppSelector } from 'redux/store';
 import { authSelector } from 'redux/slice';
@@ -62,6 +64,7 @@ interface Chat {
     senderId: string;
     timestamp: string;
   };
+  unreadCount?: number;
   status: string;
 }
 
@@ -90,11 +93,24 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [chat, setChat] = useState<Chat | null>(null);
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [chatsLoading, setChatsLoading] = useState(false);
   const [messageText, setMessageText] = useState('');
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatIdRef = useRef<string | null>(null);
+
+  const { Text } = Typography;
+
+  // Load all chats when ChatBox opens
+  useEffect(() => {
+    if (isOpen && user) {
+      loadAllChats();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, user]);
 
   // Auto-open if productId or chatId is provided
   useEffect(() => {
@@ -153,6 +169,8 @@ const ChatBox: React.FC<ChatBoxProps> = ({
       // Load messages if chat exists
       if (newChat._id) {
         await loadChatMessages(newChat._id);
+        // Reload chats list to include new chat
+        await loadAllChats();
       }
     } catch (error: any) {
       console.error('Error opening chat:', error);
@@ -162,14 +180,46 @@ const ChatBox: React.FC<ChatBoxProps> = ({
     }
   };
 
+  const loadAllChats = async () => {
+    try {
+      setChatsLoading(true);
+      const response = await getMyChatsApi();
+      setChats(response.data.chats || []);
+    } catch (error: any) {
+      console.error('Error loading chats:', error);
+    } finally {
+      setChatsLoading(false);
+    }
+  };
+
   const loadChatMessages = async (chatId: string) => {
     try {
+      setLoading(true);
       const response = await getChatByIdApi(chatId);
-      setChat(response.data.chat);
+      const loadedChat = response.data.chat;
+      setChat(loadedChat);
+      chatIdRef.current = chatId;
+      
+      // Update chat in chats list
+      setChats((prevChats) =>
+        prevChats.map((c) => (c._id === chatId ? loadedChat : c))
+      );
     } catch (error: any) {
       console.error('Error loading chat messages:', error);
       antMessage.error('Failed to load messages');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleChatSelect = (selectedChatId: string) => {
+    if (selectedChatId !== chatIdRef.current) {
+      loadChatMessages(selectedChatId);
+    }
+  };
+
+  const getOtherParticipantFromChat = (chatItem: Chat) => {
+    return chatItem.participants.find((p) => String(p.userId._id) !== String(user?._id));
   };
 
   const handleSendMessage = async () => {
@@ -186,11 +236,16 @@ const ChatBox: React.FC<ChatBoxProps> = ({
     const textToSend = messageText.trim();
     setMessageText('');
 
-    try {
+      try {
       const response = await sendMessageApi(currentChatId, textToSend);
       // Ensure we have the updated chat with new message
       const updatedChat = response.data.chat;
       setChat(updatedChat);
+      
+      // Update chat in chats list
+      setChats((prevChats) =>
+        prevChats.map((c) => (c._id === currentChatId ? updatedChat : c))
+      );
       
       // Reload chat messages to ensure persistence
       setTimeout(() => {
@@ -239,39 +294,144 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   }
 
   return (
-    <div className={`chat-box-container ${isMinimized ? 'minimized' : ''}`}>
-      <Card
-        className="chat-box-card"
-        title={
-          <div className="chat-header">
-            <div className="chat-header-info">
-              <Avatar
-                src={otherParticipant?.userId.profilePhoto}
-                icon={<UserOutlined />}
-                size="small"
-              />
-              <span className="chat-participant-name">
-                {otherParticipant?.userId.fullName || 'Chat'}
-              </span>
-            </div>
-            <div className="chat-header-actions">
-              <Button
-                type="text"
-                icon={<MinusOutlined />}
-                onClick={() => setIsMinimized(!isMinimized)}
-              />
+    <div className={`chat-box-container ${isMinimized ? 'minimized' : ''} ${showSidebar ? 'with-sidebar' : ''}`}>
+      <div className="chat-box-wrapper">
+        {/* Sidebar */}
+        {showSidebar && !isMinimized && (
+          <div className="chat-sidebar">
+            <div className="chat-sidebar-header">
+              <Text strong>Messages</Text>
               <Button
                 type="text"
                 icon={<CloseOutlined />}
-                onClick={() => {
-                  setIsOpen(false);
-                  onClose?.();
-                }}
+                size="small"
+                onClick={() => setShowSidebar(false)}
               />
             </div>
+            <div className="chat-sidebar-content">
+              {chatsLoading ? (
+                <div style={{ padding: '20px', textAlign: 'center' }}>
+                  <Spin />
+                </div>
+              ) : chats.length === 0 ? (
+                <Empty
+                  description="No conversations"
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  style={{ padding: '20px 0' }}
+                />
+              ) : (
+                <List
+                  dataSource={chats}
+                  renderItem={(chatItem) => {
+                    const otherParticipant = getOtherParticipantFromChat(chatItem);
+                    if (!otherParticipant) return null;
+                    
+                    const isActive = chatItem._id === chatIdRef.current;
+                    const unreadCount = chatItem.unreadCount || 0;
+                    
+                    return (
+                      <List.Item
+                        className={`chat-sidebar-item ${isActive ? 'active' : ''}`}
+                        onClick={() => handleChatSelect(chatItem._id)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <List.Item.Meta
+                          avatar={
+                            <Badge count={unreadCount} offset={[-5, 5]}>
+                              <Avatar
+                                src={otherParticipant.userId.profilePhoto}
+                                icon={<UserOutlined />}
+                                size="default"
+                              />
+                            </Badge>
+                          }
+                          title={
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Text strong={!isActive} style={{ fontSize: 14 }}>
+                                {otherParticipant.userId.fullName || 'Unknown'}
+                              </Text>
+                              {chatItem.lastMessage?.timestamp && (
+                                <Text type="secondary" style={{ fontSize: 11 }}>
+                                  {new Date(chatItem.lastMessage.timestamp).toLocaleTimeString([], {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
+                                </Text>
+                              )}
+                            </div>
+                          }
+                          description={
+                            <div>
+                              {chatItem.productContext && (
+                                <Text type="secondary" ellipsis style={{ fontSize: 11, display: 'block', marginBottom: 4 }}>
+                                  {chatItem.productContext.productTitle}
+                                </Text>
+                              )}
+                              {chatItem.lastMessage && (
+                                <Text
+                                  ellipsis
+                                  style={{
+                                    fontSize: 12,
+                                    color: unreadCount > 0 && !isActive ? '#1890ff' : '#666',
+                                    fontWeight: unreadCount > 0 && !isActive ? 500 : 400,
+                                  }}
+                                >
+                                  {chatItem.lastMessage.text}
+                                </Text>
+                              )}
+                            </div>
+                          }
+                        />
+                      </List.Item>
+                    );
+                  }}
+                />
+              )}
+            </div>
           </div>
-        }
-      >
+        )}
+
+        {/* Main Chat Area */}
+        <Card
+          className="chat-box-card"
+          title={
+            <div className="chat-header">
+              {!showSidebar && (
+                <Button
+                  type="text"
+                  icon={<MenuOutlined />}
+                  onClick={() => setShowSidebar(true)}
+                  style={{ marginRight: 8 }}
+                />
+              )}
+              <div className="chat-header-info">
+                <Avatar
+                  src={otherParticipant?.userId.profilePhoto}
+                  icon={<UserOutlined />}
+                  size="small"
+                />
+                <span className="chat-participant-name">
+                  {otherParticipant?.userId.fullName || 'Chat'}
+                </span>
+              </div>
+              <div className="chat-header-actions">
+                <Button
+                  type="text"
+                  icon={<MinusOutlined />}
+                  onClick={() => setIsMinimized(!isMinimized)}
+                />
+                <Button
+                  type="text"
+                  icon={<CloseOutlined />}
+                  onClick={() => {
+                    setIsOpen(false);
+                    onClose?.();
+                  }}
+                />
+              </div>
+            </div>
+          }
+        >
         {isMinimized ? (
           <div className="chat-minimized-content">
             <span>Chat minimized</span>
@@ -389,6 +549,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
           </>
         )}
       </Card>
+      </div>
     </div>
   );
 };
