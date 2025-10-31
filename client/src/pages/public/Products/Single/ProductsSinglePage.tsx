@@ -8,7 +8,11 @@ import { useAppDispatch, useAppSelector } from 'redux/store';
 import { addToCart } from 'redux/slice/carts/cartsSlice';
 import { authSelector } from 'redux/slice';
 import { fetchProductByIdApi } from 'services/endPoints/products/productsEndpoints';
-import { ProductImageGallery, ProductRatings, ProductComments } from 'components';
+import {
+  ProductImageGallery,
+  ProductRatings,
+  ProductComments,
+} from 'components';
 import { EyeOutlined, LikeOutlined } from '@ant-design/icons';
 import './ProductsSinglePage.scss';
 
@@ -93,8 +97,9 @@ const ProductDetails = () => {
       <div className="product-detail-top">
         <div className="product-image-section">
           <ProductImageGallery
-            thumbnail={product.thumbnail || ''}
+            thumbnail={product.thumbnail}
             images={product.images || []}
+            productTitle={product.title}
           />
         </div>
 
@@ -106,7 +111,9 @@ const ProductDetails = () => {
                 {product.rating > 0 && (
                   <div className="product-rating">
                     <Rate disabled value={product.rating} allowHalf />
-                    <span className="rating-value">({product.rating.toFixed(1)})</span>
+                    <span className="rating-value">
+                      ({product.rating.toFixed(1)})
+                    </span>
                   </div>
                 )}
                 <div className="product-stats">
@@ -139,7 +146,12 @@ const ProductDetails = () => {
 
             <div className="product-description">
               <h3>Description</h3>
-              <p>{product.body?.summary || product.body?.full || product.description || 'No description available.'}</p>
+              <p>
+                {product.body?.summary ||
+                  product.body?.full ||
+                  product.description ||
+                  'No description available.'}
+              </p>
             </div>
 
             {product.categories && product.categories.length > 0 && (
@@ -147,7 +159,9 @@ const ProductDetails = () => {
                 <h3>Categories</h3>
                 <div className="category-tags">
                   {product.categories.map((cat: string, index: number) => (
-                    <Tag key={index} color="blue">{cat}</Tag>
+                    <Tag key={index} color="blue">
+                      {cat}
+                    </Tag>
                   ))}
                 </div>
               </div>
@@ -160,7 +174,9 @@ const ProductDetails = () => {
                 <Button
                   type="primary"
                   size="large"
-                  onClick={() => dispatch(addToCart({ productId: product._id }))}
+                  onClick={() =>
+                    dispatch(addToCart({ productId: product._id }))
+                  }
                   className="add-to-cart-btn"
                 >
                   Add to Cart
@@ -187,7 +203,10 @@ const ProductDetails = () => {
 
       {/* Bottom Section: Ratings & Reviews */}
       <div className="product-detail-bottom">
-        <ProductRatings productId={product._id} productRating={product.rating} />
+        <ProductRatings
+          productId={product._id}
+          productRating={product.rating}
+        />
       </div>
 
       {/* Comments Section */}

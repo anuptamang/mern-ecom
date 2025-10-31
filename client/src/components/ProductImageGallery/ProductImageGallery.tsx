@@ -1,61 +1,78 @@
 import { useState } from 'react';
 import { Image } from 'antd';
 import { ZoomInOutlined } from '@ant-design/icons';
+import { ProductImagePlaceholder } from './ProductImagePlaceholder';
 import './ProductImageGallery.scss';
 
 type ProductImageGalleryProps = {
-  thumbnail: string;
+  thumbnail?: string;
   images?: string[];
+  productTitle?: string;
 };
 
 export const ProductImageGallery = ({
   thumbnail,
   images = [],
+  productTitle = 'Product',
 }: ProductImageGalleryProps) => {
-  const [selectedImage, setSelectedImage] = useState(thumbnail);
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const [previewImage, setPreviewImage] = useState('');
-
   // Combine thumbnail and gallery images
   const allImages = [thumbnail, ...images].filter(Boolean);
+  const hasImages = allImages.length > 0;
+  
+  const [selectedImage, setSelectedImage] = useState(thumbnail || '');
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
 
   const handleImageClick = (image: string) => {
     setSelectedImage(image);
   };
 
-  const handleZoomClick = (image: string) => {
-    setPreviewImage(image);
+  const handleZoomClick = (image?: string) => {
+    if (!hasImages) return; // Don't zoom placeholder
+    if (image) {
+      setPreviewImage(image);
+    } else {
+      setPreviewImage(selectedImage);
+    }
     setPreviewVisible(true);
   };
 
   return (
     <div className="product-image-gallery">
       <div className="main-image-container">
-        <div className="main-image-wrapper" onClick={() => handleZoomClick(selectedImage)}>
-          <Image
-            src={selectedImage}
-            alt="Product"
-            className="main-image"
-            preview={false}
-          />
-          <div className="zoom-overlay">
-            <ZoomInOutlined className="zoom-icon" />
-            <span>Click to zoom</span>
+        {hasImages ? (
+          <>
+            <div className="main-image-wrapper" onClick={() => handleZoomClick(selectedImage)}>
+              <Image
+                src={selectedImage}
+                alt="Product"
+                className="main-image"
+                preview={false}
+              />
+              <div className="zoom-overlay">
+                <ZoomInOutlined className="zoom-icon" />
+                <span>Click to zoom</span>
+              </div>
+            </div>
+            <Image.PreviewGroup>
+              {allImages.map((img, index) => (
+                <Image
+                  key={index}
+                  style={{ display: 'none' }}
+                  src={img}
+                  alt={`Product ${index + 1}`}
+                />
+              ))}
+            </Image.PreviewGroup>
+          </>
+        ) : (
+          <div className="main-image-wrapper placeholder-wrapper">
+            <ProductImagePlaceholder title={productTitle} />
           </div>
-        </div>
-        <Image.PreviewGroup>
-          {allImages.map((img, index) => (
-            <Image
-              key={index}
-              style={{ display: 'none' }}
-              src={img}
-              alt={`Product ${index + 1}`}
-            />
-          ))}
-        </Image.PreviewGroup>
+        )}
       </div>
 
-      {allImages.length > 1 && (
+      {hasImages && allImages.length > 1 && (
         <div className="thumbnail-container">
           {allImages.map((img, index) => (
             <div
@@ -74,7 +91,7 @@ export const ProductImageGallery = ({
         </div>
       )}
 
-      {previewVisible && (
+      {previewVisible && hasImages && (
         <div className="image-preview-modal" onClick={() => setPreviewVisible(false)}>
           <div className="preview-content" onClick={(e) => e.stopPropagation()}>
             <Image
