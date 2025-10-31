@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema({
   delivererType: {
     type: String,
     enum: ["warehouse", "customer"],
-    default: null, // Only set for delivery_person role
+    // No default - only set for delivery_person role
   },
   profilePhoto: { type: String },
   coverPhoto: { type: String },
