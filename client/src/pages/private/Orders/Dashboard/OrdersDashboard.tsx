@@ -192,11 +192,45 @@ const OrdersDashboard = (props: TProps) => {
                           </div>
                         </div>
                         <div className="order-status-section">
-                          {getStatusTag(order.status)}
+                          <div style={{ marginBottom: 8 }}>
+                            {getStatusTag(order.status)}
+                            {order.deliveryStatus && (
+                              <Tag color="blue" style={{ marginLeft: 8 }}>
+                                {order.deliveryStatus.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                              </Tag>
+                            )}
+                          </div>
                           <div className="order-amount">
                             ${((order.amount || 0) / 100).toFixed(2)} {order.currency?.toUpperCase() || 'USD'}
                           </div>
                         </div>
+                      </div>
+
+                      <div className="order-actions" style={{ marginTop: 16, marginBottom: 16 }}>
+                        <Space>
+                          <Button
+                            type="default"
+                            onClick={() => loadDeliveryTracking(order._id)}
+                          >
+                            Track Delivery
+                          </Button>
+                          {order.status === 'paid' && order.deliveryStatus !== 'cancelled' && (
+                            <Popconfirm
+                              title="Cancel Order"
+                              description="Are you sure you want to cancel this order? A refund will be processed."
+                              onConfirm={() => {
+                                setCancellingOrderId(order._id);
+                                setCancelModalVisible(true);
+                              }}
+                              okText="Yes, Cancel"
+                              cancelText="No"
+                            >
+                              <Button type="default" danger icon={<StopOutlined />}>
+                                Cancel Order
+                              </Button>
+                            </Popconfirm>
+                          )}
+                        </Space>
                       </div>
 
                       <div className="order-items">

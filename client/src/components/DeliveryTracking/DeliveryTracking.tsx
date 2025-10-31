@@ -72,7 +72,7 @@ export const DeliveryTracking = ({ delivery, order }: DeliveryTrackingProps) => 
       {delivery?.estimatedDeliveryDate && (
         <div className="mb-4">
           <Text strong>Estimated Delivery: </Text>
-          <Text>{moment(delivery.estimatedDeliveryDate).format('MMMM DD, YYYY')}</Text>
+          <Text>{new Date(delivery.estimatedDeliveryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</Text>
         </div>
       )}
 
@@ -100,11 +100,11 @@ export const DeliveryTracking = ({ delivery, order }: DeliveryTrackingProps) => 
                   <div>
                     <Text strong>{statusMap[entry.status]?.title || entry.status}</Text>
                     <div>
-                      <Text type="secondary">{moment(entry.timestamp).format('MMM DD, YYYY HH:mm')}</Text>
+                      <Text type="secondary">{new Date(entry.timestamp).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</Text>
                     </div>
                     {entry.note && (
                       <div>
-                        <Text type="secondary" italic>{entry.note}</Text>
+                        <Text type="secondary" style={{ fontStyle: 'italic' }}>{entry.note}</Text>
                       </div>
                     )}
                   </div>
