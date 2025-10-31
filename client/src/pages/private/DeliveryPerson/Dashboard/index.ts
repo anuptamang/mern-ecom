@@ -1,2 +1,2 @@
-export { default as DeliveryPersonDashboard } from './DeliveryPersonDashboard';
+export { default } from './DeliveryPersonDashboard';
 

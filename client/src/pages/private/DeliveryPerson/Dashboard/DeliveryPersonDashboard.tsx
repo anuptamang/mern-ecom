@@ -232,11 +232,11 @@ const DeliveryPersonDashboard = () => {
                     <Text strong>Amount: </Text>
                     <Text>${(delivery.orderId.amount / 100).toFixed(2)}</Text>
                   </div>
-                  {delivery.deliveryAddress && (
+                  {delivery.orderId?.deliveryAddress && (
                     <div>
                       <Text strong>Delivery Address: </Text>
                       <Text>
-                        {delivery.orderId.deliveryAddress?.street}, {delivery.orderId.deliveryAddress?.city}, {delivery.orderId.deliveryAddress?.state}
+                        {delivery.orderId.deliveryAddress.street}, {delivery.orderId.deliveryAddress.city}, {delivery.orderId.deliveryAddress.state} {delivery.orderId.deliveryAddress.zipCode}
                       </Text>
                     </div>
                   )}

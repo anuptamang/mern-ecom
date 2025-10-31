@@ -191,7 +191,7 @@ const DeliveryAgencyDashboard = () => {
                       {delivery.status === 'in_facility' || delivery.status === 'in_transit' ? (
                         <Button
                           type="primary"
-                          icon={<AssignOutlined />}
+                          icon={<UserAddOutlined />}
                           onClick={() => handleAssignPerson(delivery)}
                           disabled={!!delivery.assignedDeliveryPerson}
                         >

@@ -18,7 +18,10 @@ export const createOrGetChat = async (req, res) => {
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
-      recipientId = product.userID._id || product.userID;
+      if (!product.userID) {
+        return res.status(404).json({ message: "Product seller not found" });
+      }
+      recipientId = product.userID._id ? String(product.userID._id) : String(product.userID);
     }
 
     if (!recipientId) {
@@ -42,11 +45,11 @@ export const createOrGetChat = async (req, res) => {
       const product = await Product.findById(productId);
       if (product) {
         productInfo = {
-          productId: product._id,
-          productTitle: product.title,
+          productId: String(product._id),
+          productTitle: product.title || "",
           productThumbnail: product.thumbnail || "",
-          productPrice: product.price,
-          productSlug: product.slug || product._id.toString(),
+          productPrice: product.price || 0,
+          productSlug: product.slug || String(product._id),
         };
       }
     }
