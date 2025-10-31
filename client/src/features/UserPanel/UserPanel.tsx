@@ -26,12 +26,13 @@ export const UserPanel = (props: Props) => {
   const auth = useAuth();
   const dispatch = useAppDispatch();
   const carts = useAppSelector((state) => state.carts);
+  const isSeller = auth?.result?.role === 'seller';
 
   useEffect(() => {
-    if (auth?.tokenStatus === 'valid') {
+    if (auth?.tokenStatus === 'valid' && !isSeller) {
       dispatch(fetchMyCart());
     }
-  }, [auth?.tokenStatus, dispatch]);
+  }, [auth?.tokenStatus, dispatch, isSeller]);
 
   const handleLogout = () => {
     dispatch(signOut());
@@ -67,13 +68,15 @@ export const UserPanel = (props: Props) => {
       <List style={{ marginLeft: '10px' }}>
         {auth?.tokenStatus === 'valid' ? (
           <li style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-            <Link to={`/${pageRoutes.userCarts}`}>
-              <Badge size="small" count={carts.totalCount || 0} color={token.colorPrimaryBg}>
-                <ShoppingCartOutlined
-                  style={{ color: 'white', fontSize: '24px' }}
-                />
-              </Badge>
-            </Link>
+            {!isSeller && (
+              <Link to={`/${pageRoutes.userCarts}`}>
+                <Badge size="small" count={carts.totalCount || 0} color={token.colorPrimaryBg}>
+                  <ShoppingCartOutlined
+                    style={{ color: 'white', fontSize: '24px' }}
+                  />
+                </Badge>
+              </Link>
+            )}
             <Dropdown
               trigger={['click']}
               menu={{ items }}
