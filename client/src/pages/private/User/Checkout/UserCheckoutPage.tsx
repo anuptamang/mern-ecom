@@ -63,7 +63,12 @@ const UserCheckoutPage = () => {
                 showIcon
                 className="mb-4"
               />
-              <div className="mb-4 text-right">Total: ${carts.totalPrice}</div>
+              <div className="mb-4 text-right">
+                <div className="text-lg font-semibold">Total: ${(carts.totalPrice || 0).toFixed(2)}</div>
+                {carts.totalPrice === 0 && (
+                  <div className="text-sm text-red-500 mt-1">Your cart is empty. Please add items to cart first.</div>
+                )}
+              </div>
               <Elements stripe={stripePromise} options={{ appearance: { theme: 'stripe' } }}>
                 <StripeCheckoutForm onSuccess={() => setPaid(true)} />
               </Elements>
