@@ -23,13 +23,20 @@ function checkFileType(file, cb) {
   }
 }
 
-export const Upload = multer({
+// Multer instance for general use (can be used with .single(), .array(), .fields())
+const multerInstance = multer({
   storage: storage,
   limits: { fileSize: 20000000 }, // limit file size to 20MB
   fileFilter: (req, file, cb) => {
     checkFileType(file, cb);
   },
-}).single("thumbnail");
+});
+
+// Export multer instance for use with .single(), .array(), .fields()
+export const Upload = multerInstance;
+
+// Pre-configured upload for thumbnail (backward compatibility)
+export const UploadThumbnail = multerInstance.single("thumbnail");
 
 // For multiple image uploads (gallery)
 export const UploadMultiple = multer({

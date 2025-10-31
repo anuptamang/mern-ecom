@@ -2,10 +2,6 @@ import Delivery from "../models/delivery.js";
 import Order from "../models/order.js";
 import User from "../models/user.js";
 
-const Delivery = (await import("../models/delivery.js")).default;
-const Order = (await import("../models/order.js")).default;
-const User = (await import("../models/user.js")).default;
-
 /**
  * Assign delivery to a delivery agency
  * Can be done by admin or seller (after picked_up status)
