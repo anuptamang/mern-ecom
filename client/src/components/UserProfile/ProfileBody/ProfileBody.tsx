@@ -1,8 +1,6 @@
-import { Button, Form, FormInstance, Input, Select } from 'antd';
+import { Button, Form, FormInstance, Input, Space } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-
-const { Option } = Select;
 
 const formItemLayout = {
   labelCol: {
@@ -31,51 +29,90 @@ const tailFormItemLayout = {
 type TProfileBody = {
   form: FormInstance<any> | undefined;
   onFormSubmit?: (values: any) => void;
+  onCancel?: () => void;
   loadingSubmit: boolean;
 };
 
 export const ProfileBody = ({
   form,
   onFormSubmit,
+  onCancel,
   loadingSubmit = false,
 }: TProfileBody) => {
   const formRef = useRef<FormInstance>(null);
   const [componentDisabled, setComponentDisabled] = useState<boolean>(true);
   const { hash } = useLocation();
+  const [isEditing, setIsEditing] = useState(false);
 
   const action = hash?.slice(1);
 
   useEffect(() => {
+    // Support both hash-based navigation and button-based editing
     if (action === 'update') {
       setComponentDisabled(false);
-    } else {
+      setIsEditing(true);
+    } else if (action === 'view') {
       setComponentDisabled(true);
-    }
-
-    if (action === 'view') {
+      setIsEditing(false);
       formRef.current?.resetFields();
     }
   }, [action]);
 
-  const handleSubmit = (values: any) => {
+  const handleEdit = () => {
+    setComponentDisabled(false);
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setComponentDisabled(true);
+    setIsEditing(false);
+    // Reset form to original values
+    formRef.current?.resetFields();
+    // Call optional onCancel callback if provided
+    if (onCancel) {
+      onCancel();
+    }
+  };
+
+  const handleSubmit = async (values: any) => {
     if (onFormSubmit) {
-      onFormSubmit(values);
+      try {
+        await onFormSubmit(values);
+        // After successful submit, disable form to show saved state
+        // User can click Edit again if they want to make more changes
+        setIsEditing(false);
+        setComponentDisabled(true);
+      } catch (error) {
+        // Error handling is done in the parent component
+        // Keep form editable if there's an error so user can fix and retry
+      }
     }
   };
 
   return (
     <div className="pt-10">
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end' }}>
+        {!isEditing ? (
+          <Button type="primary" onClick={handleEdit}>
+            Edit Profile
+          </Button>
+        ) : (
+          <Space>
+            <Button onClick={handleCancel} disabled={loadingSubmit}>
+              Cancel
+            </Button>
+            <Button type="primary" onClick={() => formRef.current?.submit()} loading={loadingSubmit}>
+              Save Changes
+            </Button>
+          </Space>
+        )}
+      </div>
       <Form
         ref={formRef}
         {...formItemLayout}
         form={form}
         disabled={componentDisabled}
         onFinish={handleSubmit}
-        initialValues={{
-          email: 'anup@gmail.com',
-          firstName: 'Anup',
-          lastName: 'Tamang',
-        }}
       >
         <Form.Item
           name="email"
@@ -119,13 +156,6 @@ export const ProfileBody = ({
         >
           <Input />
         </Form.Item>
-        {action === 'update' && (
-          <Form.Item {...tailFormItemLayout}>
-            <Button type="primary" htmlType="submit" loading={loadingSubmit}>
-              Submit
-            </Button>
-          </Form.Item>
-        )}
       </Form>
     </div>
   );
