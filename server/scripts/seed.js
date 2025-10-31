@@ -124,7 +124,104 @@ async function seedUser() {
     }
   }
 
-  return { buyer, seller };
+  // Create admin user
+  const adminEmail = "admin@example.com";
+  let admin = await User.findOne({ email: adminEmail });
+  if (!admin) {
+    const password = await bcrypt.hash("password123", 12);
+    admin = await User.create({
+      email: adminEmail,
+      role: "admin",
+      password,
+      fullName: "Platform Admin",
+      phone: "+1-555-0001",
+      primaryAddress: {
+        street: "1 Admin Plaza",
+        city: "New York",
+        state: "NY",
+        zipCode: "10001",
+        country: "USA",
+      },
+    });
+    console.log(`Created admin: ${adminEmail} / password123`);
+  } else {
+    console.log(`Admin already exists: ${adminEmail}`);
+  }
+
+  // Create delivery agency user
+  const agencyEmail = "delivery@example.com";
+  let deliveryAgency = await User.findOne({ email: agencyEmail });
+  if (!deliveryAgency) {
+    const password = await bcrypt.hash("password123", 12);
+    deliveryAgency = await User.create({
+      email: agencyEmail,
+      role: "delivery_agency",
+      password,
+      fullName: "Fast Delivery Co.",
+      phone: "+1-555-0301",
+      primaryAddress: {
+        street: "100 Delivery St",
+        city: "Chicago",
+        state: "IL",
+        zipCode: "60601",
+        country: "USA",
+      },
+    });
+    console.log(`Created delivery agency: ${agencyEmail} / password123`);
+  } else {
+    console.log(`Delivery agency already exists: ${agencyEmail}`);
+  }
+
+  // Create delivery person users (belonging to the delivery agency)
+  const person1Email = "deliverer1@example.com";
+  let deliveryPerson1 = await User.findOne({ email: person1Email });
+  if (!deliveryPerson1) {
+    const password = await bcrypt.hash("password123", 12);
+    deliveryPerson1 = await User.create({
+      email: person1Email,
+      role: "delivery_person",
+      password,
+      fullName: "John Delivery",
+      phone: "+1-555-0401",
+      deliveryAgencyId: deliveryAgency._id,
+      primaryAddress: {
+        street: "50 Worker Ave",
+        city: "Chicago",
+        state: "IL",
+        zipCode: "60602",
+        country: "USA",
+      },
+    });
+    console.log(`Created delivery person: ${person1Email} / password123`);
+  } else {
+    console.log(`Delivery person 1 already exists: ${person1Email}`);
+  }
+
+  const person2Email = "deliverer2@example.com";
+  let deliveryPerson2 = await User.findOne({ email: person2Email });
+  if (!deliveryPerson2) {
+    const password = await bcrypt.hash("password123", 12);
+    deliveryPerson2 = await User.create({
+      email: person2Email,
+      role: "delivery_person",
+      password,
+      fullName: "Jane Courier",
+      phone: "+1-555-0402",
+      deliveryAgencyId: deliveryAgency._id,
+      primaryAddress: {
+        street: "51 Worker Ave",
+        city: "Chicago",
+        state: "IL",
+        zipCode: "60602",
+        country: "USA",
+      },
+    });
+    console.log(`Created delivery person: ${person2Email} / password123`);
+  } else {
+    console.log(`Delivery person 2 already exists: ${person2Email}`);
+  }
+
+  return { buyer, seller, admin, deliveryAgency, deliveryPerson1, deliveryPerson2 };
 }
 
 function sampleProducts() {
@@ -423,12 +520,16 @@ async function main() {
       await resetDatabase();
     }
 
-    const { buyer, seller } = await seedUser();
+    const { buyer, seller, admin, deliveryAgency, deliveryPerson1, deliveryPerson2 } = await seedUser();
     await seedProducts(seller._id);
     console.log("Seeding completed successfully!");
     console.log("\n=== Test Credentials ===");
+    console.log("Admin: admin@example.com / password123");
     console.log("Buyer: test@example.com / password123");
     console.log("Seller: seller@example.com / password123");
+    console.log("Delivery Agency: delivery@example.com / password123");
+    console.log("Delivery Person 1: deliverer1@example.com / password123");
+    console.log("Delivery Person 2: deliverer2@example.com / password123");
   } catch (e) {
     console.error(e);
     process.exitCode = 1;
