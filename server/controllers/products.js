@@ -320,16 +320,34 @@ export const viewCount = async (req, res) => {
 export const getMyProducts = async (req, res) => {
   try {
     const userId = req.userId;
-    // Handle both string and ObjectId userID for backward compatibility
+    
+    // Convert userId to ObjectId for querying
+    let query;
+    try {
+      // Try to convert to ObjectId first
+      const objectIdUserId = mongoose.Types.ObjectId.isValid(userId) 
+        ? new mongoose.Types.ObjectId(userId) 
+        : userId;
+      
+      // Query with ObjectId
+      query = { userID: objectIdUserId };
+    } catch (e) {
+      // Fallback to string comparison
+      query = { userID: String(userId) };
+    }
+    
+    // Also try querying with string format for backward compatibility
     const products = await Product.find({
       $or: [
-        { userID: userId },
+        query,
         { userID: String(userId) },
-        { userID: new mongoose.Types.ObjectId(userId) }
+        { userID: mongoose.Types.ObjectId.isValid(userId) ? new mongoose.Types.ObjectId(userId) : userId }
       ]
     }).sort({ _id: -1 });
+    
     res.status(200).json({ data: products });
   } catch (error) {
+    console.error('Error in getMyProducts:', error);
     res.status(404).json({ message: error.message });
   }
 };
