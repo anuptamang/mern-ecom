@@ -126,6 +126,28 @@ export const UserSidePanel = () => {
         </Link>
       ),
     }] : []),
+    ...(isDeliveryAgency ? [{
+      key: `/${pageRoutes.deliveryAgencyDashboard}`,
+      label: (
+        <Link
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+          to={`/${pageRoutes.deliveryAgencyDashboard}`}
+        >
+          <TruckOutlined /> Delivery Dashboard
+        </Link>
+      ),
+    }] : []),
+    ...(isDeliveryPerson ? [{
+      key: `/${pageRoutes.deliveryPersonDashboard}`,
+      label: (
+        <Link
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+          to={`/${pageRoutes.deliveryPersonDashboard}`}
+        >
+          <CarOutlined /> My Deliveries
+        </Link>
+      ),
+    }] : []),
     {
       key: `/${pageRoutes.userSettings}`,
       label: (
