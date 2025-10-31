@@ -203,7 +203,16 @@ export const getUserStats = async (req, res) => {
     const orders = await Order.find({ userId });
     const totalOrders = orders.length;
     const totalSpent = orders.reduce((sum, o) => sum + (o.amount / 100), 0);
-    const userProducts = await Product.find({ userID: userId });
+    
+    // Handle both string and ObjectId userID for backward compatibility
+    const mongoose = (await import("mongoose")).default;
+    const userProducts = await Product.find({
+      $or: [
+        { userID: userId },
+        { userID: String(userId) },
+        { userID: new mongoose.Types.ObjectId(userId) }
+      ]
+    });
     const totalProducts = userProducts.length;
     
     if (isSeller) {
@@ -234,14 +243,24 @@ export const getUserStats = async (req, res) => {
           ).length;
         }, 0);
       
-      return res.json({ 
-        totalOrders, 
-        totalSpent, 
-        totalProducts, 
-        totalSales,
-        totalRevenue,
-        cartItemsCount
-      });
+        return res.json({ 
+          totalOrders, 
+          totalSpent, 
+          totalProducts, 
+          totalSales,
+          totalRevenue,
+          cartItemsCount
+        });
+      } else {
+        return res.json({ 
+          totalOrders, 
+          totalSpent, 
+          totalProducts, 
+          totalSales: 0,
+          totalRevenue: 0,
+          cartItemsCount: 0
+        });
+      }
     } else {
       // Buyer stats
       const totalSales = orders.filter(o => userProducts.some(p => String(p._id) === String(o.items?.[0]?.productId))).length;
