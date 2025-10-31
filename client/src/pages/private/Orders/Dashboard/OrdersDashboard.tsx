@@ -296,7 +296,7 @@ const OrdersDashboard = (props: TProps) => {
                            order.status !== 'cancelled' && 
                            order.status !== 'refunded' && (
                             <>
-                              {deliveryTracking?.buyerAcceptance === 'pending' && (
+                              {(!order.deliveryTracking || order.deliveryTracking?.buyerAcceptance === 'pending') && (
                                 <>
                                   <Button
                                     type="primary"
@@ -318,13 +318,13 @@ const OrdersDashboard = (props: TProps) => {
                                   </Button>
                                 </>
                               )}
-                              {deliveryTracking?.buyerAcceptance === 'accepted' && (
+                              {order.deliveryTracking?.buyerAcceptance === 'accepted' && (
                                 <Tag color="success">Delivery Accepted</Tag>
                               )}
-                              {deliveryTracking?.buyerAcceptance === 'rejected' && (
+                              {order.deliveryTracking?.buyerAcceptance === 'rejected' && (
                                 <Tag color="error">Delivery Rejected</Tag>
                               )}
-                              {deliveryTracking?.buyerAcceptance !== 'pending' && (
+                              {order.deliveryTracking?.buyerAcceptance !== 'pending' && (
                                 <Button
                                   type="default"
                                   onClick={() => navigate(`/${pageRoutes.userReturns}?orderId=${order._id}`)}
