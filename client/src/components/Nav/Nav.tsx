@@ -24,15 +24,22 @@ const Nav = (): JSX.Element => {
     setCurrent(location.pathname);
   }, [location.pathname]);
 
+  // Convert navData to Menu items format
+  const menuItems: MenuProps['items'] = navData.map((item) => ({
+    key: item.key,
+    label: item.label,
+  }));
+
   return (
     <>
       <Menu
         theme="dark"
         mode="horizontal"
-        items={navData}
+        items={menuItems}
         onClick={onClick}
         selectedKeys={[current]}
         style={{ justifyContent: 'flex-end' }}
+        overflowedIndicator={null}
       />
     </>
   );
