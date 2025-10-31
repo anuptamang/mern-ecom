@@ -1,19 +1,37 @@
-import { Button, Card, InputNumber, List } from 'antd';
+import { Button, Card, InputNumber, List, Alert } from 'antd';
 import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 import { clearCart, fetchMyCart, removeFromCart, updateCartItem } from 'redux/slice/carts/cartsSlice';
 import { Link } from 'react-router-dom';
 import { pageRoutes } from 'data/static/pageRoutes';
+import { authSelector } from 'redux/slice';
 
 type TProps = {};
 
 const CartsDashboard = (props: TProps) => {
   const dispatch = useAppDispatch();
   const carts = useAppSelector((s) => s.carts);
+  const { result } = useAppSelector(authSelector);
+  const isSeller = result?.role === 'seller';
 
   useEffect(() => {
-    dispatch(fetchMyCart());
-  }, [dispatch]);
+    if (!isSeller) {
+      dispatch(fetchMyCart());
+    }
+  }, [dispatch, isSeller]);
+
+  if (isSeller) {
+    return (
+      <Card title="Your Cart">
+        <Alert
+          message="Sellers cannot purchase products"
+          description="As a seller, you can only manage your products. Please use a buyer account to make purchases."
+          type="info"
+          showIcon
+        />
+      </Card>
+    );
+  }
 
   return (
     <Card title="Your Cart" extra={<Button danger onClick={() => dispatch(clearCart())}>Clear</Button>}>

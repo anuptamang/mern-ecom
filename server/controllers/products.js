@@ -70,18 +70,40 @@ export const updateProduct = async (req, res) => {
   const product = req.body;
   if (!mongoose.Types.ObjectId.isValid(_id))
     return res.status(404).send("No product with that ID");
+  
+  const existingProduct = await Product.findById(_id);
+  if (!existingProduct) {
+    return res.status(404).send("No product with that ID");
+  }
+  
+  // Check ownership - only the product creator can update
+  if (String(existingProduct.userID) !== String(req.userId)) {
+    return res.status(403).json({ message: "You can only update your own products" });
+  }
+  
   const updatedProduct = await Product.findByIdAndUpdate(
     _id,
     { ...product, _id },
     { new: true }
   );
-  res.json(updateProduct);
+  res.json(updatedProduct);
 };
 
 export const deleteProduct = async (req, res) => {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id))
     return res.status(404).send("No product with that ID");
+  
+  const product = await Product.findById(id);
+  if (!product) {
+    return res.status(404).send("No product with that ID");
+  }
+  
+  // Check ownership - only the product creator can delete
+  if (String(product.userID) !== String(req.userId)) {
+    return res.status(403).json({ message: "You can only delete your own products" });
+  }
+  
   await Product.findByIdAndRemove(id);
   res.json({ message: "Product deleted successfully" });
 };

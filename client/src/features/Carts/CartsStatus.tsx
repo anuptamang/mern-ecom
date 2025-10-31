@@ -5,12 +5,17 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getUserStatsApi } from 'services/endPoints/user/userEndpoints';
 import { getToken } from 'utils/localStorage';
+import { useAppSelector } from 'redux/store';
+import { authSelector } from 'redux/slice';
 
 export const CartsStatus = () => {
+  const { result } = useAppSelector(authSelector);
+  const isSeller = result?.role === 'seller';
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ totalOrders: 0, totalSpent: 0 });
 
   useEffect(() => {
+    if (isSeller) return;
     const load = async () => {
       const token = getToken();
       if (!token) return;
@@ -24,7 +29,9 @@ export const CartsStatus = () => {
       }
     };
     load();
-  }, []);
+  }, [isSeller]);
+
+  if (isSeller) return null;
 
   return (
     <>

@@ -5,8 +5,9 @@ import { ReactNode, useEffect, useState } from 'react';
 import styles from 'assets/styles/Common.module.scss';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
-import { useAppDispatch } from 'redux/store';
+import { useAppDispatch, useAppSelector } from 'redux/store';
 import { addToCart } from 'redux/slice/carts/cartsSlice';
+import { authSelector } from 'redux/slice';
 
 type Props = {};
 
@@ -29,6 +30,8 @@ const ProductDetails = () => {
   const { id } = useParams();
   const [product, setProduct] = useState<any>();
   const dispatch = useAppDispatch();
+  const { result } = useAppSelector(authSelector);
+  const isSeller = result?.role === 'seller';
 
   useEffect(() => {
     let isMounted = true;
@@ -46,9 +49,14 @@ const ProductDetails = () => {
     <Card cover={product.thumbnail ? <img alt={product.title} src={product.thumbnail} /> : null}>
       <h2 className="text-xl font-semibold mb-2">{product.title}</h2>
       <div className="mb-4">{product.body?.summary || ''}</div>
-      <Button type="primary" onClick={() => dispatch(addToCart({ productId: product._id }))}>
-        Add to Cart
-      </Button>
+      {!isSeller && result && (
+        <Button type="primary" onClick={() => dispatch(addToCart({ productId: product._id }))}>
+          Add to Cart
+        </Button>
+      )}
+      {isSeller && (
+        <div className="text-gray-500 italic">Sellers cannot purchase products</div>
+      )}
     </Card>
   );
 };
