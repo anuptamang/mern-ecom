@@ -179,16 +179,32 @@ export const cancelOrder = async (req, res) => {
 
     // Process refund via Stripe if paymentIntentId exists
     let refundId = null;
+    let refundStatus = "pending";
+    let refundAmount = order.amount;
+    let refundFailureReason = null;
+
     if (order.paymentIntentId) {
       try {
+        // Create refund
         const refund = await stripe.refunds.create({
           payment_intent: order.paymentIntentId,
         });
         refundId = refund.id;
+        refundStatus = refund.status; // pending, succeeded, failed, or canceled
+        refundAmount = refund.amount;
+        
+        // If refund fails immediately, capture the reason
+        if (refund.status === "failed" || refund.status === "canceled") {
+          refundFailureReason = refund.failure_reason || "Refund could not be processed";
+        }
       } catch (stripeError) {
         console.error("Error processing refund:", stripeError);
+        refundStatus = "failed";
+        refundFailureReason = stripeError.message || "Failed to create refund";
+        
         return res.status(500).json({
           message: "Failed to process refund. Please contact support.",
+          error: refundFailureReason,
         });
       }
     }
@@ -196,10 +212,18 @@ export const cancelOrder = async (req, res) => {
     // Update order status
     order.status = "cancelled";
     order.refundId = refundId;
+    order.refundStatus = refundStatus;
+    order.refundAmount = refundAmount;
+    order.refundCreatedAt = new Date();
+    if (refundStatus === "succeeded") {
+      order.status = "refunded";
+      order.refundCompletedAt = new Date();
+    }
     order.cancelledAt = new Date();
     order.cancelledBy = userId;
     order.cancellationReason = reason || "Cancelled by user";
     order.deliveryStatus = "cancelled";
+    order.refundFailureReason = refundFailureReason;
     await order.save();
 
     // Update delivery tracking

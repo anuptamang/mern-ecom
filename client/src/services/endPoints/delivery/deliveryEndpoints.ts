@@ -33,3 +33,10 @@ export const cancelOrderApi = async (orderId: string, reason?: string) => {
   );
 };
 
+export const getRefundStatusApi = async (orderId: string) => {
+  const token = getToken() || "";
+  return axios.get(`${DELIVERY_API}/${orderId}/refund`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};
+

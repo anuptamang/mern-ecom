@@ -10,7 +10,7 @@ import { authSelector } from 'redux/slice';
 import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, EyeOutlined, StopOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
-import { DeliveryTracking } from 'components/DeliveryTracking';
+import { DeliveryTracking, RefundStatus } from 'components';
 import './OrdersDashboard.scss';
 
 type TProps = {};
@@ -199,6 +199,14 @@ const OrdersDashboard = (props: TProps) => {
                                 {order.deliveryStatus.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                               </Tag>
                             )}
+                            {order.refundStatus && (
+                              <Tag 
+                                color={order.refundStatus === 'succeeded' ? 'success' : order.refundStatus === 'failed' ? 'error' : 'warning'} 
+                                style={{ marginLeft: 8 }}
+                              >
+                                Refund: {order.refundStatus.replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                              </Tag>
+                            )}
                           </div>
                           <div className="order-amount">
                             ${((order.amount || 0) / 100).toFixed(2)} {order.currency?.toUpperCase() || 'USD'}
@@ -302,7 +310,7 @@ const OrdersDashboard = (props: TProps) => {
         </Card>
 
         <Modal
-          title="Delivery Tracking"
+          title="Order Details"
           open={trackingModalVisible}
           onCancel={() => {
             setTrackingModalVisible(false);
@@ -318,10 +326,17 @@ const OrdersDashboard = (props: TProps) => {
               Close
             </Button>,
           ]}
-          width={800}
+          width={900}
         >
           {selectedOrder && (
-            <DeliveryTracking delivery={deliveryTracking} order={selectedOrder} />
+            <div>
+              <DeliveryTracking delivery={deliveryTracking} order={selectedOrder} />
+              {(selectedOrder.status === 'cancelled' || selectedOrder.status === 'refunded' || selectedOrder.refundStatus) && (
+                <div style={{ marginTop: 24 }}>
+                  <RefundStatus orderId={selectedOrder._id} order={selectedOrder} />
+                </div>
+              )}
+            </div>
           )}
         </Modal>
 

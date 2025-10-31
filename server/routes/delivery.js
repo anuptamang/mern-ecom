@@ -5,6 +5,7 @@ import {
   getDeliveryTracking,
   cancelOrder,
 } from "../controllers/delivery.js";
+import { getRefundStatus } from "../controllers/refund.js";
 
 const router = express.Router();
 
@@ -19,6 +20,9 @@ router.patch("/:orderId/status", updateDeliveryStatus);
 
 // Cancel order and process refund
 router.post("/:orderId/cancel", cancelOrder);
+
+// Get refund status for an order
+router.get("/:orderId/refund", getRefundStatus);
 
 export default router;
 

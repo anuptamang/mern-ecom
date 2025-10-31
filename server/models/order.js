@@ -24,6 +24,15 @@ const orderSchema = new mongoose.Schema(
     },
     paymentIntentId: { type: String },
     refundId: { type: String }, // Stripe refund ID
+    refundStatus: {
+      type: String,
+      enum: ["pending", "processing", "succeeded", "failed", "canceled"],
+      default: null,
+    },
+    refundAmount: { type: Number }, // Amount refunded in cents
+    refundCreatedAt: { type: Date },
+    refundCompletedAt: { type: Date },
+    refundFailureReason: { type: String },
     deliveryAddress: {
       street: { type: String },
       city: { type: String },
