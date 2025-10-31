@@ -3,6 +3,9 @@ import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 
 import User from "../models/user.js";
+import * as dotenv from "dotenv";
+dotenv.config();
+const PORT = process.env.PORT || 3010;
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
@@ -98,6 +101,30 @@ export const updateUserProfile = async (req, res) => {
     { new: true }
   );
   res.json(updatedProfile);
+};
+
+export const uploadProfilePhoto = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+    const fullUrl = `http://localhost:${PORT}/uploads/${req.file.filename}`;
+    const updated = await User.findByIdAndUpdate(id, { profilePhoto: fullUrl }, { new: true });
+    return res.json(updated);
+  } catch (e) {
+    return res.status(500).json({ message: "Failed to upload profile photo" });
+  }
+};
+
+export const uploadCoverPhoto = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+    const fullUrl = `http://localhost:${PORT}/uploads/${req.file.filename}`;
+    const updated = await User.findByIdAndUpdate(id, { coverPhoto: fullUrl }, { new: true });
+    return res.json(updated);
+  } catch (e) {
+    return res.status(500).json({ message: "Failed to upload cover photo" });
+  }
 };
 
 export const getUser = async (req, res) => {

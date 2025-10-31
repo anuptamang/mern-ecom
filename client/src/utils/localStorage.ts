@@ -18,3 +18,15 @@ export async function saveState(state: IGenericObject, KEY: string) {
     //
   }
 }
+
+export function getToken(): string | null {
+  try {
+    const raw = localStorage.getItem('user');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    // support either { token } or { auth: { token } }
+    return parsed?.token || parsed?.auth?.token || null;
+  } catch (e) {
+    return null;
+  }
+}

@@ -20,6 +20,8 @@ const userSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+  profilePhoto: { type: String },
+  coverPhoto: { type: String },
 });
 
 export default mongoose.model("User", userSchema);
