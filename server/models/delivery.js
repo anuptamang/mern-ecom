@@ -66,4 +66,3 @@ deliveryTrackingSchema.index({ orderId: 1, status: 1 });
 const Delivery = mongoose.model("deliveries", deliveryTrackingSchema);
 
 export default Delivery;
-

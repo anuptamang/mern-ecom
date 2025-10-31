@@ -1,4 +1,4 @@
-import { Card, List, Tag, Spin, Empty, message, Button, Image, Modal, Popconfirm, Input } from 'antd';
+import { Card, List, Tag, Spin, Empty, message, Button, Image, Modal, Popconfirm, Input, Space } from 'antd';
 import { Container } from 'components/UI';
 import { usePageTitle } from 'hooks/usePageTitle';
 import { useEffect, useState } from 'react';
@@ -196,7 +196,7 @@ const OrdersDashboard = (props: TProps) => {
                             {getStatusTag(order.status)}
                             {order.deliveryStatus && (
                               <Tag color="blue" style={{ marginLeft: 8 }}>
-                                {order.deliveryStatus.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                                {order.deliveryStatus.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                               </Tag>
                             )}
                           </div>

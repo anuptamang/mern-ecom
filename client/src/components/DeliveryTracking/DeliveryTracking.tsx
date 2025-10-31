@@ -2,7 +2,7 @@ import { Card, Steps, Tag, Timeline, Typography, Empty } from 'antd';
 import { 
   ShoppingOutlined, 
   CheckCircleOutlined, 
-  TruckOutlined,
+  CarOutlined,
   HomeOutlined,
   CloseCircleOutlined,
 } from '@ant-design/icons';
@@ -26,10 +26,10 @@ export const DeliveryTracking = ({ delivery, order }: DeliveryTrackingProps) => 
   const statusMap: Record<string, { step: number; title: string; icon: any; description: string }> = {
     packing: { step: 0, title: 'Packing', icon: <ShoppingOutlined />, description: 'Order is being prepared' },
     ready_to_ship: { step: 1, title: 'Ready to Ship', icon: <CheckCircleOutlined />, description: 'Order is packed and ready' },
-    picked_up: { step: 2, title: 'Picked Up', icon: <TruckOutlined />, description: 'Courier has picked up the package' },
+    picked_up: { step: 2, title: 'Picked Up', icon: <CarOutlined />, description: 'Courier has picked up the package' },
     in_facility: { step: 3, title: 'In Delivery Facility', icon: <HomeOutlined />, description: 'Package at sorting facility' },
-    in_transit: { step: 4, title: 'In Transit', icon: <TruckOutlined />, description: 'Package is on the way' },
-    out_for_delivery: { step: 5, title: 'Out for Delivery', icon: <TruckOutlined />, description: 'Out for delivery today' },
+    in_transit: { step: 4, title: 'In Transit', icon: <CarOutlined />, description: 'Package is on the way' },
+    out_for_delivery: { step: 5, title: 'Out for Delivery', icon: <CarOutlined />, description: 'Out for delivery today' },
     delivered: { step: 6, title: 'Delivered', icon: <CheckCircleOutlined />, description: 'Package delivered successfully' },
     cancelled: { step: -1, title: 'Cancelled', icon: <CloseCircleOutlined />, description: 'Order has been cancelled' },
   };
