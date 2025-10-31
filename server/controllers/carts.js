@@ -38,8 +38,8 @@ export const addItem = async (req, res) => {
         productId: product._id,
         title: product.title,
         thumbnail: product.thumbnail,
-        // For demo: use views as price if price not in schema
-        price: product.body?.price ?? 0,
+        // Use direct price field or fallback to body.price or 0
+        price: product.price ?? product.body?.price ?? 0,
         quantity: Number(quantity) || 1,
       });
     }
