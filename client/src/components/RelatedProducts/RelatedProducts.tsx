@@ -1,10 +1,12 @@
-import { Card, List, Image, Button, Tag, Empty, Spin } from 'antd';
+import { Card, List, Image, Button, Tag, Empty, Spin, Carousel } from 'antd';
+import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { ProductImagePlaceholder } from 'components/ProductImageGallery/ProductImagePlaceholder';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 import { authSelector } from 'redux/slice';
 import { message } from 'antd';
+import { useState, useRef } from 'react';
 import './RelatedProducts.scss';
 
 type RelatedProductsProps = {
@@ -17,6 +19,8 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
   const dispatch = useAppDispatch();
   const { result } = useAppSelector(authSelector);
   const isSeller = result?.role === 'seller';
+  const carouselRef = useRef<any>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const handleAddToCart = async (productId: string, title: string, stock: number) => {
     if (!result) {
@@ -43,6 +47,72 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
     }
   };
 
+  const renderProductCard = (item: any) => (
+    <Card
+      className="related-product-card"
+      cover={
+        item.thumbnail ? (
+          <div className="product-image-wrapper" onClick={() => navigate(`/products/${item._id}`)}>
+            <Image
+              alt={item.title}
+              src={item.thumbnail}
+              preview={false}
+              className="product-image"
+            />
+          </div>
+        ) : (
+          <div className="product-image-wrapper" onClick={() => navigate(`/products/${item._id}`)}>
+            <ProductImagePlaceholder title={item.title || 'Product'} />
+          </div>
+        )
+      }
+      actions={[
+        <Button
+          key="view"
+          type="link"
+          onClick={() => navigate(`/products/${item._id}`)}
+        >
+          View
+        </Button>,
+        !isSeller && result ? (
+          <Button
+            key="cart"
+            type="primary"
+            size="small"
+            disabled={(item.stock || 0) <= 0}
+            onClick={() => handleAddToCart(item._id, item.title, item.stock || 0)}
+          >
+            Add to Cart
+          </Button>
+        ) : null,
+      ].filter(Boolean)}
+      hoverable
+    >
+      <Card.Meta
+        title={
+          <div onClick={() => navigate(`/products/${item._id}`)} style={{ cursor: 'pointer' }}>
+            {item.title}
+          </div>
+        }
+        description={
+          <div className="related-product-meta">
+            {item.body?.summary || item.description || ''}
+            {item.price && (
+              <div className="related-product-price">${item.price.toFixed(2)}</div>
+            )}
+            <div className="related-product-stock">
+              {item.stock !== undefined ? (
+                <span className={item.stock > 0 ? 'stock-available' : 'stock-out'}>
+                  {item.stock > 0 ? `In Stock (${item.stock})` : 'Out of Stock'}
+                </span>
+              ) : null}
+            </div>
+          </div>
+        }
+      />
+    </Card>
+  );
+
   if (loading) {
     return (
       <div className="related-products">
@@ -57,80 +127,69 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
     return null;
   }
 
+  // If more than 4 products, use carousel/swiper
+  const useCarousel = products.length > 4;
+
+  // Group products into slides of 4
+  const slides: any[][] = [];
+  if (useCarousel) {
+    for (let i = 0; i < products.length; i += 4) {
+      slides.push(products.slice(i, i + 4));
+    }
+  }
+
   return (
     <div className="related-products">
-      <Card title="Related Products" className="related-products-card">
-        <List
-          grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4 }}
-          dataSource={products}
-          renderItem={(item: any) => (
-            <List.Item>
-              <Card
-                className="related-product-card"
-                cover={
-                  item.thumbnail ? (
-                    <div className="product-image-wrapper" onClick={() => navigate(`/products/${item._id}`)}>
-                      <Image
-                        alt={item.title}
-                        src={item.thumbnail}
-                        preview={false}
-                        className="product-image"
-                      />
+      <Card 
+        title="Related Products" 
+        className="related-products-card"
+        extra={
+          useCarousel && carouselRef.current && (
+            <div className="carousel-controls">
+              <Button
+                type="text"
+                icon={<LeftOutlined />}
+                onClick={() => carouselRef.current?.prev()}
+                disabled={currentSlide === 0}
+              />
+              <Button
+                type="text"
+                icon={<RightOutlined />}
+                onClick={() => carouselRef.current?.next()}
+                disabled={currentSlide >= slides.length - 1}
+              />
+            </div>
+          )
+        }
+      >
+        {useCarousel ? (
+          <Carousel
+            ref={carouselRef}
+            dots={false}
+            beforeChange={(_, next) => setCurrentSlide(next)}
+            className="related-products-carousel"
+          >
+            {slides.map((slideProducts, slideIndex) => (
+              <div key={slideIndex} className="carousel-slide">
+                <div className="products-grid">
+                  {slideProducts.map((item: any) => (
+                    <div key={item._id} className="product-grid-item">
+                      {renderProductCard(item)}
                     </div>
-                  ) : (
-                    <div className="product-image-wrapper" onClick={() => navigate(`/products/${item._id}`)}>
-                      <ProductImagePlaceholder title={item.title || 'Product'} />
-                    </div>
-                  )
-                }
-                actions={[
-                  <Button
-                    key="view"
-                    type="link"
-                    onClick={() => navigate(`/products/${item._id}`)}
-                  >
-                    View
-                  </Button>,
-                  !isSeller && result ? (
-                    <Button
-                      key="cart"
-                      type="primary"
-                      size="small"
-                      disabled={(item.stock || 0) <= 0}
-                      onClick={() => handleAddToCart(item._id, item.title, item.stock || 0)}
-                    >
-                      Add to Cart
-                    </Button>
-                  ) : null,
-                ].filter(Boolean)}
-                hoverable
-              >
-                <Card.Meta
-                  title={
-                    <div onClick={() => navigate(`/products/${item._id}`)} style={{ cursor: 'pointer' }}>
-                      {item.title}
-                    </div>
-                  }
-                  description={
-                    <div className="related-product-meta">
-                      {item.body?.summary || item.description || ''}
-                      {item.price && (
-                        <div className="related-product-price">${item.price.toFixed(2)}</div>
-                      )}
-                      <div className="related-product-stock">
-                        {item.stock !== undefined ? (
-                          <span className={item.stock > 0 ? 'stock-available' : 'stock-out'}>
-                            {item.stock > 0 ? `In Stock (${item.stock})` : 'Out of Stock'}
-                          </span>
-                        ) : null}
-                      </div>
-                    </div>
-                  }
-                />
-              </Card>
-            </List.Item>
-          )}
-        />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </Carousel>
+        ) : (
+          <div className="products-grid">
+            {products.map((item: any) => (
+              <div key={item._id} className="product-grid-item">
+                {renderProductCard(item)}
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
     </div>
   );

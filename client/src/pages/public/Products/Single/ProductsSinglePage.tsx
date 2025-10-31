@@ -59,7 +59,7 @@ const ProductDetails = () => {
       const hashFromLocation = location.hash.replace('#', '');
       const hashFromWindow = window.location.hash.replace('#', '');
       const hash = hashFromWindow || hashFromLocation;
-      
+
       if (!hash) return;
 
       console.log('Attempting to scroll to hash:', hash); // Debug log
@@ -74,10 +74,11 @@ const ProductDetails = () => {
           // Add offset after scroll animation starts
           setTimeout(() => {
             const rect = element.getBoundingClientRect();
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollTop =
+              window.pageYOffset || document.documentElement.scrollTop;
             window.scrollTo({
               top: scrollTop + rect.top - 80,
-              behavior: 'smooth'
+              behavior: 'smooth',
             });
           }, 50);
         } else if (attempt < 15) {
@@ -108,10 +109,11 @@ const ProductDetails = () => {
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
             setTimeout(() => {
               const rect = element.getBoundingClientRect();
-              const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+              const scrollTop =
+                window.pageYOffset || document.documentElement.scrollTop;
               window.scrollTo({
                 top: scrollTop + rect.top - 80,
-                behavior: 'smooth'
+                behavior: 'smooth',
               });
             }, 50);
           }
