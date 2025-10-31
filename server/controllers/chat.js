@@ -166,19 +166,44 @@ export const getChatById = async (req, res) => {
       return res.status(404).json({ message: "Chat not found" });
     }
 
-    // Mark messages as read for current user
-    const unreadMessages = chat.messages.filter(
-      (msg) => !msg.read && String(msg.senderId) !== String(userId)
-    );
+    // Mark messages as read and seen for current user
+    const now = new Date();
+    let unreadCountReset = false;
 
-    if (unreadMessages.length > 0) {
-      unreadMessages.forEach((msg) => {
+    chat.messages.forEach((msg) => {
+      // Mark as read if it's not from current user and not already read
+      if (String(msg.senderId) !== String(userId) && !msg.read) {
         msg.read = true;
-        msg.readAt = new Date();
-      });
+        msg.readAt = now;
+        unreadCountReset = true;
+      }
 
-      // Reset unread count for current user
+      // Mark as seen by current user (for messages sent by current user to others)
+      // This tracks when the recipient has seen the message
+      if (!msg.seenBy) {
+        msg.seenBy = new Map();
+      }
+      
+      // If current user sent this message, mark when others saw it
+      // If current user received this message, mark that they saw it
+      if (String(msg.senderId) === String(userId)) {
+        // This is a message sent by current user - track when others see it
+        // (This will be updated when recipients view the chat)
+      } else {
+        // This is a message received by current user - mark that they saw it
+        msg.seenBy.set(userId.toString(), now);
+        if (!msg.seenAt) {
+          msg.seenAt = now;
+        }
+      }
+    });
+
+    // Reset unread count for current user if any messages were marked as read
+    if (unreadCountReset) {
       chat.unreadCount.set(userId.toString(), 0);
+      await chat.save();
+    } else {
+      // Still save to persist seenBy updates
       await chat.save();
     }
 
@@ -224,6 +249,9 @@ export const sendMessage = async (req, res) => {
       read: false,
       timestamp: new Date(),
     };
+
+    // Initialize seenBy Map for new message
+    newMessage.seenBy = new Map();
 
     chat.messages.push(newMessage);
     chat.lastMessage = {

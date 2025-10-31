@@ -351,6 +351,21 @@
             font-size: 11px;
             opacity: 0.7;
             text-align: right;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+
+            .message-seen,
+            .message-read {
+              font-size: 12px;
+              color: #1890ff;
+              margin-left: 4px;
+            }
+
+            .message-seen {
+              // Double checkmark for seen
+            }
           }
         }
       }

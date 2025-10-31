@@ -37,6 +37,9 @@ interface Message {
   };
   createdAt: string;
   read: boolean;
+  readAt?: string;
+  seenAt?: string;
+  seenBy?: { [key: string]: string };
 }
 
 interface Chat {
@@ -200,10 +203,19 @@ const ChatBox: React.FC<ChatBoxProps> = ({
       setChat(loadedChat);
       chatIdRef.current = chatId;
       
-      // Update chat in chats list
+      // Update chat in chats list and refresh unread counts
       setChats((prevChats) =>
-        prevChats.map((c) => (c._id === chatId ? loadedChat : c))
+        prevChats.map((c) => {
+          if (c._id === chatId) {
+            // Update with new chat data including reset unread count
+            return loadedChat;
+          }
+          return c;
+        })
       );
+      
+      // Reload chats list to get updated unread counts
+      await loadAllChats();
     } catch (error: any) {
       console.error('Error loading chat messages:', error);
       antMessage.error('Failed to load messages');
@@ -566,4 +578,3 @@ const ChatBox: React.FC<ChatBoxProps> = ({
 };
 
 export default ChatBox;
-

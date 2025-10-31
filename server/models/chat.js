@@ -30,6 +30,14 @@ const messageSchema = new mongoose.Schema(
     readAt: {
       type: Date,
     },
+    seenAt: {
+      type: Date,
+    },
+    seenBy: {
+      type: Map,
+      of: Date, // userId -> seenAt timestamp
+      default: {},
+    },
   },
   { timestamps: true }
 );
