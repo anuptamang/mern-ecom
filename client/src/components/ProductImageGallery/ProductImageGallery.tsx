@@ -15,11 +15,11 @@ export const ProductImageGallery = ({
   images = [],
   productTitle = 'Product',
 }: ProductImageGalleryProps) => {
-  // Combine thumbnail and gallery images
-  const allImages = [thumbnail, ...images].filter(Boolean);
+  // Combine thumbnail and gallery images, filter out empty/undefined values
+  const allImages = [thumbnail, ...images].filter((img): img is string => Boolean(img));
   const hasImages = allImages.length > 0;
   
-  const [selectedImage, setSelectedImage] = useState(thumbnail || '');
+  const [selectedImage, setSelectedImage] = useState(allImages[0] || '');
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
 
