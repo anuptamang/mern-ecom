@@ -27,6 +27,7 @@ const ProductsDashboardPage = lazy(
   () => import('pages/private/Products/Dashboard')
 );
 const CartsDashboard = lazy(() => import('pages/private/Carts/Dashboard'));
+const OrdersDashboard = lazy(() => import('pages/private/Orders/Dashboard'));
 const UserCheckoutPage = lazy(() => import('pages/private/User/Checkout'));
 
 const AppRouter = () => {
@@ -68,6 +69,7 @@ const AppRouter = () => {
               element={<ProductsDashboardPage />}
             />
             <Route path={pageRoutes.carts} element={<CartsDashboard />} />
+            <Route path={'orders'} element={<OrdersDashboard />} />
             <Route path={'checkout'} element={<UserCheckoutPage />} />
           </Route>
 

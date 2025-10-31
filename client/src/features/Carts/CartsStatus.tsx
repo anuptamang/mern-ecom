@@ -38,7 +38,10 @@ export const CartsStatus = () => {
       <Card className="w-full" title="Your Shopping">
         <ContentSkeleton loading={loading} />
         <Statistic title="Your Orders" value={stats.totalOrders} />
-        <Statistic title="Your Purchase" value={`$${stats.totalSpent.toFixed(2)}`} />
+        <Statistic
+          title="Your Purchase"
+          value={`$${stats.totalSpent.toFixed(2)}`}
+        />
         <div className="text-center">
           <Link className="underline" to={`/${pageRoutes.userOrders}`}>
             Manage Orders

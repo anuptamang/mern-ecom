@@ -1,0 +1,123 @@
+.orders-dashboard {
+  .order-item {
+    margin-bottom: 16px;
+    padding: 0;
+
+    .order-card {
+      border: 1px solid #f0f0f0;
+      transition: all 0.3s ease;
+
+      &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #f0f0f0;
+
+      @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .order-info {
+        .order-id {
+          font-size: 14px;
+          color: #666;
+          margin-bottom: 4px;
+
+          strong {
+            color: #333;
+            font-family: monospace;
+            font-size: 12px;
+          }
+        }
+
+        .order-date {
+          font-size: 12px;
+          color: #999;
+        }
+      }
+
+      .order-status-section {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+
+        @media (max-width: 768px) {
+          align-items: flex-start;
+        }
+
+        .order-amount {
+          font-size: 18px;
+          font-weight: 700;
+          color: #1890ff;
+        }
+      }
+    }
+
+    .order-items {
+      margin-top: 16px;
+
+      .order-items-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #333;
+      }
+
+      .order-item-detail {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+
+        .order-item-thumbnail {
+          width: 60px;
+          height: 60px;
+          object-fit: cover;
+          border-radius: 4px;
+          background: #f5f5f5;
+        }
+
+        .order-item-info {
+          flex: 1;
+
+          .order-item-title {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 4px;
+          }
+
+          .order-item-meta {
+            font-size: 12px;
+            color: #999;
+          }
+        }
+
+        .order-item-total {
+          font-weight: 600;
+          color: #1890ff;
+        }
+      }
+    }
+
+    .order-payment-info {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #f0f0f0;
+      text-align: right;
+
+      small {
+        font-family: monospace;
+        font-size: 11px;
+      }
+    }
+  }
+}
