@@ -4,15 +4,18 @@ import { usePageTitle } from 'hooks/usePageTitle';
 import { useEffect, useState } from 'react';
 import { listMyOrdersApi } from 'services/endPoints/orders/ordersEndpoints';
 import { getDeliveryTrackingApi, cancelOrderApi } from 'services/endPoints/delivery';
+import { acceptDeliveryApi, rejectDeliveryApi } from 'services/endPoints/delivery/deliveryAssignmentEndpoints';
 import { getToken } from 'utils/localStorage';
 import { useAppSelector, useAppDispatch } from 'redux/store';
 import { authSelector } from 'redux/slice';
-import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, EyeOutlined, StopOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, EyeOutlined, StopOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { DeliveryTracking, RefundStatus } from 'components';
 import { pageRoutes } from 'data/static/pageRoutes';
 import './OrdersDashboard.scss';
+
+const { Text } = Typography;
 
 type TProps = {};
 
