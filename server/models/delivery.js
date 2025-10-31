@@ -39,6 +39,20 @@ const deliveryTrackingSchema = mongoose.Schema(
     carrier: {
       type: String,
     },
+    // Delivery agency and person assignment
+    assignedDeliveryAgency: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    assignedDeliveryPerson: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    assignedAt: {
+      type: Date,
+    },
     deliveryAddress: {
       street: { type: String },
       city: { type: String },
@@ -47,11 +61,31 @@ const deliveryTrackingSchema = mongoose.Schema(
       country: { type: String },
       addressType: { type: String, enum: ["primary", "secondary"] },
     },
+    // Delivery proof and buyer acceptance
+    deliveryProof: {
+      type: String, // Image URL
+    },
+    buyerAcceptance: {
+      type: String,
+      enum: ["pending", "accepted", "rejected"],
+      default: "pending",
+    },
+    buyerRejectionReason: {
+      type: String,
+    },
+    buyerAcceptedAt: {
+      type: Date,
+    },
+    buyerRejectedAt: {
+      type: Date,
+    },
     statusHistory: [
       {
         status: { type: String, required: true },
         timestamp: { type: Date, default: Date.now },
         note: { type: String },
+        updatedBy: { type: mongoose.Types.ObjectId, ref: "User" }, // Who updated the status
+        updatedByRole: { type: String }, // Role of who updated (seller, delivery_agency, delivery_person)
       },
     ],
   },

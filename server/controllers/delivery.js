@@ -49,13 +49,18 @@ export const createDeliveryTracking = async (orderId, deliveryAddress) => {
 };
 
 /**
- * Update delivery status
+ * Update delivery status with role-based authorization
+ * - Sellers: Can update packing, ready_to_ship, picked_up
+ * - Delivery Agency: Can update in_facility, in_transit
+ * - Delivery Person: Can update out_for_delivery, delivered (with proof)
+ * - Admin: Can update any status
  */
 export const updateDeliveryStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status, note } = req.body;
-    const userId = req.userId; // Seller or admin
+    const userId = req.userId;
+    const userRole = req.userRole;
 
     const validStatuses = [
       "packing",
@@ -77,36 +82,38 @@ export const updateDeliveryStatus = async (req, res) => {
       return res.status(404).json({ message: "Delivery tracking not found" });
     }
 
-    // Check if order belongs to seller or is being updated by admin
     const order = await Order.findById(orderId).populate("userId");
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Verify user is seller of products in the order OR is an admin
-    // Buyers cannot update delivery status, only sellers can
-    if (String(order.userId._id) === String(userId)) {
-      // Buyer is trying to update - they can only cancel, not update delivery status
-      return res.status(403).json({ 
-        message: "Buyers cannot update delivery status. Only sellers can update delivery status." 
-      });
+    // Role-based authorization
+    let isAuthorized = false;
+    const sellerStatuses = ["packing", "ready_to_ship", "picked_up"];
+    const deliveryAgencyStatuses = ["in_facility", "in_transit"];
+    const deliveryPersonStatuses = ["out_for_delivery", "delivered"];
+
+    if (userRole === "admin") {
+      isAuthorized = true;
+    } else if (userRole === "seller" && sellerStatuses.includes(status)) {
+      // Check if user is seller of any product in the order
+      const Product = (await import("../models/product.js")).default;
+      const productIds = order.items.map((item) => item.productId);
+      const products = await Product.find({ _id: { $in: productIds } });
+      isAuthorized = products.some(
+        (p) => String(p.userID) === String(userId) || p.userID.toString() === userId.toString()
+      );
+    } else if (userRole === "delivery_agency" && deliveryAgencyStatuses.includes(status)) {
+      // Check if delivery is assigned to this agency
+      isAuthorized = String(delivery.assignedDeliveryAgency) === String(userId);
+    } else if (userRole === "delivery_person" && deliveryPersonStatuses.includes(status)) {
+      // Check if delivery is assigned to this person
+      isAuthorized = String(delivery.assignedDeliveryPerson) === String(userId);
     }
 
-    // Check if user is seller of any product in the order
-    const Product = (await import("../models/product.js")).default;
-    const mongoose = (await import("mongoose")).default;
-    const productIds = order.items.map((item) => item.productId);
-    const products = await Product.find({ _id: { $in: productIds } });
-    const isSeller = products.some(
-      (p) => 
-        String(p.userID) === String(userId) || 
-        p.userID.toString() === userId.toString() ||
-        p.userID.equals(userId)
-    );
-
-    if (!isSeller && req.userRole !== "admin") {
+    if (!isAuthorized) {
       return res.status(403).json({ 
-        message: "Unauthorized. Only sellers of products in this order can update delivery status." 
+        message: `Unauthorized. ${userRole === "seller" ? "Sellers" : userRole === "delivery_agency" ? "Delivery agencies" : userRole === "delivery_person" ? "Delivery persons" : "Users"} cannot update status to ${status}.` 
       });
     }
 
@@ -117,11 +124,13 @@ export const updateDeliveryStatus = async (req, res) => {
       delivery.actualDeliveryDate = new Date();
     }
 
-    // Add to status history
+    // Add to status history with who updated it
     delivery.statusHistory.push({
       status,
       timestamp: new Date(),
       note: note || `Status updated from ${oldStatus} to ${status}`,
+      updatedBy: userId,
+      updatedByRole: userRole,
     });
 
     await delivery.save();

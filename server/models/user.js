@@ -18,7 +18,14 @@ const userSchema = mongoose.Schema({
   },
   role: {
     type: String,
+    enum: ["admin", "seller", "user", "delivery_agency", "delivery_person"],
     required: true,
+  },
+  // For delivery persons - reference to their delivery agency
+  deliveryAgencyId: {
+    type: mongoose.Types.ObjectId,
+    ref: "User",
+    default: null,
   },
   profilePhoto: { type: String },
   coverPhoto: { type: String },
