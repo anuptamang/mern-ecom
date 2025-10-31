@@ -15,7 +15,7 @@ import Auth from "../middlewares/auth.js";
 const router = express.Router();
 
 router.post("/login", login);
-router.post("/registration", registration);
+router.post("/register", registration);
 router.get("/list", getUsers);
 router.get("/:id", getUser);
 router.patch("/:id", Auth, updateUserProfile);
