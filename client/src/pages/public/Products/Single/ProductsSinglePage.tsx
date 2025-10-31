@@ -290,7 +290,7 @@ const ProductDetails = () => {
       </div>
 
       {/* Bottom Section: Ratings & Reviews */}
-      <div className="product-detail-bottom">
+      <div id="product-ratings-section" className="product-detail-bottom">
         <ProductRatings
           productId={product._id}
           productRating={product.rating}
@@ -298,7 +298,7 @@ const ProductDetails = () => {
       </div>
 
       {/* Comments Section */}
-      <div className="product-detail-bottom">
+      <div id="product-comments-section" className="product-detail-bottom">
         <ProductComments productId={product._id} />
       </div>
 

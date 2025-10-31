@@ -284,7 +284,7 @@ export const addCommentToProduct = async (req, res) => {
             entityType: "product",
             entityId: product._id,
           },
-          actionUrl: `/products/${product._id}#product-ratings-section`,
+          actionUrl: `/products/${product._id}#product-comments-section`,
           metadata: {
             productId: product._id,
             productTitle: product.title,
@@ -358,7 +358,7 @@ export const replyComment = async (req, res) => {
             entityType: "comment",
             entityId: comment._id,
           },
-          actionUrl: `/products/${product._id}#product-ratings-section`,
+          actionUrl: `/products/${product._id}#product-comments-section`,
           metadata: {
             productId: product._id,
             productTitle: product.title,
