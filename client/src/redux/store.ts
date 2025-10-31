@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { useDispatch, TypedUseSelectorHook, useSelector } from 'react-redux'
 import { productsFilterSlice, productsSlice, authSlice } from './slice';
+import { cartsSlice } from './slice/carts/cartsSlice';
 import { loadState } from 'utils';
 
 const store = configureStore({
@@ -8,6 +9,7 @@ const store = configureStore({
     products: productsSlice.reducer,
     productsFilter: productsFilterSlice.reducer,
     auth: authSlice.reducer,
+    carts: cartsSlice.reducer,
   },
   preloadedState: loadState('user'),
 })
