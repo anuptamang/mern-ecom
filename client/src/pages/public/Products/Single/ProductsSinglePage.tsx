@@ -18,8 +18,9 @@ import {
   ProductComments,
   RelatedProducts,
   WishlistButton,
+  ChatBox,
 } from 'components';
-import { EyeOutlined, LikeOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import { EyeOutlined, LikeOutlined, ShoppingCartOutlined, MessageOutlined } from '@ant-design/icons';
 import './ProductsSinglePage.scss';
 
 type Props = {};
@@ -47,9 +48,11 @@ const ProductDetails = () => {
   const [loading, setLoading] = useState(true);
   const [loadingRelated, setLoadingRelated] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showChat, setShowChat] = useState(false);
   const dispatch = useAppDispatch();
   const { result } = useAppSelector(authSelector);
   const isSeller = result?.role === 'seller';
+  const isBuyer = result?.role === 'user';
 
   // Handle scroll to hash when product is loaded and hash is present
   useEffect(() => {
@@ -299,6 +302,19 @@ const ProductDetails = () => {
                       )}
                     </div>
                   </div>
+                  {!isSeller && isBuyer && (
+                    <div className="seller-chat-button" style={{ marginTop: 16 }}>
+                      <Button
+                        type="primary"
+                        icon={<MessageOutlined />}
+                        onClick={() => setShowChat(true)}
+                        size="large"
+                        block
+                      >
+                        Chat with Seller
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -407,6 +423,19 @@ const ProductDetails = () => {
       <div className="product-detail-bottom">
         <RelatedProducts products={relatedProducts} loading={loadingRelated} />
       </div>
+
+      {/* Chat Box */}
+      {showChat && (
+        <ChatBox
+          productId={product._id}
+          productTitle={product.title}
+          productThumbnail={product.thumbnail}
+          productPrice={product.price}
+          productSlug={product.slug || product._id}
+          sellerId={(product.userID as any)?._id || (product.userID as any)}
+          onClose={() => setShowChat(false)}
+        />
+      )}
     </div>
   );
 };

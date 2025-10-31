@@ -1,0 +1,380 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Button, Input, Card, Avatar, Badge, Spin, Empty, message as antMessage } from 'antd';
+import {
+  MessageOutlined,
+  CloseOutlined,
+  SendOutlined,
+  MinusOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
+import {
+  createOrGetChatApi,
+  getChatByIdApi,
+  sendMessageApi,
+  getMyChatsApi,
+} from 'services/endPoints/chat/chatEndpoints';
+import { useAppSelector } from 'redux/store';
+import { authSelector } from 'redux/slice';
+import './ChatBox.scss';
+
+interface Message {
+  _id?: string;
+  senderId: {
+    _id: string;
+    fullName: string;
+    email: string;
+    profilePhoto?: string;
+  };
+  senderRole: string;
+  text: string;
+  productInfo?: {
+    productId: string;
+    productTitle: string;
+    productThumbnail: string;
+    productPrice: number;
+    productSlug: string;
+  };
+  createdAt: string;
+  read: boolean;
+}
+
+interface Chat {
+  _id: string;
+  participants: Array<{
+    userId: {
+      _id: string;
+      fullName: string;
+      email: string;
+      profilePhoto?: string;
+      role: string;
+    };
+    role: string;
+  }>;
+  messages: Message[];
+  productContext?: {
+    productId: string;
+    productTitle: string;
+    productThumbnail: string;
+    productPrice: number;
+    productSlug: string;
+  };
+  lastMessage?: {
+    text: string;
+    senderId: string;
+    timestamp: string;
+  };
+  status: string;
+}
+
+interface ChatBoxProps {
+  productId?: string;
+  productTitle?: string;
+  productThumbnail?: string;
+  productPrice?: number;
+  productSlug?: string;
+  sellerId?: string;
+  onClose?: () => void;
+}
+
+const ChatBox: React.FC<ChatBoxProps> = ({
+  productId,
+  productTitle,
+  productThumbnail,
+  productPrice,
+  productSlug,
+  sellerId,
+  onClose,
+}) => {
+  const { result: user } = useAppSelector(authSelector);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [chat, setChat] = useState<Chat | null>(null);
+  const [messageText, setMessageText] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatIdRef = useRef<string | null>(null);
+
+  // Auto-open if productId is provided
+  useEffect(() => {
+    if (productId && sellerId) {
+      handleOpenChat();
+    }
+  }, [productId, sellerId]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    if (chat && isOpen && !isMinimized) {
+      scrollToBottom();
+    }
+  }, [chat?.messages, isOpen, isMinimized]);
+
+  const handleOpenChat = async () => {
+    if (!user) {
+      antMessage.warning('Please login to start chatting');
+      return;
+    }
+
+    if (!sellerId && !productId) {
+      antMessage.error('No recipient or product specified');
+      return;
+    }
+
+    setIsOpen(true);
+    setIsMinimized(false);
+    setLoading(true);
+
+    try {
+      const payload: any = {};
+      if (productId) {
+        payload.productId = productId;
+      }
+      if (sellerId) {
+        payload.recipientId = sellerId;
+      }
+
+      const response = await createOrGetChatApi(payload);
+      const newChat = response.data.chat;
+      setChat(newChat);
+      chatIdRef.current = newChat._id;
+
+      // Load messages if chat exists
+      if (newChat._id) {
+        await loadChatMessages(newChat._id);
+      }
+    } catch (error: any) {
+      console.error('Error opening chat:', error);
+      antMessage.error(error.response?.data?.message || 'Failed to open chat');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadChatMessages = async (chatId: string) => {
+    try {
+      const response = await getChatByIdApi(chatId);
+      setChat(response.data.chat);
+    } catch (error: any) {
+      console.error('Error loading chat messages:', error);
+      antMessage.error('Failed to load messages');
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || sending) return;
+
+    const currentChatId = chatIdRef.current;
+    if (!currentChatId) {
+      // Create chat first if it doesn't exist
+      await handleOpenChat();
+      return;
+    }
+
+    setSending(true);
+    const textToSend = messageText.trim();
+    setMessageText('');
+
+    try {
+      const response = await sendMessageApi(currentChatId, textToSend);
+      setChat(response.data.chat);
+      scrollToBottom();
+    } catch (error: any) {
+      console.error('Error sending message:', error);
+      antMessage.error(error.response?.data?.message || 'Failed to send message');
+      setMessageText(textToSend); // Restore message text on error
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const getOtherParticipant = () => {
+    if (!chat) return null;
+    return chat.participants.find((p) => String(p.userId._id) !== String(user?._id));
+  };
+
+  const otherParticipant = getOtherParticipant();
+
+  if (!isOpen) {
+    return (
+      <div className="chat-box-toggle">
+        <Badge dot>
+          <Button
+            type="primary"
+            shape="circle"
+            size="large"
+            icon={<MessageOutlined />}
+            onClick={handleOpenChat}
+            className="chat-toggle-button"
+          />
+        </Badge>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`chat-box-container ${isMinimized ? 'minimized' : ''}`}>
+      <Card
+        className="chat-box-card"
+        title={
+          <div className="chat-header">
+            <div className="chat-header-info">
+              <Avatar
+                src={otherParticipant?.userId.profilePhoto}
+                icon={<UserOutlined />}
+                size="small"
+              />
+              <span className="chat-participant-name">
+                {otherParticipant?.userId.fullName || 'Chat'}
+              </span>
+            </div>
+            <div className="chat-header-actions">
+              <Button
+                type="text"
+                icon={<MinusOutlined />}
+                onClick={() => setIsMinimized(!isMinimized)}
+              />
+              <Button
+                type="text"
+                icon={<CloseOutlined />}
+                onClick={() => {
+                  setIsOpen(false);
+                  onClose?.();
+                }}
+              />
+            </div>
+          </div>
+        }
+      >
+        {isMinimized ? (
+          <div className="chat-minimized-content">
+            <span>Chat minimized</span>
+          </div>
+        ) : (
+          <>
+            {/* Product Context Display */}
+            {chat?.productContext && (
+              <div className="chat-product-context">
+                <div className="product-card-mini">
+                  {chat.productContext.productThumbnail ? (
+                    <img
+                      src={chat.productContext.productThumbnail}
+                      alt={chat.productContext.productTitle}
+                      className="product-thumbnail"
+                    />
+                  ) : (
+                    <div className="product-placeholder">No Image</div>
+                  )}
+                  <div className="product-info-mini">
+                    <div className="product-title-mini">{chat.productContext.productTitle}</div>
+                    <div className="product-price-mini">${chat.productContext.productPrice?.toFixed(2)}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Messages List */}
+            <div className="chat-messages">
+              {loading ? (
+                <div className="chat-loading">
+                  <Spin />
+                </div>
+              ) : !chat?.messages || chat.messages.length === 0 ? (
+                <Empty description="No messages yet. Start the conversation!" />
+              ) : (
+                chat.messages.map((msg) => {
+                  const isOwnMessage = String(msg.senderId._id) === String(user?._id);
+                  return (
+                    <div
+                      key={msg._id || msg.createdAt}
+                      className={`chat-message ${isOwnMessage ? 'own-message' : 'other-message'}`}
+                    >
+                      {!isOwnMessage && (
+                        <Avatar
+                          src={msg.senderId.profilePhoto}
+                          icon={<UserOutlined />}
+                          size="small"
+                        />
+                      )}
+                      <div className="message-content">
+                        {msg.productInfo && (
+                          <div className="message-product-info">
+                            <div className="product-card-inline">
+                              {msg.productInfo.productThumbnail ? (
+                                <img
+                                  src={msg.productInfo.productThumbnail}
+                                  alt={msg.productInfo.productTitle}
+                                  className="product-thumbnail-small"
+                                />
+                              ) : (
+                                <div className="product-placeholder-small">No Image</div>
+                              )}
+                              <div className="product-info-inline">
+                                <div className="product-title-inline">{msg.productInfo.productTitle}</div>
+                                <div className="product-price-inline">
+                                  ${msg.productInfo.productPrice?.toFixed(2)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        <div className="message-text">{msg.text}</div>
+                        <div className="message-time">
+                          {new Date(msg.createdAt).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </div>
+                      </div>
+                      {isOwnMessage && (
+                        <Avatar
+                          src={user?.profilePhoto}
+                          icon={<UserOutlined />}
+                          size="small"
+                        />
+                      )}
+                    </div>
+                  );
+                })
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Message Input */}
+            <div className="chat-input">
+              <Input.TextArea
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Type a message..."
+                autoSize={{ minRows: 1, maxRows: 4 }}
+                disabled={sending}
+              />
+              <Button
+                type="primary"
+                icon={<SendOutlined />}
+                onClick={handleSendMessage}
+                loading={sending}
+                disabled={!messageText.trim()}
+              >
+                Send
+              </Button>
+            </div>
+          </>
+        )}
+      </Card>
+    </div>
+  );
+};
+
+export default ChatBox;
+
