@@ -93,16 +93,47 @@ export const deleteUser = async (req, res) => {
 };
 
 export const updateUserProfile = async (req, res) => {
-  const { id: _id } = req.params;
-  const profile = req.body;
-  if (!mongoose.Types.ObjectId.isValid(_id))
-    return res.status(404).send("User not found");
-  const updatedProfile = await User.findByIdAndUpdate(
-    _id,
-    { ...profile, _id },
-    { new: true }
-  );
-  res.json(updatedProfile);
+  try {
+    const { id: _id } = req.params;
+    const userId = req.userId;
+    const profile = req.body;
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(_id)) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Ensure user can only update their own profile
+    if (String(userId) !== String(_id)) {
+      return res.status(403).json({ message: "You can only update your own profile" });
+    }
+
+    // Remove _id from update data (immutable field)
+    const { _id: removedId, ...updateData } = profile;
+
+    // Validate required fields
+    if (!updateData.email && !updateData.fullName) {
+      return res.status(400).json({ message: "At least email or fullName must be provided" });
+    }
+
+    const updatedProfile = await User.findByIdAndUpdate(
+      _id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedProfile) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Remove password from response
+    const { password, ...profileResponse } = updatedProfile.toObject();
+
+    return res.json(profileResponse);
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    return res.status(500).json({ message: "Failed to update profile", error: error.message });
+  }
 };
 
 export const uploadProfilePhoto = async (req, res) => {

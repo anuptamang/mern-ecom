@@ -102,8 +102,21 @@ export const authSlice = createSlice({
     builder.addCase(fetchUserProfile.fulfilled, (state, action) => {
       state.result = action.payload;
     });
+    
+    builder.addCase(updateUserProfileThunk.pending, (state) => {
+      state.status.loading = true;
+    });
     builder.addCase(updateUserProfileThunk.fulfilled, (state, action) => {
+      state.status.loading = false;
       state.result = action.payload;
+      state.status.success = true;
+    });
+    builder.addCase(updateUserProfileThunk.rejected, (state, action) => {
+      state.status.loading = false;
+      if (action.payload) {
+        state.status.error.message = action.payload.message;
+      }
+      state.status.success = false;
     });
   }
 })

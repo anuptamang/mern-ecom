@@ -63,8 +63,16 @@ export const fetchUserProfile = createAsyncThunk<any, { id: string }>("auth/fetc
   return response.data;
 });
 
-export const updateUserProfileThunk = createAsyncThunk<any, { id: string, data: any }>("auth/update-user-profile", async ({ id, data }) => {
-  const token = getToken() || '';
-  const response = await updateUserApi(token, id, data);
-  return response.data;
+export const updateUserProfileThunk = createAsyncThunk<any, { id: string, data: any }, { rejectValue: TError }>("auth/update-user-profile", async ({ id, data }, thunkApi) => {
+  try {
+    const token = getToken() || '';
+    if (!token) {
+      return thunkApi.rejectWithValue({ message: "Authentication required" });
+    }
+    const response = await updateUserApi(token, id, data);
+    return response.data;
+  } catch (error: unknown | any) {
+    const errorMessage = error?.response?.data?.message || error?.message || "Failed to update profile";
+    return thunkApi.rejectWithValue({ message: errorMessage });
+  }
 });
