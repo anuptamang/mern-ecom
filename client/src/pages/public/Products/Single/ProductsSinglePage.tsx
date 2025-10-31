@@ -49,6 +49,26 @@ const ProductDetails = () => {
   const { result } = useAppSelector(authSelector);
   const isSeller = result?.role === 'seller';
 
+  // Handle scroll to hash on page load or when hash changes
+  useEffect(() => {
+    const handleHashScroll = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash) {
+        setTimeout(() => {
+          const element = document.getElementById(hash);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            window.scrollBy(0, -80); // Offset from top
+          }
+        }, 500); // Wait for page to render
+      }
+    };
+
+    handleHashScroll();
+    window.addEventListener('hashchange', handleHashScroll);
+    return () => window.removeEventListener('hashchange', handleHashScroll);
+  }, [product]);
+
   useEffect(() => {
     if (!id) {
       setError('Product ID is required');
