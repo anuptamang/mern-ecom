@@ -3,6 +3,7 @@ import { useAuth } from 'hooks';
 import { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import PrivateRoute from 'routes/PrivateRoute';
+import { SellerRoute } from 'routes/SellerRoute';
 
 const GeneralLayout = lazy(() => import('layouts/General'));
 
@@ -65,7 +66,11 @@ const AppRouter = () => {
             <Route path={pageRoutes.settings} element={<UserSettingsPage />} />
             <Route
               path={pageRoutes.products}
-              element={<ProductsDashboardPage />}
+              element={
+                <SellerRoute>
+                  <ProductsDashboardPage />
+                </SellerRoute>
+              }
             />
             <Route path={pageRoutes.carts} element={<CartsDashboard />} />
             <Route path={'orders'} element={<OrdersDashboard />} />

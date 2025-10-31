@@ -5,11 +5,14 @@ import {
   ShoppingCartOutlined,
   UserOutlined,
   ShoppingOutlined,
+  HeartOutlined,
 } from '@ant-design/icons';
 import { Menu, MenuProps } from 'antd';
 import { pageRoutes } from 'data/static/pageRoutes';
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAppSelector } from 'redux/store';
+import { authSelector } from 'redux/slice';
 
 /**
  * This is the logged in user side panel component, which displays user dashboard, profile, store, carts, orders and settings links.
@@ -22,6 +25,8 @@ export const UserSidePanel = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [current, setCurrent] = useState(location?.pathname);
+  const { result } = useAppSelector(authSelector);
+  const isSeller = result?.role === 'seller';
 
   const onClick: MenuProps['onClick'] = (e) => {
     navigate(e.key);
@@ -56,17 +61,33 @@ export const UserSidePanel = () => {
         </Link>
       ),
     },
-    {
-      key: `/${pageRoutes.userProducts}`,
-      label: (
-        <Link
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
-          to={`/${pageRoutes.userProducts}`}
-        >
-          <AppstoreOutlined /> Store
-        </Link>
-      ),
-    },
+    ...(isSeller
+      ? [
+          {
+            key: `/${pageRoutes.userProducts}`,
+            label: (
+              <Link
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+                to={`/${pageRoutes.userProducts}`}
+              >
+                <AppstoreOutlined /> Store
+              </Link>
+            ),
+          },
+        ]
+      : [
+          {
+            key: `/${pageRoutes.user}/wishlist`,
+            label: (
+              <Link
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+                to={`/${pageRoutes.user}/wishlist`}
+              >
+                <HeartOutlined /> Wishlist
+              </Link>
+            ),
+          },
+        ]),
     {
       key: `/${pageRoutes.userCarts}`,
       label: (

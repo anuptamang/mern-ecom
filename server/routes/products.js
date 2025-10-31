@@ -21,17 +21,18 @@ import {
 } from "../controllers/products.js";
 import Auth from "../middlewares/auth.js";
 import { Upload, UploadProduct } from "../middlewares/upload.js";
+import { blockBuyers } from "../middlewares/blockBuyers.js";
 
 const router = express.Router();
 
 router.get("/", getProducts);
 router.get("/tags", getAllTags);
-router.get("/me", Auth, getMyProducts);
+router.get("/me", Auth, blockBuyers, getMyProducts);
 router.get("/:id/related", getRelatedProducts);
 router.get("/:id", getProduct);
-router.post("/", Auth, UploadProduct, createProduct);
-router.patch("/:id", Auth, UploadProduct, updateProduct);
-router.delete("/:id", Auth, deleteProduct);
+router.post("/", Auth, blockBuyers, UploadProduct, createProduct);
+router.patch("/:id", Auth, blockBuyers, UploadProduct, updateProduct);
+router.delete("/:id", Auth, blockBuyers, deleteProduct);
 router.put("/:id/like", AddLikeToProduct);
 router.delete("/:id/like", RemoveLikeFromProduct);
 router.get("/:id/comments", allComments);

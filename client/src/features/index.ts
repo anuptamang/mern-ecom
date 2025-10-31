@@ -5,6 +5,7 @@ export * from './ProfileStatus';
 export * from './RegisterForm';
 export * from './SettingsStatus';
 export * from './StoreStatus';
+export * from './WishlistStatus';
 export * from './UserPanel';
 export * from './UserProfileDetails';
 export * from './UserSidePanel';
