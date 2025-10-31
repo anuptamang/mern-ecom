@@ -427,7 +427,7 @@ async function main() {
     await seedProducts(seller._id);
     console.log("Seeding completed successfully!");
     console.log("\n=== Test Credentials ===");
-    console.log("Buyer: buyer@example.com / password123");
+    console.log("Buyer: test@example.com / password123");
     console.log("Seller: seller@example.com / password123");
   } catch (e) {
     console.error(e);
