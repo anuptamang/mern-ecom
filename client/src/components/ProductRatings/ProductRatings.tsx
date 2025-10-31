@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Rate, Button, Input, Card, Avatar, message, Spin } from 'antd';
-import { StarFilled, UserOutlined } from '@ant-design/icons';
+import { UserOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { getToken } from 'utils/localStorage';
 import { PRODUCTS_API } from 'services/servicesConstants';
@@ -17,9 +17,10 @@ type ProductRatingsProps = {
 type RatingItem = {
   _id?: string;
   userId?: {
+    _id?: string;
     fullName?: string;
     profilePhoto?: string;
-  };
+  } | string; // Can be populated object or just ObjectId string
   rating: number;
   review: string;
   createdAt: string;
@@ -46,9 +47,12 @@ export const ProductRatings = ({ productId, productRating = 0 }: ProductRatingsP
       
       // Find user's existing rating
       if (result?._id) {
-        const userRatingItem = response.data.find(
-          (r: RatingItem) => String(r.userId?._id || r.userId) === String(result._id)
-        );
+        const userRatingItem = response.data.find((r: RatingItem) => {
+          const userIdValue = typeof r.userId === 'object' && r.userId !== null
+            ? (r.userId._id || r.userId)
+            : r.userId;
+          return String(userIdValue) === String(result._id);
+        });
         if (userRatingItem) {
           setUserRating(userRatingItem.rating);
           setUserReview(userRatingItem.review || '');
@@ -142,29 +146,34 @@ export const ProductRatings = ({ productId, productRating = 0 }: ProductRatingsP
           {ratings.length === 0 ? (
             <div className="no-ratings">No reviews yet. Be the first to review!</div>
           ) : (
-            ratings.map((rating, index) => (
-              <div key={rating._id || index} className="rating-item">
-                <div className="rating-header">
-                  <Avatar
-                    src={rating.userId?.profilePhoto}
-                    icon={<UserOutlined />}
-                    size={40}
-                  />
-                  <div className="rating-info">
-                    <div className="user-name">
-                      {rating.userId?.fullName || 'Anonymous'}
-                    </div>
-                    <Rate disabled value={rating.rating} allowHalf />
-                    <div className="rating-date">
-                      {new Date(rating.createdAt).toLocaleDateString()}
+            ratings.map((rating, index) => {
+              const userIdObj = typeof rating.userId === 'object' && rating.userId !== null
+                ? rating.userId
+                : null;
+              return (
+                <div key={rating._id || index} className="rating-item">
+                  <div className="rating-header">
+                    <Avatar
+                      src={userIdObj?.profilePhoto}
+                      icon={<UserOutlined />}
+                      size={40}
+                    />
+                    <div className="rating-info">
+                      <div className="user-name">
+                        {userIdObj?.fullName || 'Anonymous'}
+                      </div>
+                      <Rate disabled value={rating.rating} allowHalf />
+                      <div className="rating-date">
+                        {new Date(rating.createdAt).toLocaleDateString()}
+                      </div>
                     </div>
                   </div>
+                  {rating.review && (
+                    <div className="rating-review">{rating.review}</div>
+                  )}
                 </div>
-                {rating.review && (
-                  <div className="rating-review">{rating.review}</div>
-                )}
-              </div>
-            ))
+              );
+            })
           )}
         </Spin>
       </div>
