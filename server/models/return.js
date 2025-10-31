@@ -11,7 +11,7 @@ const returnItemSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const returnSchema = mongoose.Schema(
+const returnSchema = new mongoose.Schema(
   {
     orderId: {
       type: mongoose.Types.ObjectId,

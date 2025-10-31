@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const wishlistSchema = mongoose.Schema(
+const wishlistSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Types.ObjectId,
