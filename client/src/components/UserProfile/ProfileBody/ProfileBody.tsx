@@ -1,6 +1,7 @@
-import { Button, Form, FormInstance, Input, Space } from 'antd';
+import { Button, Form, FormInstance, Input, Space, Divider } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { AddressForm } from 'components/AddressForm/AddressForm';
 
 const formItemLayout = {
   labelCol: {

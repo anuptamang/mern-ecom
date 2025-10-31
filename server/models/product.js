@@ -13,6 +13,7 @@ const productSchema = mongoose.Schema({
   images: [{ type: String }], // Gallery images
   price: { type: Number },
   stock: { type: Number, default: 0 }, // Stock availability count
+  estimatedDeliveryDays: { type: Number, default: 7 }, // Typical estimated delivery time in days
   rating: { type: Number, default: 0 }, // Average rating
   ratings: [
     {

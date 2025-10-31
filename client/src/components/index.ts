@@ -13,5 +13,6 @@ export * from './RelatedProducts';
 export * from './UI';
 export * from './UserProfile';
 export * from './WishlistButton';
+export * from './AddressForm';
 export * from '../features/UserProfileDetails';
 export * from './Wrapper';

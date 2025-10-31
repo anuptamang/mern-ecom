@@ -22,6 +22,25 @@ const userSchema = mongoose.Schema({
   },
   profilePhoto: { type: String },
   coverPhoto: { type: String },
+  // Contact information
+  secondaryEmail: { type: String },
+  phone: { type: String },
+  secondaryPhone: { type: String },
+  // Addresses
+  primaryAddress: {
+    street: { type: String },
+    city: { type: String },
+    state: { type: String },
+    zipCode: { type: String },
+    country: { type: String },
+  },
+  secondaryAddress: {
+    street: { type: String },
+    city: { type: String },
+    state: { type: String },
+    zipCode: { type: String },
+    country: { type: String },
+  },
 });
 
 export default mongoose.model("User", userSchema);

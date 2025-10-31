@@ -14,6 +14,7 @@ import checkoutRoutes from "./routes/checkout.js";
 import orderRoutes from "./routes/orders.js";
 import notificationRoutes from "./routes/notifications.js";
 import wishlistRoutes from "./routes/wishlist.js";
+import deliveryRoutes from "./routes/delivery.js";
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use("/checkout", checkoutRoutes);
 app.use("/orders", orderRoutes);
 app.use("/notifications", notificationRoutes);
 app.use("/wishlist", wishlistRoutes);
+app.use("/delivery", deliveryRoutes);
 
 const PORT = process.env.PORT || 3010;
 

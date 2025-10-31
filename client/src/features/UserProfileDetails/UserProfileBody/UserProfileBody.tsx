@@ -23,6 +23,11 @@ export const UserProfileBody = () => {
         email: result.email || '',
         firstName,
         lastName,
+        phone: result.phone || '',
+        secondaryPhone: result.secondaryPhone || '',
+        secondaryEmail: result.secondaryEmail || '',
+        primaryAddress: result.primaryAddress || {},
+        secondaryAddress: result.secondaryAddress || {},
       });
     }
   }, [result, form]);
@@ -36,6 +41,11 @@ export const UserProfileBody = () => {
       const fullName = `${values.firstName} ${values.lastName}`.trim();
       const updateData = {
         fullName,
+        phone: values.phone || '',
+        secondaryPhone: values.secondaryPhone || '',
+        secondaryEmail: values.secondaryEmail || '',
+        primaryAddress: values.primaryAddress || {},
+        secondaryAddress: values.secondaryAddress || {},
         // Explicitly exclude email from update data for security
       };
       await dispatch(updateUserProfileThunk({ id: result._id, data: updateData })).unwrap();
@@ -60,6 +70,11 @@ export const UserProfileBody = () => {
         email: result.email || '',
         firstName,
         lastName,
+        phone: result.phone || '',
+        secondaryPhone: result.secondaryPhone || '',
+        secondaryEmail: result.secondaryEmail || '',
+        primaryAddress: result.primaryAddress || {},
+        secondaryAddress: result.secondaryAddress || {},
       });
     }
   };

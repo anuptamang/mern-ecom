@@ -1,11 +1,12 @@
 import Order from "../models/order.js";
 import Cart from "../models/cart.js";
 import Product from "../models/product.js";
+import { createDeliveryTracking } from "./delivery.js";
 
 export const createOrder = async (req, res) => {
   try {
     const userId = req.userId;
-    const { paymentIntentId, amount, currency = "usd", items } = req.body;
+    const { paymentIntentId, amount, currency = "usd", items, deliveryAddress } = req.body;
 
     let orderItems = items;
     let finalAmount = amount;
@@ -49,6 +50,8 @@ export const createOrder = async (req, res) => {
       currency,
       status: paymentIntentId ? "paid" : "created",
       paymentIntentId,
+      deliveryAddress: deliveryAddress || null,
+      deliveryStatus: "packing",
     });
 
     // Update stock for each product in the order
@@ -62,10 +65,23 @@ export const createOrder = async (req, res) => {
       );
     }
 
+    // Create delivery tracking
+    if (deliveryAddress) {
+      try {
+        await createDeliveryTracking(order._id, deliveryAddress);
+      } catch (deliveryError) {
+        console.error("Error creating delivery tracking:", deliveryError);
+        // Don't fail the order creation if delivery tracking fails
+      }
+    }
+
     // Clear cart on order creation
     await Cart.findOneAndUpdate({ userId }, { items: [] });
 
-    return res.status(201).json({ order });
+    // Populate order with delivery info
+    const populatedOrder = await Order.findById(order._id).populate("userId", "fullName email");
+
+    return res.status(201).json({ order: populatedOrder });
   } catch (error) {
     console.error("Error creating order:", error);
     return res.status(500).json({ message: "Failed to create order", error: error.message });
