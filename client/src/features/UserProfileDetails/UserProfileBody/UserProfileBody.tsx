@@ -1,13 +1,14 @@
-import { Form, message } from 'antd';
+import { Form, message, Spin } from 'antd';
 import { ProfileBody } from 'components';
 import { authSelector } from 'redux/slice';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 import { updateUserProfileThunk, fetchUserProfile } from 'redux/action/auth/authAction';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export const UserProfileBody = () => {
   const [form] = Form.useForm();
   const dispatch = useAppDispatch();
+  const [updating, setUpdating] = useState(false);
   const {
     status: { loading },
     result,
@@ -28,6 +29,7 @@ export const UserProfileBody = () => {
 
   const onFormSubmit = async (values: any) => {
     if (!result?._id) return;
+    setUpdating(true);
     try {
       // Convert firstName and lastName to fullName
       const fullName = `${values.firstName} ${values.lastName}`.trim();
@@ -37,18 +39,22 @@ export const UserProfileBody = () => {
       };
       await dispatch(updateUserProfileThunk({ id: result._id, data: updateData })).unwrap();
       // Refresh user profile to show updated data
-      dispatch(fetchUserProfile({ id: result._id }));
+      await dispatch(fetchUserProfile({ id: result._id })).unwrap();
       message.success('Profile updated successfully');
     } catch (e: any) {
       message.error(e?.message || 'Failed to update profile');
+    } finally {
+      setUpdating(false);
     }
   };
 
   return (
-    <ProfileBody
-      form={form}
-      onFormSubmit={onFormSubmit}
-      loadingSubmit={loading}
-    />
+    <Spin spinning={updating || loading} tip="Updating profile...">
+      <ProfileBody
+        form={form}
+        onFormSubmit={onFormSubmit}
+        loadingSubmit={updating || loading}
+      />
+    </Spin>
   );
 };
