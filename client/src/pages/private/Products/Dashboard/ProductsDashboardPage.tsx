@@ -36,6 +36,9 @@ const ProductsDashboardPage = (props: Props) => {
   const [productModalVisible, setProductModalVisible] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('products');
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [deliveryTracking, setDeliveryTracking] = useState<any>(null);
+  const [trackingModalVisible, setTrackingModalVisible] = useState(false);
 
   useEffect(() => {
     loadProducts();
@@ -548,6 +551,37 @@ const ProductsDashboardPage = (props: Props) => {
             onSuccess={handleProductFormSuccess}
             onCancel={handleProductFormCancel}
           />
+        </Modal>
+
+        <Modal
+          title="Order Details"
+          open={trackingModalVisible}
+          onCancel={() => {
+            setTrackingModalVisible(false);
+            setDeliveryTracking(null);
+            setSelectedOrder(null);
+          }}
+          footer={[
+            <Button key="close" onClick={() => {
+              setTrackingModalVisible(false);
+              setDeliveryTracking(null);
+              setSelectedOrder(null);
+            }}>
+              Close
+            </Button>,
+          ]}
+          width={900}
+        >
+          {selectedOrder && (
+            <div>
+              <DeliveryTracking delivery={deliveryTracking} order={selectedOrder} />
+              {(selectedOrder.status === 'cancelled' || selectedOrder.status === 'refunded' || selectedOrder.refundStatus) && (
+                <div style={{ marginTop: 24 }}>
+                  <RefundStatus orderId={selectedOrder._id} order={selectedOrder} />
+                </div>
+              )}
+            </div>
+          )}
         </Modal>
       </Container>
     </>
