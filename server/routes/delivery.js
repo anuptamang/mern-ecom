@@ -23,8 +23,21 @@ const router = express.Router();
 // All delivery routes require authentication
 router.use(Auth);
 
+// Get deliveries for delivery agency (must be before /:orderId)
+router.get("/agency/list", getAgencyDeliveries);
+
+// Get deliveries for delivery person (must be before /:orderId)
+router.get("/person/list", getPersonDeliveries);
+
+// Get delivery persons for an agency (must be before /:orderId)
+router.get("/agency/persons", getAgencyPersons); // For logged-in agency
+router.get("/agency/:agencyId/persons", getAgencyPersons);
+
 // Get delivery tracking for an order
 router.get("/:orderId", getDeliveryTracking);
+
+// Get refund status for an order
+router.get("/:orderId/refund", getRefundStatus);
 
 // Update delivery status (role-based: sellers, delivery agency, delivery person, admin)
 router.patch("/:orderId/status", updateDeliveryStatus);
@@ -44,21 +57,8 @@ router.post("/:orderId/accept", acceptDelivery);
 // Buyer rejects delivery
 router.post("/:orderId/reject", rejectDelivery);
 
-// Get deliveries for delivery agency
-router.get("/agency/list", getAgencyDeliveries);
-
-// Get deliveries for delivery person
-router.get("/person/list", getPersonDeliveries);
-
-// Get delivery persons for an agency
-router.get("/agency/:agencyId/persons", getAgencyPersons);
-router.get("/agency/persons", getAgencyPersons); // For logged-in agency
-
 // Cancel order and process refund
 router.post("/:orderId/cancel", cancelOrder);
-
-// Get refund status for an order
-router.get("/:orderId/refund", getRefundStatus);
 
 export default router;
 
