@@ -9,9 +9,23 @@ export const getMyCart = async (req, res) => {
     if (!cart) {
       cart = await Cart.create({ userId, items: [] });
     }
+    
+    // Populate stock information for each item
+    const itemsWithStock = await Promise.all(
+      cart.items.map(async (item) => {
+        const product = await Product.findById(item.productId).select("stock");
+        return {
+          ...item.toObject(),
+          stock: product?.stock || 0,
+        };
+      })
+    );
+    
+    cart.items = itemsWithStock;
     const totals = cart.getTotals();
     return res.json({ cart, totals });
   } catch (error) {
+    console.error("Error fetching cart:", error);
     return res.status(500).json({ message: "Failed to fetch cart" });
   }
 };
@@ -59,11 +73,33 @@ export const updateItem = async (req, res) => {
     if (!cart) return res.status(404).json({ message: "Cart not found" });
     const item = cart.items.find((i) => String(i.productId) === String(productId));
     if (!item) return res.status(404).json({ message: "Item not found" });
-    item.quantity = Math.max(1, Number(quantity));
+
+    // Check product stock
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const requestedQuantity = Number(quantity) || 1;
+    const availableStock = product.stock || 0;
+
+    // Validate quantity is within stock limits
+    if (requestedQuantity < 1) {
+      return res.status(400).json({ message: "Quantity must be at least 1" });
+    }
+
+    if (requestedQuantity > availableStock) {
+      return res.status(400).json({ 
+        message: `Insufficient stock. Available: ${availableStock}, Requested: ${requestedQuantity}` 
+      });
+    }
+
+    item.quantity = requestedQuantity;
     await cart.save();
     const totals = cart.getTotals();
     return res.json({ cart, totals });
   } catch (error) {
+    console.error("Error updating cart item:", error);
     return res.status(500).json({ message: "Failed to update item" });
   }
 };

@@ -93,25 +93,49 @@ const CartsDashboard = (props: TProps) => {
     <Card title="Your Cart" extra={<Button danger onClick={() => dispatch(clearCart())}>Clear</Button>}>
       <List
         dataSource={carts.items}
-        renderItem={(item: any) => (
-          <List.Item
-            actions={[
-              <InputNumber
-                key="qty"
-                min={1}
-                value={item.quantity}
-                onChange={(value) => dispatch(updateCartItem({ productId: item.productId, quantity: Number(value) }))}
-              />,
-              <Button key="rm" danger onClick={() => dispatch(removeFromCart(item.productId))}>Remove</Button>,
-            ]}
-          >
-            <List.Item.Meta
-              avatar={item.thumbnail ? <img src={item.thumbnail} alt={item.title} width={60} /> : null}
-              title={item.title}
-              description={`Price: $${item.price} x ${item.quantity}`}
-            />
-          </List.Item>
-        )}
+        renderItem={(item: any) => {
+          const maxStock = item.stock !== undefined ? item.stock : Infinity;
+          const handleQuantityChange = async (value: number | null) => {
+            if (value === null || value < 1) return;
+            try {
+              await dispatch(updateCartItem({ productId: item.productId, quantity: Number(value) })).unwrap();
+            } catch (error: any) {
+              message.error(error?.message || 'Failed to update quantity');
+              // Refresh cart to get updated values
+              dispatch(fetchMyCart());
+            }
+          };
+
+          return (
+            <List.Item
+              actions={[
+                <InputNumber
+                  key="qty"
+                  min={1}
+                  max={maxStock}
+                  value={item.quantity}
+                  onChange={handleQuantityChange}
+                />,
+                <Button key="rm" danger onClick={() => dispatch(removeFromCart(item.productId))}>Remove</Button>,
+              ]}
+            >
+              <List.Item.Meta
+                avatar={item.thumbnail ? <img src={item.thumbnail} alt={item.title} width={60} /> : null}
+                title={item.title}
+                description={
+                  <div>
+                    <div>Price: ${item.price} x {item.quantity}</div>
+                    {item.stock !== undefined && (
+                      <div className={item.stock <= 0 ? 'text-red-500' : 'text-gray-500'}>
+                        {item.stock <= 0 ? 'Out of Stock' : `Stock: ${item.stock} available`}
+                      </div>
+                    )}
+                  </div>
+                }
+              />
+            </List.Item>
+          );
+        }}
       />
       <div className="flex justify-between mt-4">
         <div>Total Items: {carts.totalCount}</div>
