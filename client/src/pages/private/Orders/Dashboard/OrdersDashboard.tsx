@@ -4,7 +4,6 @@ import { usePageTitle } from 'hooks/usePageTitle';
 import { useEffect, useState } from 'react';
 import { listMyOrdersApi } from 'services/endPoints/orders/ordersEndpoints';
 import { getDeliveryTrackingApi, cancelOrderApi } from 'services/endPoints/delivery';
-import { acceptDeliveryApi, rejectDeliveryApi } from 'services/endPoints/delivery/deliveryAssignmentEndpoints';
 import { getToken } from 'utils/localStorage';
 import { useAppSelector, useAppDispatch } from 'redux/store';
 import { authSelector } from 'redux/slice';
@@ -35,9 +34,6 @@ const OrdersDashboard = (props: TProps) => {
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState('');
-  const [rejectReason, setRejectReason] = useState('');
-  const [rejectModalVisible, setRejectModalVisible] = useState(false);
-  const [rejectingOrderId, setRejectingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isSeller) {
@@ -92,52 +88,6 @@ const OrdersDashboard = (props: TProps) => {
   }, [isSeller, searchParams]);
 
 
-  const handleAcceptDelivery = async (orderId: string, orderItemId?: string, productId?: string) => {
-    try {
-      await acceptDeliveryApi(orderId, undefined, orderItemId, productId);
-      message.success('Delivery accepted successfully');
-      // Reload orders and tracking
-      const token = getToken();
-      if (token) {
-        const { data } = await listMyOrdersApi(token);
-        setOrders(data.orders || []);
-        if (selectedOrder && selectedOrder._id === orderId) {
-          const { data: trackingData } = await getDeliveryTrackingApi(orderId);
-          setDeliveries(trackingData.deliveries || []);
-          setDeliveryTracking(trackingData.deliveries?.[0] || trackingData.delivery || null);
-        }
-      }
-    } catch (error: any) {
-      message.error(error?.response?.data?.message || 'Failed to accept delivery');
-    }
-  };
-
-  const handleRejectDelivery = async (orderItemId?: string, productId?: string) => {
-    if (!rejectingOrderId || !rejectReason.trim()) {
-      message.error('Please provide a reason for rejecting delivery');
-      return;
-    }
-    try {
-      await rejectDeliveryApi(rejectingOrderId, rejectReason, orderItemId, productId);
-      message.success('Delivery rejected. The seller will be notified.');
-      setRejectModalVisible(false);
-      setRejectReason('');
-      setRejectingOrderId(null);
-      // Reload orders and tracking
-      const token = getToken();
-      if (token) {
-        const { data } = await listMyOrdersApi(token);
-        setOrders(data.orders || []);
-        if (selectedOrder && selectedOrder._id === rejectingOrderId) {
-          const { data: trackingData } = await getDeliveryTrackingApi(rejectingOrderId);
-          setDeliveries(trackingData.deliveries || []);
-          setDeliveryTracking(trackingData.deliveries?.[0] || trackingData.delivery || null);
-        }
-      }
-    } catch (error: any) {
-      message.error(error?.response?.data?.message || 'Failed to reject delivery');
-    }
-  };
 
   const handleCancelOrder = async () => {
     if (!cancellingOrderId) return;
@@ -398,32 +348,6 @@ const OrdersDashboard = (props: TProps) => {
                                         </Button>
                                       </Popconfirm>
                                     )}
-                                    {item.deliveryTracking?.buyerAcceptance === 'pending' && item.deliveryStatus === 'delivered' && (
-                                      <>
-                                        <Button
-                                          type="primary"
-                                          size="small"
-                                          icon={<CheckOutlined />}
-                                          onClick={() => handleAcceptDelivery(order._id, item._id, item.productId)}
-                                        >
-                                          Accept
-                                        </Button>
-                                        <Button
-                                          type="default"
-                                          danger
-                                          size="small"
-                                          icon={<CloseOutlined />}
-                                          onClick={() => {
-                                            setRejectingOrderId(order._id);
-                                            setRejectModalVisible(true);
-                                            (window as any).rejectItemId = item._id;
-                                            (window as any).rejectProductId = item.productId;
-                                          }}
-                                        >
-                                          Reject
-                                        </Button>
-                                      </>
-                                    )}
                                     {item.deliveryTracking?.buyerAcceptance === 'accepted' && item.deliveryStatus === 'delivered' && (
                                       <Button
                                         type="default"
@@ -537,37 +461,6 @@ const OrdersDashboard = (props: TProps) => {
           />
         </Modal>
 
-        {/* Reject Delivery Modal */}
-        <Modal
-          title="Reject Delivery"
-          open={rejectModalVisible}
-            onOk={() => {
-              const itemId = (window as any).rejectItemId;
-              const productId = (window as any).rejectProductId;
-              handleRejectDelivery(itemId, productId);
-              (window as any).rejectItemId = undefined;
-              (window as any).rejectProductId = undefined;
-            }}
-          onCancel={() => {
-            setRejectModalVisible(false);
-            setRejectReason('');
-            setRejectingOrderId(null);
-          }}
-          okText="Reject"
-          okButtonProps={{ danger: true }}
-        >
-          <Space direction="vertical" style={{ width: '100%' }} size="large">
-            <div>
-              <Text strong>Please provide a reason for rejecting this delivery:</Text>
-            </div>
-            <Input.TextArea
-              rows={4}
-              placeholder="Enter reason for rejection..."
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-            />
-          </Space>
-        </Modal>
       </Container>
     </>
   );

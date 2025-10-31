@@ -19,6 +19,10 @@ export interface IUser {
   coverPhoto?: string;
   role?: string;
   __v?: number;
+  // For delivery persons - reference to their delivery agency
+  deliveryAgencyId?: string;
+  // For delivery persons - type of deliverer
+  delivererType?: 'warehouse' | 'customer';
   // Contact information
   secondaryEmail?: string;
   phone?: string;

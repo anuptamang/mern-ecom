@@ -46,27 +46,7 @@ export const markAsDeliveredApi = async (orderId: string, note?: string, deliver
   );
 };
 
-export const acceptDeliveryApi = async (orderId: string, reason?: string, orderItemId?: string, productId?: string) => {
-  const token = getToken() || "";
-  return axios.post(
-    `${DELIVERY_API}/${orderId}/accept`,
-    { reason, orderItemId, productId },
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-};
-
-export const rejectDeliveryApi = async (orderId: string, reason: string, orderItemId?: string, productId?: string) => {
-  const token = getToken() || "";
-  return axios.post(
-    `${DELIVERY_API}/${orderId}/reject`,
-    { reason, orderItemId, productId },
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-};
+// Buyer accept/reject delivery APIs removed - now handled by customer deliverer with proof upload
 
 export const getAgencyDeliveriesApi = async () => {
   const token = getToken() || "";
@@ -92,11 +72,11 @@ export const getAgencyPersonsApi = async (agencyId?: string) => {
   });
 };
 
-export const createDeliveryPersonApi = async (email: string, password: string, fullName: string, phone?: string) => {
+export const createDeliveryPersonApi = async (email: string, password: string, fullName: string, delivererType: 'warehouse' | 'customer', phone?: string) => {
   const token = getToken() || "";
   return axios.post(
     `${DELIVERY_API}/agency/persons`,
-    { email, password, fullName, phone },
+    { email, password, fullName, phone, delivererType },
     {
       headers: { Authorization: `Bearer ${token}` },
     }

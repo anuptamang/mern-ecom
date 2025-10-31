@@ -45,6 +45,7 @@ interface IDelivery {
 
 const DeliveryPersonDashboard = () => {
   const auth = useAuth();
+  const { result: user } = auth;
   const [searchParams] = useSearchParams();
   const [deliveries, setDeliveries] = useState<IDelivery[]>([]);
   const [loading, setLoading] = useState(true);
@@ -202,11 +203,22 @@ const DeliveryPersonDashboard = () => {
     );
   }
 
+  const delivererType = user?.delivererType;
+  const isWarehouseDeliverer = delivererType === 'warehouse';
+  const isCustomerDeliverer = delivererType === 'customer';
+
   return (
     <div className="delivery-person-dashboard">
       <Card>
         <Title level={2}>Delivery Person Dashboard</Title>
-        <Text type="secondary">Manage deliveries assigned to you</Text>
+        <Text type="secondary">
+          Manage deliveries assigned to you
+          {delivererType && (
+            <Tag color={isWarehouseDeliverer ? 'blue' : 'green'} style={{ marginLeft: 8 }}>
+              {isWarehouseDeliverer ? 'Warehouse Deliverer' : 'Customer Deliverer'}
+            </Tag>
+          )}
+        </Text>
 
         <List
           dataSource={deliveries}
@@ -235,13 +247,13 @@ const DeliveryPersonDashboard = () => {
                     >
                       View Tracking
                     </Button>
-                    {delivery.status === 'out_for_delivery' && (
+                    {isCustomerDeliverer && delivery.status === 'out_for_delivery' && (
                       <Button
                         type="primary"
                         icon={<CheckOutlined />}
                         onClick={() => handleMarkDelivered(delivery)}
                       >
-                        Mark as Delivered
+                        Mark as Delivered (with Proof)
                       </Button>
                     )}
                   </Space>
@@ -329,55 +341,60 @@ const DeliveryPersonDashboard = () => {
         )}
       </Modal>
 
-      {/* Mark as Delivered Modal */}
-      <Modal
-        title="Mark as Delivered"
-        open={deliverModalVisible}
-        onOk={handleConfirmDelivery}
-        onCancel={() => {
-          setDeliverModalVisible(false);
-          setDeliveryNote('');
-          setDeliveryProofFile(null);
-          setDeliveryProofPreview(null);
-          setDeliveringToDeliveryId(null);
-        }}
-        okText="Mark Delivered"
-        okButtonProps={{ loading: delivering }}
-      >
-        <Space direction="vertical" style={{ width: '100%' }} size="large">
-          <div>
-            <Text strong>Upload Delivery Proof (Required):</Text>
-            <Upload
-              accept="image/*"
-              beforeUpload={handleProofUpload}
-              showUploadList={false}
-              maxCount={1}
-            >
-              <Button icon={<CameraOutlined />}>Select Photo</Button>
-            </Upload>
-            {deliveryProofPreview && (
-              <div style={{ marginTop: 10 }}>
-                <Image
-                  src={deliveryProofPreview}
-                  width={200}
-                  height={200}
-                  style={{ objectFit: 'cover', borderRadius: 4 }}
-                />
-              </div>
-            )}
-          </div>
-          <div>
-            <Text strong>Note (Optional):</Text>
-            <Input.TextArea
-              rows={3}
-              placeholder="Add a note about the delivery..."
-              value={deliveryNote}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDeliveryNote(e.target.value)}
-              style={{ marginTop: 8 }}
-            />
-          </div>
-        </Space>
-      </Modal>
+      {/* Mark as Delivered Modal - Customer Deliverer Only */}
+      {isCustomerDeliverer && (
+        <Modal
+          title="Mark as Delivered - Upload Proof of Delivery Acceptance"
+          open={deliverModalVisible}
+          onOk={handleConfirmDelivery}
+          onCancel={() => {
+            setDeliverModalVisible(false);
+            setDeliveryNote('');
+            setDeliveryProofFile(null);
+            setDeliveryProofPreview(null);
+            setDeliveringToDeliveryId(null);
+          }}
+          okText="Mark Delivered"
+          okButtonProps={{ loading: delivering, disabled: !deliveryProofFile }}
+        >
+          <Space direction="vertical" style={{ width: '100%' }} size="large">
+            <div>
+              <Text strong>Upload Proof of Delivery Acceptance (Required):</Text>
+              <Text type="secondary" style={{ display: 'block', marginTop: 4 }}>
+                Please upload a photo showing proof that the buyer accepted the delivery (e.g., signature, photo of buyer with package, etc.)
+              </Text>
+              <Upload
+                accept="image/*"
+                beforeUpload={handleProofUpload}
+                showUploadList={false}
+                maxCount={1}
+              >
+                <Button icon={<CameraOutlined />} style={{ marginTop: 8 }}>Select Photo</Button>
+              </Upload>
+              {deliveryProofPreview && (
+                <div style={{ marginTop: 10 }}>
+                  <Image
+                    src={deliveryProofPreview}
+                    width={200}
+                    height={200}
+                    style={{ objectFit: 'cover', borderRadius: 4 }}
+                  />
+                </div>
+              )}
+            </div>
+            <div>
+              <Text strong>Note (Optional):</Text>
+              <Input.TextArea
+                rows={3}
+                placeholder="Add a note about the delivery..."
+                value={deliveryNote}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDeliveryNote(e.target.value)}
+                style={{ marginTop: 8 }}
+              />
+            </div>
+          </Space>
+        </Modal>
+      )}
     </div>
   );
 };

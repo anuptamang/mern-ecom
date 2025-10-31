@@ -208,6 +208,7 @@ async function seedUser() {
       fullName: "John Delivery",
       phone: "+1-555-0401",
       deliveryAgencyId: deliveryAgency._id,
+      delivererType: "warehouse",
       primaryAddress: {
         street: "50 Worker Ave",
         city: "Chicago",
@@ -232,6 +233,7 @@ async function seedUser() {
       fullName: "Jane Courier",
       phone: "+1-555-0402",
       deliveryAgencyId: deliveryAgency._id,
+      delivererType: "customer",
       primaryAddress: {
         street: "51 Worker Ave",
         city: "Chicago",

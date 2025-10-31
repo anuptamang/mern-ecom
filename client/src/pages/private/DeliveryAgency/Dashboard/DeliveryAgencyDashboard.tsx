@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, List, Tag, Button, Modal, Select, message, Empty, Spin, Typography, Space, Image, Divider, Form, Input } from 'antd';
+import { Card, List, Tag, Button, Modal, Select, message, Empty, Spin, Typography, Space, Image, Divider, Form, Input, Radio } from 'antd';
 import { 
   CheckCircleOutlined, 
   ClockCircleOutlined, 
@@ -54,6 +54,7 @@ const DeliveryAgencyDashboard = () => {
   const [assignModalVisible, setAssignModalVisible] = useState(false);
   const [assigningToDeliveryId, setAssigningToDeliveryId] = useState<string | null>(null);
   const [selectedPersonId, setSelectedPersonId] = useState<string>('');
+  const [selectedDelivererType, setSelectedDelivererType] = useState<'warehouse' | 'customer'>('warehouse');
   const [deliveryPersons, setDeliveryPersons] = useState<any[]>([]);
   const [assigning, setAssigning] = useState(false);
   const [loadingPersons, setLoadingPersons] = useState(false);
@@ -130,15 +131,23 @@ const DeliveryAgencyDashboard = () => {
     }
   };
 
-  const handleAssignPerson = async (delivery: IDelivery) => {
+  const handleAssignPerson = async (delivery: IDelivery, delivererType?: 'warehouse' | 'customer') => {
     setAssigningToDeliveryId(delivery._id);
     setAssignModalVisible(true);
+    setSelectedDelivererType(delivererType || (delivery.status === 'ready_to_ship' ? 'warehouse' : 'customer'));
     await loadDeliveryPersons();
   };
 
   const handleConfirmAssignment = async () => {
     if (!selectedPersonId || !assigningToDeliveryId) {
       message.error('Please select a delivery person');
+      return;
+    }
+
+    // Verify selected person matches the required deliverer type
+    const selectedPerson = deliveryPersons.find(p => p._id === selectedPersonId);
+    if (selectedPerson?.delivererType !== selectedDelivererType) {
+      message.error(`Please select a ${selectedDelivererType} deliverer`);
       return;
     }
 
@@ -155,6 +164,7 @@ const DeliveryAgencyDashboard = () => {
       setAssignModalVisible(false);
       setSelectedPersonId('');
       setAssigningToDeliveryId(null);
+      setSelectedDelivererType('warehouse');
       await loadDeliveries();
     } catch (error: any) {
       console.error('Failed to assign delivery:', error);
@@ -167,7 +177,7 @@ const DeliveryAgencyDashboard = () => {
   const handleCreatePerson = async (values: any) => {
     try {
       setCreatingPerson(true);
-      await createDeliveryPersonApi(values.email, values.password, values.fullName, values.phone);
+      await createDeliveryPersonApi(values.email, values.password, values.fullName, values.delivererType, values.phone);
       message.success('Delivery person created successfully');
       setCreatePersonModalVisible(false);
       createPersonForm.resetFields();
@@ -246,14 +256,24 @@ const DeliveryAgencyDashboard = () => {
                       >
                         View Tracking
                       </Button>
-                      {(delivery.status === 'ready_to_ship' || delivery.status === 'picked_up' || delivery.status === 'in_facility' || delivery.status === 'in_transit') && (
+                      {delivery.status === 'ready_to_ship' && (
                         <Button
                           type="primary"
                           icon={<UserAddOutlined />}
-                          onClick={() => handleAssignPerson(delivery)}
+                          onClick={() => handleAssignPerson(delivery, 'warehouse')}
                           disabled={!!delivery.assignedDeliveryPerson}
                         >
-                          {delivery.assignedDeliveryPerson ? 'Assigned' : 'Assign Person'}
+                          {delivery.assignedDeliveryPerson ? 'Warehouse Assigned' : 'Assign Warehouse Deliverer'}
+                        </Button>
+                      )}
+                      {delivery.status === 'in_facility' && (
+                        <Button
+                          type="primary"
+                          icon={<UserAddOutlined />}
+                          onClick={() => handleAssignPerson(delivery, 'customer')}
+                          disabled={!!delivery.assignedDeliveryPerson}
+                        >
+                          {delivery.assignedDeliveryPerson ? 'Customer Assigned' : 'Assign Customer Deliverer'}
                         </Button>
                       )}
                     </Space>
@@ -328,37 +348,46 @@ const DeliveryAgencyDashboard = () => {
 
       {/* Assign Person Modal */}
       <Modal
-        title="Assign Delivery Person"
+        title={`Assign ${selectedDelivererType === 'warehouse' ? 'Warehouse' : 'Customer'} Deliverer`}
         open={assignModalVisible}
         onOk={handleConfirmAssignment}
         onCancel={() => {
           setAssignModalVisible(false);
           setSelectedPersonId('');
           setAssigningToDeliveryId(null);
+          setSelectedDelivererType('warehouse');
         }}
         okText="Assign"
         okButtonProps={{ loading: assigning }}
       >
         <Space direction="vertical" style={{ width: '100%' }} size="large">
           <div>
-            <Text strong>Select Delivery Person:</Text>
+            <Text strong>Deliverer Type:</Text>
+            <Tag color={selectedDelivererType === 'warehouse' ? 'blue' : 'green'} style={{ marginLeft: 8 }}>
+              {selectedDelivererType === 'warehouse' ? 'Warehouse Deliverer' : 'Customer Deliverer'}
+            </Tag>
+          </div>
+          <div>
+            <Text strong>Select Delivery Person ({selectedDelivererType}):</Text>
           </div>
           {loadingPersons ? (
             <Spin />
           ) : (
             <Select
               style={{ width: '100%' }}
-              placeholder="Select a delivery person"
+              placeholder={`Select a ${selectedDelivererType} deliverer`}
               value={selectedPersonId}
               onChange={setSelectedPersonId}
-              options={deliveryPersons.map((person) => ({
-                value: person._id,
-                label: `${person.fullName || person.email} (${person.phone || 'No phone'})`,
-              }))}
+              options={deliveryPersons
+                .filter((person) => person.delivererType === selectedDelivererType)
+                .map((person) => ({
+                  value: person._id,
+                  label: `${person.fullName || person.email} (${person.phone || 'No phone'}) - ${person.delivererType}`,
+                }))}
             />
           )}
-          {deliveryPersons.length === 0 && !loadingPersons && (
-            <Text type="secondary">No delivery persons available</Text>
+          {deliveryPersons.filter(p => p.delivererType === selectedDelivererType).length === 0 && !loadingPersons && (
+            <Text type="secondary">No {selectedDelivererType} deliverers available</Text>
           )}
         </Space>
       </Modal>
@@ -413,6 +442,16 @@ const DeliveryAgencyDashboard = () => {
             label="Phone (Optional)"
           >
             <Input placeholder="Enter phone number" />
+          </Form.Item>
+          <Form.Item
+            name="delivererType"
+            label="Deliverer Type"
+            rules={[{ required: true, message: 'Please select deliverer type' }]}
+          >
+            <Radio.Group>
+              <Radio value="warehouse">Warehouse Deliverer</Radio>
+              <Radio value="customer">Customer Deliverer</Radio>
+            </Radio.Group>
           </Form.Item>
         </Form>
       </Modal>

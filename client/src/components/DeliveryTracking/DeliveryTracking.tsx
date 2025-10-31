@@ -78,7 +78,7 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
     return 'wait';
   };
 
-  // Determine allowed statuses based on role
+  // Determine allowed statuses based on role and deliverer type
   const getAllowedStatuses = () => {
     if (userRole === 'seller') {
       // Sellers can only update to ready_to_ship
@@ -87,14 +87,25 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
         { value: 'ready_to_ship', label: 'Ready to Ship' },
       ];
     } else if (userRole === 'delivery_person') {
-      // Delivery persons can update from picked_up onwards
-      return [
-        { value: 'picked_up', label: 'Picked Up' },
-        { value: 'in_facility', label: 'In Delivery Facility' },
-        { value: 'in_transit', label: 'In Transit' },
-        { value: 'out_for_delivery', label: 'Out for Delivery' },
-        { value: 'delivered', label: 'Delivered' },
-      ];
+      // Check deliverer type from user object
+      const delivererType = user?.delivererType;
+      
+      if (delivererType === 'warehouse') {
+        // Warehouse deliverer can only update: picked_up -> in_facility
+        return [
+          { value: 'picked_up', label: 'Picked Up' },
+          { value: 'in_facility', label: 'In Delivery Facility' },
+        ];
+      } else if (delivererType === 'customer') {
+        // Customer deliverer can only update: in_transit -> out_for_delivery -> delivered
+        return [
+          { value: 'in_transit', label: 'In Transit' },
+          { value: 'out_for_delivery', label: 'Out for Delivery' },
+          { value: 'delivered', label: 'Delivered' },
+        ];
+      }
+      // Fallback for deliverers without type (shouldn't happen)
+      return [];
     }
     return []; // Delivery agencies cannot update
   };

@@ -10,8 +10,6 @@ import {
   assignToDeliveryAgency,
   assignToDeliveryPerson,
   markAsDelivered,
-  acceptDelivery,
-  rejectDelivery,
   getAgencyDeliveries,
   getPersonDeliveries,
   getAgencyPersons,
@@ -53,14 +51,8 @@ router.post("/:orderId/assign-agency", assignToDeliveryAgency);
 // Assign delivery to delivery person (admin, delivery agency)
 router.post("/:orderId/assign-person", assignToDeliveryPerson);
 
-// Mark as delivered with proof (delivery person only)
+// Mark as delivered with proof (customer deliverer only)
 router.post("/:orderId/delivered", Upload.single("deliveryProof"), markAsDelivered);
-
-// Buyer accepts delivery
-router.post("/:orderId/accept", acceptDelivery);
-
-// Buyer rejects delivery
-router.post("/:orderId/reject", rejectDelivery);
 
 // Cancel order and process refund
 router.post("/:orderId/cancel", cancelOrder);

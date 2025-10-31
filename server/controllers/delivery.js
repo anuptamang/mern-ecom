@@ -173,7 +173,47 @@ export const updateDeliveryStatus = async (req, res) => {
       isAuthorized = String(delivery.assignedDeliveryAgency) === String(userId);
     } else if (userRole === "delivery_person" && deliveryPersonStatuses.includes(status)) {
       // Check if delivery is assigned to this person
-      isAuthorized = String(delivery.assignedDeliveryPerson) === String(userId);
+      const isAssigned = String(delivery.assignedDeliveryPerson) === String(userId);
+      
+      if (isAssigned) {
+        // Get deliverer type
+        const User = (await import("../models/user.js")).default;
+        const deliverer = await User.findById(userId);
+        
+        if (deliverer?.delivererType === "warehouse") {
+          // Warehouse deliverer can only update: picked_up -> in_facility
+          const warehouseStatuses = ["picked_up", "in_facility"];
+          isAuthorized = warehouseStatuses.includes(status);
+          
+          // Warehouse deliverer can only update if current status is ready_to_ship or picked_up
+          if (!["ready_to_ship", "picked_up"].includes(delivery.status) && status === "picked_up") {
+            isAuthorized = false;
+          }
+          if (delivery.status !== "picked_up" && status === "in_facility") {
+            isAuthorized = false;
+          }
+        } else if (deliverer?.delivererType === "customer") {
+          // Customer deliverer can only update: in_transit -> out_for_delivery -> delivered
+          const customerStatuses = ["in_transit", "out_for_delivery", "delivered"];
+          isAuthorized = customerStatuses.includes(status);
+          
+          // Customer deliverer can only update if current status is in_facility or in_transit or out_for_delivery
+          if (!["in_facility", "in_transit"].includes(delivery.status) && status === "in_transit") {
+            isAuthorized = false;
+          }
+          if (delivery.status !== "in_transit" && status === "out_for_delivery") {
+            isAuthorized = false;
+          }
+          if (delivery.status !== "out_for_delivery" && status === "delivered") {
+            isAuthorized = false;
+          }
+        } else {
+          // Deliverer without type cannot update
+          isAuthorized = false;
+        }
+      } else {
+        isAuthorized = false;
+      }
     }
 
     if (!isAuthorized) {

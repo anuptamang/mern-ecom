@@ -133,6 +133,31 @@ export const assignToDeliveryPerson = async (req, res) => {
       return res.status(404).json({ message: "Delivery person not found" });
     }
 
+    // Check deliverer type and current status
+    for (const delivery of deliveries) {
+      const currentStatus = delivery.status;
+      
+      if (deliveryPerson.delivererType === "warehouse") {
+        // Warehouse deliverer can only be assigned when status is ready_to_ship
+        if (currentStatus !== "ready_to_ship") {
+          return res.status(400).json({ 
+            message: "Warehouse deliverer can only be assigned when status is 'ready_to_ship'" 
+          });
+        }
+      } else if (deliveryPerson.delivererType === "customer") {
+        // Customer deliverer can only be assigned when status is in_facility
+        if (currentStatus !== "in_facility") {
+          return res.status(400).json({ 
+            message: "Customer deliverer can only be assigned when status is 'in_facility'. Please assign a warehouse deliverer first to move status to 'in_facility'." 
+          });
+        }
+      } else {
+        return res.status(400).json({ 
+          message: "Delivery person must have a valid deliverer type (warehouse or customer)" 
+        });
+      }
+    }
+
     // Verify delivery person belongs to the assigned agency (check first delivery)
     if (deliveries.length > 0 && deliveries[0].assignedDeliveryAgency) {
       const agencyId = deliveries[0].assignedDeliveryAgency;
@@ -277,12 +302,27 @@ export const markAsDelivered = async (req, res) => {
       });
     }
 
+    // Verify deliverer is customer type
+    const User = (await import("../models/user.js")).default;
+    const deliverer = await User.findById(userId);
+    if (deliverer?.delivererType !== "customer") {
+      return res.status(403).json({ 
+        message: "Only customer deliverers can mark deliveries as delivered" 
+      });
+    }
+
+    // Require delivery proof
+    if (!deliveryProof) {
+      return res.status(400).json({ 
+        message: "Delivery proof (proof of delivery acceptance) is required" 
+      });
+    }
+
     delivery.status = "delivered";
     delivery.actualDeliveryDate = new Date();
-    if (deliveryProof) {
-      delivery.deliveryProof = deliveryProof;
-    }
-    delivery.buyerAcceptance = "pending"; // Awaiting buyer confirmation
+    delivery.deliveryProof = deliveryProof;
+    delivery.buyerAcceptance = "accepted"; // Automatically accepted when customer deliverer marks as delivered with proof
+    delivery.buyerAcceptedAt = new Date();
 
     delivery.statusHistory.push({
       status: "delivered",
@@ -531,7 +571,7 @@ export const getAgencyPersons = async (req, res) => {
     const deliveryPersons = await User.find({
       role: "delivery_person",
       deliveryAgencyId: agencyId,
-    }).select("fullName email phone");
+    }).select("fullName email phone delivererType");
 
     return res.json({ deliveryPersons, count: deliveryPersons.length });
   } catch (error) {
@@ -548,7 +588,7 @@ export const createDeliveryPerson = async (req, res) => {
   try {
     const userId = req.userId;
     const userRole = req.userRole;
-    const { email, password, fullName, phone } = req.body;
+    const { email, password, fullName, phone, delivererType } = req.body;
 
     // Only admin or delivery agency can create delivery persons
     if (userRole !== "admin" && userRole !== "delivery_agency") {
@@ -560,6 +600,12 @@ export const createDeliveryPerson = async (req, res) => {
     if (!email || !password || !fullName) {
       return res.status(400).json({ 
         message: "Email, password, and full name are required" 
+      });
+    }
+
+    if (!delivererType || !["warehouse", "customer"].includes(delivererType)) {
+      return res.status(400).json({ 
+        message: "Deliverer type is required and must be 'warehouse' or 'customer'" 
       });
     }
 
@@ -584,6 +630,7 @@ export const createDeliveryPerson = async (req, res) => {
       phone: phone || undefined,
       role: "delivery_person",
       deliveryAgencyId: agencyId,
+      delivererType: delivererType,
     });
 
     return res.status(201).json({ 
@@ -595,6 +642,7 @@ export const createDeliveryPerson = async (req, res) => {
         phone: deliveryPerson.phone,
         role: deliveryPerson.role,
         deliveryAgencyId: deliveryPerson.deliveryAgencyId,
+        delivererType: deliveryPerson.delivererType,
       }
     });
   } catch (error) {
