@@ -159,7 +159,10 @@ const DeliveryAgencyDashboard = () => {
         return;
       }
 
-      await assignToDeliveryPersonApi(delivery.orderId._id, selectedPersonId);
+      // Pass orderItemId and productId for per-item assignment
+      const orderItemId = delivery.orderItemId;
+      const productId = delivery.productId?._id || delivery.productId;
+      await assignToDeliveryPersonApi(delivery.orderId._id, selectedPersonId, orderItemId, productId);
       message.success('Delivery assigned to person successfully');
       setAssignModalVisible(false);
       setSelectedPersonId('');

@@ -135,20 +135,28 @@ export const assignToDeliveryPerson = async (req, res) => {
 
     // Check deliverer type and current status
     for (const delivery of deliveries) {
-      const currentStatus = delivery.status;
+      // Refresh delivery from database to ensure we have the latest status
+      const freshDelivery = await Delivery.findById(delivery._id);
+      if (!freshDelivery) {
+        return res.status(404).json({ 
+          message: `Delivery tracking not found for item ${delivery.orderItemId || delivery.productId}` 
+        });
+      }
+      
+      const currentStatus = freshDelivery.status;
       
       if (deliveryPerson.delivererType === "warehouse") {
         // Warehouse deliverer can only be assigned when status is ready_to_ship
         if (currentStatus !== "ready_to_ship") {
           return res.status(400).json({ 
-            message: "Warehouse deliverer can only be assigned when status is 'ready_to_ship'" 
+            message: `Warehouse deliverer can only be assigned when status is 'ready_to_ship'. Current status is '${currentStatus}' for item ${freshDelivery.orderItemId || freshDelivery.productId}` 
           });
         }
       } else if (deliveryPerson.delivererType === "customer") {
         // Customer deliverer can only be assigned when status is in_facility
         if (currentStatus !== "in_facility") {
           return res.status(400).json({ 
-            message: "Customer deliverer can only be assigned when status is 'in_facility'. Please assign a warehouse deliverer first to move status to 'in_facility'." 
+            message: `Customer deliverer can only be assigned when status is 'in_facility'. Current status is '${currentStatus}' for item ${freshDelivery.orderItemId || freshDelivery.productId}. Please assign a warehouse deliverer first to move status to 'in_facility'.` 
           });
         }
       } else {
@@ -172,7 +180,11 @@ export const assignToDeliveryPerson = async (req, res) => {
     const { createNotification } = await import("./notifications.js");
     const Product = (await import("../models/product.js")).default;
     
-    for (const delivery of deliveries) {
+    for (const deliveryDoc of deliveries) {
+      // Get fresh delivery document to ensure we're working with the latest data
+      const delivery = await Delivery.findById(deliveryDoc._id);
+      if (!delivery) continue;
+      
       delivery.assignedDeliveryPerson = deliveryPersonId;
       if (!delivery.assignedAt) {
         delivery.assignedAt = new Date();

@@ -17,11 +17,11 @@ export const assignToDeliveryAgencyApi = async (orderId: string, deliveryAgencyI
   );
 };
 
-export const assignToDeliveryPersonApi = async (orderId: string, deliveryPersonId: string) => {
+export const assignToDeliveryPersonApi = async (orderId: string, deliveryPersonId: string, orderItemId?: string, productId?: string) => {
   const token = getToken() || "";
   return axios.post(
     `${DELIVERY_API}/${orderId}/assign-person`,
-    { deliveryPersonId },
+    { deliveryPersonId, orderItemId, productId },
     {
       headers: { Authorization: `Bearer ${token}` },
     }
