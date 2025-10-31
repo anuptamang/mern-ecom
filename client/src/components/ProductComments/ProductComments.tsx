@@ -4,6 +4,7 @@ import { UserOutlined, LikeOutlined, CommentOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { getToken } from 'utils/localStorage';
 import { PRODUCTS_API } from 'services/servicesConstants';
+import { replyToCommentApi } from 'services/endPoints/products/productsEndpoints';
 import { authSelector } from 'redux/slice';
 import { useAppSelector } from 'redux/store';
 
@@ -27,10 +28,13 @@ type CommentItem = {
 
 export const ProductComments = ({ productId }: ProductCommentsProps) => {
   const { result } = useAppSelector(authSelector);
+  const isSeller = result?.role === 'seller';
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [newComment, setNewComment] = useState('');
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
 
   useEffect(() => {
     fetchComments();
@@ -110,9 +114,34 @@ export const ProductComments = ({ productId }: ProductCommentsProps) => {
     return null;
   };
 
+  const handleReplyToComment = async (commentId: string) => {
+    if (!result) {
+      message.warning('Please log in to reply');
+      return;
+    }
+
+    if (!replyText.trim()) {
+      message.warning('Please enter a reply');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await replyToCommentApi(productId, commentId, replyText);
+      message.success('Reply added successfully');
+      setReplyText('');
+      setReplyingTo(null);
+      fetchComments();
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || 'Failed to add reply');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <Card title="Comments" className="product-comments">
-      {result && (
+      {result && !isSeller && (
         <div className="comment-form">
           <TextArea
             rows={4}
@@ -139,6 +168,12 @@ export const ProductComments = ({ productId }: ProductCommentsProps) => {
         </div>
       )}
 
+      {isSeller && (
+        <div className="seller-notice">
+          <p>As a seller, you can reply to comments but cannot add new comments.</p>
+        </div>
+      )}
+
       <div className="comments-list">
         <Spin spinning={loading}>
           {comments.length === 0 ? (
@@ -162,6 +197,15 @@ export const ProductComments = ({ productId }: ProductCommentsProps) => {
                   </div>
                 </div>
                 <div className="comment-text">{comment.text}</div>
+                {comment.replies && comment.replies.length > 0 && (
+                  <div className="comment-replies">
+                    {comment.replies.map((reply, replyIndex) => (
+                      <div key={replyIndex} className="reply-item">
+                        <div className="reply-text">{reply}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="comment-actions">
                   <Button
                     type="text"
@@ -170,7 +214,42 @@ export const ProductComments = ({ productId }: ProductCommentsProps) => {
                   >
                     {comment.likes || 0}
                   </Button>
+                  {isSeller && (
+                    <Button
+                      type="text"
+                      icon={<CommentOutlined />}
+                      onClick={() => setReplyingTo(comment._id || null)}
+                    >
+                      Reply
+                    </Button>
+                  )}
                 </div>
+                {isSeller && replyingTo === comment._id && (
+                  <div className="reply-form">
+                    <TextArea
+                      rows={2}
+                      placeholder="Write a reply..."
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      maxLength={300}
+                    />
+                    <div className="reply-actions">
+                      <Button onClick={() => {
+                        setReplyingTo(null);
+                        setReplyText('');
+                      }}>
+                        Cancel
+                      </Button>
+                      <Button
+                        type="primary"
+                        onClick={() => comment._id && handleReplyToComment(comment._id)}
+                        loading={submitting}
+                      >
+                        Post Reply
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))
           )}

@@ -28,6 +28,7 @@ type RatingItem = {
 
 export const ProductRatings = ({ productId, productRating = 0 }: ProductRatingsProps) => {
   const { result } = useAppSelector(authSelector);
+  const isSeller = result?.role === 'seller';
   const [ratings, setRatings] = useState<RatingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -110,7 +111,7 @@ export const ProductRatings = ({ productId, productRating = 0 }: ProductRatingsP
         </div>
       </div>
 
-      {result && !showReviewForm && (
+      {result && !isSeller && !showReviewForm && (
         <div className="add-rating-section">
           <Button type="primary" onClick={() => setShowReviewForm(true)}>
             Write a Review
@@ -118,7 +119,7 @@ export const ProductRatings = ({ productId, productRating = 0 }: ProductRatingsP
         </div>
       )}
 
-      {showReviewForm && result && (
+      {showReviewForm && result && !isSeller && (
         <Card className="rating-form-card" title="Your Review">
           <div className="rating-input">
             <span className="label">Rating:</span>

@@ -65,6 +65,15 @@ export const likeProductCommentApi = async (productId: string, commentId: string
   );
 }
 
+export const replyToCommentApi = async (productId: string, commentId: string, text: string) => {
+  const token = getToken() || '';
+  return axios.patch(
+    `${PRODUCTS_API}/${productId}/comments/${commentId}/reply`,
+    { text },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+}
+
 export const deleteProductApi = async (id: string) => {
   const token = getToken() || '';
   return axios.delete(

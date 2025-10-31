@@ -119,7 +119,9 @@ export const createProduct = async (req, res) => {
 
   try {
     await newProduct.save();
-    res.status(201).json(newProduct);
+    // Populate userID before returning
+    const populatedProduct = await Product.findById(newProduct._id).populate('userID', 'fullName email profilePhoto');
+    res.status(201).json(populatedProduct);
   } catch (error) {
     res.status(409).json({ message: error.message || error });
   }
@@ -204,7 +206,7 @@ export const updateProduct = async (req, res) => {
     _id,
     updateData,
     { new: true }
-  );
+  ).populate('userID', 'fullName email profilePhoto');
   res.json(updatedProduct);
 };
 
