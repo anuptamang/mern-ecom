@@ -447,6 +447,7 @@ const ProductsDashboardPage = (props: Props) => {
                 <Empty description="No one has added your products to their wishlist yet" />
               ) : (
                 <List
+                  grid={{ gutter: 16, xs: 1, sm: 2, md: 4, lg: 4, xl: 4, xxl: 4 }}
                   dataSource={wishlistItems}
                   renderItem={(item: any) => {
                     const product = item.productId;
@@ -462,7 +463,7 @@ const ProductsDashboardPage = (props: Props) => {
                     return (
                       <List.Item>
                         <Card
-                          style={{ width: '100%' }}
+                          className="wishlist-product-card"
                           cover={
                             productThumbnail ? (
                               <Image
