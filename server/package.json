@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "start": "nodemon index.js",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "reset": "node scripts/reset-and-seed.js",
+    "reset-and-seed": "node scripts/seed.js --reset"
   },
   "keywords": [],
   "author": "",

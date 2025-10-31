@@ -15,7 +15,7 @@ async function connect() {
 
 async function seedUser() {
   // Create buyer user
-  const buyerEmail = "test@example.com";
+  const buyerEmail = "buyer@example.com";
   let buyer = await User.findOne({ email: buyerEmail });
   if (!buyer) {
     const password = await bcrypt.hash("password123", 12);
@@ -24,10 +24,49 @@ async function seedUser() {
       role: "user",
       password,
       fullName: "Test User",
+      phone: "+1-555-0101",
+      secondaryPhone: "+1-555-0102",
+      secondaryEmail: "test.secondary@example.com",
+      primaryAddress: {
+        street: "123 Main Street",
+        city: "New York",
+        state: "NY",
+        zipCode: "10001",
+        country: "USA",
+      },
+      secondaryAddress: {
+        street: "456 Oak Avenue",
+        city: "Los Angeles",
+        state: "CA",
+        zipCode: "90001",
+        country: "USA",
+      },
     });
     console.log(`Created buyer: ${buyerEmail} / password123`);
   } else {
     console.log(`Buyer already exists: ${buyerEmail}`);
+    // Update existing buyer with new fields if not set
+    if (!buyer.phone) {
+      buyer.phone = "+1-555-0101";
+      buyer.secondaryPhone = "+1-555-0102";
+      buyer.secondaryEmail = "test.secondary@example.com";
+      buyer.primaryAddress = {
+        street: "123 Main Street",
+        city: "New York",
+        state: "NY",
+        zipCode: "10001",
+        country: "USA",
+      };
+      buyer.secondaryAddress = {
+        street: "456 Oak Avenue",
+        city: "Los Angeles",
+        state: "CA",
+        zipCode: "90001",
+        country: "USA",
+      };
+      await buyer.save();
+      console.log(`Updated buyer with address and contact info`);
+    }
   }
 
   // Create seller user
@@ -40,10 +79,49 @@ async function seedUser() {
       role: "seller",
       password,
       fullName: "Test Seller",
+      phone: "+1-555-0201",
+      secondaryPhone: "+1-555-0202",
+      secondaryEmail: "seller.secondary@example.com",
+      primaryAddress: {
+        street: "789 Business Blvd",
+        city: "San Francisco",
+        state: "CA",
+        zipCode: "94102",
+        country: "USA",
+      },
+      secondaryAddress: {
+        street: "321 Commerce St",
+        city: "Seattle",
+        state: "WA",
+        zipCode: "98101",
+        country: "USA",
+      },
     });
     console.log(`Created seller: ${sellerEmail} / password123`);
   } else {
     console.log(`Seller already exists: ${sellerEmail}`);
+    // Update existing seller with new fields if not set
+    if (!seller.phone) {
+      seller.phone = "+1-555-0201";
+      seller.secondaryPhone = "+1-555-0202";
+      seller.secondaryEmail = "seller.secondary@example.com";
+      seller.primaryAddress = {
+        street: "789 Business Blvd",
+        city: "San Francisco",
+        state: "CA",
+        zipCode: "94102",
+        country: "USA",
+      };
+      seller.secondaryAddress = {
+        street: "321 Commerce St",
+        city: "Seattle",
+        state: "WA",
+        zipCode: "98101",
+        country: "USA",
+      };
+      await seller.save();
+      console.log(`Updated seller with address and contact info`);
+    }
   }
 
   return { buyer, seller };
@@ -300,22 +378,57 @@ async function seedProducts(sellerId) {
     console.log(`Products already present: ${count}`);
     return;
   }
-  const now = new Date().toISOString();
+  const now = new Date();
   const data = sampleProducts().map((p) => ({
     ...p,
     userID: sellerId,
+    estimatedDeliveryDays: 7, // Default delivery time
     createdAt: now,
+    views: 0,
+    likes: 0,
+    rating: 0,
+    ratings: [],
+    comments: [],
+    images: [], // Gallery images array
   }));
   await Product.insertMany(data);
   console.log(`Inserted ${data.length} products.`);
 }
 
+async function resetDatabase() {
+  console.log("Resetting database...");
+  try {
+    // Drop all collections
+    const collections = await mongoose.connection.db
+      .listCollections()
+      .toArray();
+    for (const collection of collections) {
+      await mongoose.connection.db.dropCollection(collection.name);
+      console.log(`Dropped collection: ${collection.name}`);
+    }
+    console.log("Database reset completed.");
+  } catch (error) {
+    console.error("Error resetting database:", error);
+    throw error;
+  }
+}
+
 async function main() {
+  const reset = process.argv.includes("--reset");
+
   try {
     await connect();
+
+    if (reset) {
+      await resetDatabase();
+    }
+
     const { buyer, seller } = await seedUser();
     await seedProducts(seller._id);
     console.log("Seeding completed successfully!");
+    console.log("\n=== Test Credentials ===");
+    console.log("Buyer: test@example.com / password123");
+    console.log("Seller: seller@example.com / password123");
   } catch (e) {
     console.error(e);
     process.exitCode = 1;
