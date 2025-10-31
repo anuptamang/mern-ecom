@@ -21,7 +21,9 @@ export const createOrGetChat = async (req, res) => {
       if (!product.userID) {
         return res.status(404).json({ message: "Product seller not found" });
       }
-      recipientId = product.userID._id ? String(product.userID._id) : String(product.userID);
+      // product.userID is either ObjectId (not populated) or populated User object
+      const sellerId = product.userID._id || product.userID;
+      recipientId = String(sellerId);
     }
 
     if (!recipientId) {
@@ -45,7 +47,7 @@ export const createOrGetChat = async (req, res) => {
       const product = await Product.findById(productId);
       if (product) {
         productInfo = {
-          productId: String(product._id),
+          productId: product._id, // Keep as ObjectId for schema
           productTitle: product.title || "",
           productThumbnail: product.thumbnail || "",
           productPrice: product.price || 0,
@@ -309,4 +311,3 @@ export const getUnreadCount = async (req, res) => {
     return res.status(500).json({ message: "Failed to fetch unread count" });
   }
 };
-
