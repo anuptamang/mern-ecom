@@ -1,2 +1,3 @@
-export { default } from './DeliveryPersonDashboard';
+import DeliveryPersonDashboard from './DeliveryPersonDashboard';
+export default DeliveryPersonDashboard;
 

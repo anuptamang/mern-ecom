@@ -1,2 +1,2 @@
-export { default as DeliveryAgencyDashboard } from './DeliveryAgencyDashboard';
-
+import DeliveryAgencyDashboard from './DeliveryAgencyDashboard';
+export default DeliveryAgencyDashboard;

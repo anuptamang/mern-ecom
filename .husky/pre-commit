@@ -14,3 +14,11 @@ if ! npm run lint; then
 fi
 
 echo "✨ Client linting passed!"
+
+echo "🏗️  Building client application..."
+if ! npm run build; then
+  echo "❌ Build failed. Please fix build errors before committing."
+  exit 1
+fi
+
+echo "✨ Client build passed!"
