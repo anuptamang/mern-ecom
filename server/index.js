@@ -9,6 +9,9 @@ dotenv.config();
 
 import productRoutes from "./routes/products.js";
 import userRoutes from "./routes/users.js";
+import cartRoutes from "./routes/carts.js";
+import checkoutRoutes from "./routes/checkout.js";
+import orderRoutes from "./routes/orders.js";
 
 const app = express();
 
@@ -21,6 +24,9 @@ app.use(express.static("public"));
 
 app.use("/products", productRoutes);
 app.use("/user", userRoutes);
+app.use("/carts", cartRoutes);
+app.use("/checkout", checkoutRoutes);
+app.use("/orders", orderRoutes);
 
 const PORT = process.env.PORT || 3010;
 
