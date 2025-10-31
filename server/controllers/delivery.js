@@ -83,6 +83,33 @@ export const updateDeliveryStatus = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
+    // Verify user is seller of products in the order OR is an admin
+    // Buyers cannot update delivery status, only sellers can
+    if (String(order.userId._id) === String(userId)) {
+      // Buyer is trying to update - they can only cancel, not update delivery status
+      return res.status(403).json({ 
+        message: "Buyers cannot update delivery status. Only sellers can update delivery status." 
+      });
+    }
+
+    // Check if user is seller of any product in the order
+    const Product = (await import("../models/product.js")).default;
+    const mongoose = (await import("mongoose")).default;
+    const productIds = order.items.map((item) => item.productId);
+    const products = await Product.find({ _id: { $in: productIds } });
+    const isSeller = products.some(
+      (p) => 
+        String(p.userID) === String(userId) || 
+        p.userID.toString() === userId.toString() ||
+        p.userID.equals(userId)
+    );
+
+    if (!isSeller && req.userRole !== "admin") {
+      return res.status(403).json({ 
+        message: "Unauthorized. Only sellers of products in this order can update delivery status." 
+      });
+    }
+
     const oldStatus = delivery.status;
     delivery.status = status;
 
