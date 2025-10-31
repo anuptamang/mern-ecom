@@ -1,7 +1,5 @@
 import { UserOutlined } from '@ant-design/icons';
 import { Avatar, Upload, UploadProps } from 'antd';
-import { LinkButton } from 'components/UI';
-import { useLocation } from 'react-router-dom';
 
 type TProfileHeader = {
   onProfilePhotoChange: (file: File) => void;
@@ -14,8 +12,6 @@ export const ProfileHeader = ({
   profilePhotoUrl,
   fullName,
 }: TProfileHeader) => {
-  const { hash } = useLocation();
-  const action = hash?.slice(1);
 
   const props: UploadProps = {
     name: 'thumbnail',
@@ -51,15 +47,16 @@ export const ProfileHeader = ({
               z-index: 100 !important;
             }
           `}</style>
-          <Upload
-            {...props}
-            className="avatar-holder"
-          >
-            <div 
+          <Upload {...props} className="avatar-holder">
+            <div
               className="group relative rounded-full overflow-hidden w-[180px] h-[180px] bg-blue-800 cursor-pointer"
               style={{ position: 'relative' }}
             >
-              <Avatar size={180} src={profilePhotoUrl} icon={<UserOutlined />} />
+              <Avatar
+                size={180}
+                src={profilePhotoUrl}
+                icon={<UserOutlined />}
+              />
               <div className="upload-label absolute bottom-0 left-0 right-0 px-2 pt-4 pb-7 bg-blue-600/50 text-white text-center group-hover:bg-blue-600 pointer-events-none z-20">
                 Update Photo
               </div>
@@ -70,23 +67,6 @@ export const ProfileHeader = ({
         <div className="description">
           <h2>{fullName}</h2>
         </div>
-      </div>
-
-      <div className="right md:max-w-[30%]">
-        <ul className="list-none flex items-center gap-3">
-          <li>
-            <LinkButton type="primary" to="#update">
-              Update
-            </LinkButton>
-          </li>
-          {action === 'update' && (
-            <li>
-              <LinkButton type="link" to="#view">
-                Cancel
-              </LinkButton>
-            </li>
-          )}
-        </ul>
       </div>
     </div>
   );
