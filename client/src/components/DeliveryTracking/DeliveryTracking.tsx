@@ -1,14 +1,19 @@
-import { Card, Steps, Tag, Timeline, Typography, Empty } from 'antd';
+import { useState } from 'react';
+import { Card, Steps, Tag, Timeline, Typography, Empty, Button, Modal, Select, Input, Space, message } from 'antd';
 import { 
   ShoppingOutlined, 
   CheckCircleOutlined, 
   CarOutlined,
   HomeOutlined,
   CloseCircleOutlined,
+  EditOutlined,
 } from '@ant-design/icons';
 import { IDeliveryTracking } from 'types/delivery/deliveryTypes';
+import { updateDeliveryStatusApi } from 'services/endPoints/delivery';
+import { getToken } from 'utils/localStorage';
 
 const { Text } = Typography;
+const { TextArea } = Input;
 
 interface DeliveryTrackingProps {
   delivery: IDeliveryTracking | null;
@@ -216,7 +221,7 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
             rows={3}
             placeholder="Add a note about this status update..."
             value={updateNote}
-            onChange={(e) => setUpdateNote(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setUpdateNote(e.target.value)}
           />
         </div>
       </Space>
@@ -224,4 +229,3 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
     </>
   );
 };
-
