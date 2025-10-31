@@ -11,6 +11,7 @@ import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, EyeOutli
 import { useNavigate } from 'react-router-dom';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { DeliveryTracking, RefundStatus } from 'components';
+import { pageRoutes } from 'data/static/pageRoutes';
 import './OrdersDashboard.scss';
 
 type TProps = {};
