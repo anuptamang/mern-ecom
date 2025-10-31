@@ -117,18 +117,8 @@ export const ProfileBody = ({
         <Form.Item
           name="email"
           label="E-mail"
-          rules={[
-            {
-              type: 'email',
-              message: 'The input is not valid E-mail!',
-            },
-            {
-              required: true,
-              message: 'Please input your E-mail!',
-            },
-          ]}
         >
-          <Input />
+          <Input disabled />
         </Form.Item>
         <Form.Item
           name="firstName"

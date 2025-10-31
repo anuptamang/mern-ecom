@@ -109,11 +109,17 @@ export const updateUserProfile = async (req, res) => {
     }
 
     // Remove _id from update data (immutable field)
-    const { _id: removedId, ...updateData } = profile;
+    const { _id: removedId, email: removedEmail, ...updateData } = profile;
+
+    // Email is used as username/identifier and should not be changed
+    // Prevent email updates for security
+    if (profile.email) {
+      console.warn(`Attempt to update email for user ${_id} - email updates are not allowed`);
+    }
 
     // Validate required fields
-    if (!updateData.email && !updateData.fullName) {
-      return res.status(400).json({ message: "At least email or fullName must be provided" });
+    if (!updateData.fullName && Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: "At least fullName must be provided" });
     }
 
     const updatedProfile = await User.findByIdAndUpdate(

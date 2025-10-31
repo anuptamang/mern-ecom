@@ -32,10 +32,11 @@ export const UserProfileBody = () => {
     setUpdating(true);
     try {
       // Convert firstName and lastName to fullName
+      // Email is not editable as it's used as username/identifier
       const fullName = `${values.firstName} ${values.lastName}`.trim();
       const updateData = {
-        email: values.email,
         fullName,
+        // Explicitly exclude email from update data for security
       };
       await dispatch(updateUserProfileThunk({ id: result._id, data: updateData })).unwrap();
       // Refresh user profile to show updated data
