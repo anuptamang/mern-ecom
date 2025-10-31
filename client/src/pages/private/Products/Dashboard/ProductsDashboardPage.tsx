@@ -502,6 +502,129 @@ const ProductsDashboardPage = (props: Props) => {
               </div>
             </Card>
           </TabPane>
+
+          <TabPane tab="Returns" key="returns">
+            <List
+              loading={returnsLoading}
+              dataSource={returns}
+              renderItem={(returnRequest: any) => (
+                <List.Item>
+                  <Card className="w-full">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <div className="font-semibold">Return #{returnRequest._id.slice(-8)}</div>
+                        <div className="text-sm text-gray-500">
+                          Buyer: {returnRequest.userId?.fullName || 'Unknown'} ({returnRequest.userId?.email || 'N/A'})
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {dayjs(returnRequest.createdAt).format('MMM DD, YYYY HH:mm')}
+                        </div>
+                        {returnRequest.reason && (
+                          <div className="text-sm text-gray-600 mt-2">
+                            <strong>Reason:</strong> {returnRequest.reason}
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <div className="mb-2">
+                          <Tag color={
+                            returnRequest.returnStatus === 'pending' ? 'warning' :
+                            returnRequest.returnStatus === 'approved' ? 'processing' :
+                            returnRequest.returnStatus === 'refunded' || returnRequest.returnStatus === 'completed' ? 'success' :
+                            returnRequest.returnStatus === 'rejected' ? 'error' :
+                            'default'
+                          }>
+                            {returnRequest.returnStatus?.toUpperCase()}
+                          </Tag>
+                          {returnRequest.refundStatus && (
+                            <Tag 
+                              color={returnRequest.refundStatus === 'succeeded' ? 'success' : returnRequest.refundStatus === 'failed' ? 'error' : 'warning'} 
+                              style={{ marginLeft: 8 }}
+                            >
+                              Refund: {returnRequest.refundStatus.replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                            </Tag>
+                          )}
+                        </div>
+                        <div className="font-semibold text-lg mt-2">
+                          ${((returnRequest.returnAmount || 0) / 100).toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="border-t pt-4">
+                      <div className="font-semibold mb-2">Return Items:</div>
+                      {returnRequest.items?.map((item: any, idx: number) => (
+                        <div key={idx} className="flex items-center gap-4 mb-2 pb-2 border-b last:border-b-0">
+                          <div className="flex-1">
+                            <div className="font-medium">{item.title}</div>
+                            <div className="text-sm text-gray-500">
+                              Quantity: {item.quantity} × ${item.price} = ${(item.price * item.quantity).toFixed(2)}
+                            </div>
+                            {item.reason && (
+                              <div className="text-sm text-gray-500 mt-1">
+                                Reason: {item.reason}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="border-t pt-4 mt-4">
+                      <Space>
+                        {returnRequest.returnStatus === 'pending' && (
+                          <>
+                            <Button
+                              type="primary"
+                              onClick={() => handleApproveReturn(returnRequest._id)}
+                            >
+                              Approve Return
+                            </Button>
+                            <Button
+                              type="default"
+                              danger
+                              onClick={() => {
+                                setRejectingReturnId(returnRequest._id);
+                                setRejectModalVisible(true);
+                              }}
+                            >
+                              Reject Return
+                            </Button>
+                          </>
+                        )}
+                        {(returnRequest.returnStatus === 'refunded' || returnRequest.refundStatus) && (
+                          <Button
+                            type="default"
+                            onClick={async () => {
+                              try {
+                                const { data } = await getDeliveryTrackingApi(returnRequest.orderId?._id || returnRequest.orderId);
+                                setDeliveryTracking(data.delivery);
+                                setSelectedOrder(returnRequest.orderId);
+                                setTrackingModalVisible(true);
+                              } catch (error: any) {
+                                message.error('Failed to load order details');
+                              }
+                            }}
+                          >
+                            View Refund Status
+                          </Button>
+                        )}
+                      </Space>
+                    </div>
+                    {returnRequest.rejectionReason && (
+                      <div className="border-t pt-4 mt-4 text-red-600">
+                        <strong>Rejection Reason:</strong> {returnRequest.rejectionReason}
+                      </div>
+                    )}
+                  </Card>
+                </List.Item>
+              )}
+            />
+            {returns.length === 0 && !returnsLoading && (
+              <div className="text-center py-8">
+                <p>No return requests yet. Return requests for your products will appear here.</p>
+              </div>
+            )}
+          </TabPane>
+
           <TabPane tab="Wishlist" key="wishlist">
             <Card>
               <h3 className="mb-4">Products Added to Wishlist</h3>
