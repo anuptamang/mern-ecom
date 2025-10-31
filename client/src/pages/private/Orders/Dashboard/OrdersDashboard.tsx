@@ -33,6 +33,9 @@ const OrdersDashboard = (props: TProps) => {
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState('');
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectModalVisible, setRejectModalVisible] = useState(false);
+  const [rejectingOrderId, setRejectingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isSeller) {
@@ -66,6 +69,51 @@ const OrdersDashboard = (props: TProps) => {
       setTrackingModalVisible(true);
     } catch (error: any) {
       message.error(error?.response?.data?.message || 'Failed to load delivery tracking');
+    }
+  };
+
+  const handleAcceptDelivery = async (orderId: string) => {
+    try {
+      await acceptDeliveryApi(orderId);
+      message.success('Delivery accepted successfully');
+      // Reload orders and tracking
+      const token = getToken();
+      if (token) {
+        const { data } = await listMyOrdersApi(token);
+        setOrders(data.orders || []);
+        if (selectedOrder && selectedOrder._id === orderId) {
+          const { data: trackingData } = await getDeliveryTrackingApi(orderId);
+          setDeliveryTracking(trackingData.delivery);
+        }
+      }
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || 'Failed to accept delivery');
+    }
+  };
+
+  const handleRejectDelivery = async () => {
+    if (!rejectingOrderId || !rejectReason.trim()) {
+      message.error('Please provide a reason for rejecting delivery');
+      return;
+    }
+    try {
+      await rejectDeliveryApi(rejectingOrderId, rejectReason);
+      message.success('Delivery rejected. The seller will be notified.');
+      setRejectModalVisible(false);
+      setRejectReason('');
+      setRejectingOrderId(null);
+      // Reload orders and tracking
+      const token = getToken();
+      if (token) {
+        const { data } = await listMyOrdersApi(token);
+        setOrders(data.orders || []);
+        if (selectedOrder && selectedOrder._id === rejectingOrderId) {
+          const { data: trackingData } = await getDeliveryTrackingApi(rejectingOrderId);
+          setDeliveryTracking(trackingData.delivery);
+        }
+      }
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || 'Failed to reject delivery');
     }
   };
 
@@ -247,12 +295,44 @@ const OrdersDashboard = (props: TProps) => {
                           {order.deliveryStatus === 'delivered' && 
                            order.status !== 'cancelled' && 
                            order.status !== 'refunded' && (
-                            <Button
-                              type="default"
-                              onClick={() => navigate(`/${pageRoutes.userReturns}?orderId=${order._id}`)}
-                            >
-                              Request Return/Refund
-                            </Button>
+                            <>
+                              {deliveryTracking?.buyerAcceptance === 'pending' && (
+                                <>
+                                  <Button
+                                    type="primary"
+                                    icon={<CheckOutlined />}
+                                    onClick={() => handleAcceptDelivery(order._id)}
+                                  >
+                                    Accept Delivery
+                                  </Button>
+                                  <Button
+                                    type="default"
+                                    danger
+                                    icon={<CloseOutlined />}
+                                    onClick={() => {
+                                      setRejectingOrderId(order._id);
+                                      setRejectModalVisible(true);
+                                    }}
+                                  >
+                                    Reject Delivery
+                                  </Button>
+                                </>
+                              )}
+                              {deliveryTracking?.buyerAcceptance === 'accepted' && (
+                                <Tag color="success">Delivery Accepted</Tag>
+                              )}
+                              {deliveryTracking?.buyerAcceptance === 'rejected' && (
+                                <Tag color="error">Delivery Rejected</Tag>
+                              )}
+                              {deliveryTracking?.buyerAcceptance !== 'pending' && (
+                                <Button
+                                  type="default"
+                                  onClick={() => navigate(`/${pageRoutes.userReturns}?orderId=${order._id}`)}
+                                >
+                                  Request Return/Refund
+                                </Button>
+                              )}
+                            </>
                           )}
                         </Space>
                       </div>
@@ -376,6 +456,32 @@ const OrdersDashboard = (props: TProps) => {
             rows={4}
             style={{ marginTop: 16 }}
           />
+        </Modal>
+
+        {/* Reject Delivery Modal */}
+        <Modal
+          title="Reject Delivery"
+          open={rejectModalVisible}
+          onOk={handleRejectDelivery}
+          onCancel={() => {
+            setRejectModalVisible(false);
+            setRejectReason('');
+            setRejectingOrderId(null);
+          }}
+          okText="Reject"
+          okButtonProps={{ danger: true }}
+        >
+          <Space direction="vertical" style={{ width: '100%' }} size="large">
+            <div>
+              <Text strong>Please provide a reason for rejecting this delivery:</Text>
+            </div>
+            <Input.TextArea
+              rows={4}
+              placeholder="Enter reason for rejection..."
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+            />
+          </Space>
         </Modal>
       </Container>
     </>
