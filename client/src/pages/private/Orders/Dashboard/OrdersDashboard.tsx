@@ -9,7 +9,7 @@ import { getToken } from 'utils/localStorage';
 import { useAppSelector, useAppDispatch } from 'redux/store';
 import { authSelector } from 'redux/slice';
 import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, EyeOutlined, StopOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { DeliveryTracking, RefundStatus } from 'components';
 import { pageRoutes } from 'data/static/pageRoutes';
@@ -22,6 +22,7 @@ type TProps = {};
 const OrdersDashboard = (props: TProps) => {
   const title = usePageTitle();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
   const { result } = useAppSelector(authSelector);
   const isSeller = result?.role === 'seller';
@@ -53,6 +54,34 @@ const OrdersDashboard = (props: TProps) => {
       try {
         const { data } = await listMyOrdersApi(token);
         setOrders(data.orders || []);
+        
+        // Check URL params for notification navigation
+        const orderId = searchParams.get('orderId');
+        const orderItemId = searchParams.get('orderItemId');
+        const productId = searchParams.get('productId');
+        
+        if (orderId && data.orders) {
+          const order = data.orders.find((o: any) => String(o._id) === orderId);
+          if (order) {
+            setSelectedOrder(order);
+            // Load tracking for specific item
+            try {
+              const { data: trackingData } = await getDeliveryTrackingApi(orderId);
+              const itemDelivery = trackingData.deliveries?.find(
+                (d: any) => (orderItemId && String(d.orderItemId) === orderItemId) ||
+                           (productId && String(d.productId) === productId) ||
+                           (!orderItemId && !productId && trackingData.deliveries?.[0])
+              ) || trackingData.delivery;
+              if (itemDelivery) {
+                setDeliveryTracking(itemDelivery);
+                setDeliveries([itemDelivery]);
+                setTrackingModalVisible(true);
+              }
+            } catch (error) {
+              console.error('Failed to load tracking from URL params:', error);
+            }
+          }
+        }
       } catch (e: any) {
         message.error(e?.response?.data?.message || 'Failed to load orders');
       } finally {
@@ -60,7 +89,7 @@ const OrdersDashboard = (props: TProps) => {
       }
     };
     load();
-  }, [isSeller]);
+  }, [isSeller, searchParams]);
 
 
   const handleAcceptDelivery = async (orderId: string, orderItemId?: string, productId?: string) => {

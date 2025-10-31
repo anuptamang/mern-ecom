@@ -11,7 +11,7 @@ import { getUserStatsApi } from 'services/endPoints/user/userEndpoints';
 import { getSellerWishlistApi } from 'services/endPoints/wishlist';
 import { ProductForm } from 'components';
 import { getToken } from 'utils/localStorage';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { usePageTitle } from 'hooks/usePageTitle';
 import { Container } from 'components/UI';
 import dayjs from 'dayjs';
@@ -24,6 +24,7 @@ type Props = {};
 const ProductsDashboardPage = (props: Props) => {
   const title = usePageTitle();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [cartItems, setCartItems] = useState<any[]>([]);
@@ -63,6 +64,49 @@ const ProductsDashboardPage = (props: Props) => {
       loadReturns();
     }
   }, [activeTab]);
+
+  // Handle URL params for notification navigation to orders tab
+  useEffect(() => {
+    const orderId = searchParams.get('orderId');
+    const orderItemId = searchParams.get('orderItemId');
+    const productId = searchParams.get('productId');
+    
+    if (orderId) {
+      setActiveTab('orders');
+      // After orders load, open tracking modal for specific item
+      const handleOpenTracking = async () => {
+        if (orders.length > 0) {
+          const order = orders.find((o: any) => String(o._id) === orderId);
+          if (order) {
+            try {
+              const { data } = await getDeliveryTrackingApi(orderId);
+              const itemDelivery = data.deliveries?.find(
+                (d: any) => (orderItemId && String(d.orderItemId) === orderItemId) ||
+                           (productId && String(d.productId) === productId)
+              ) || data.deliveries?.[0] || data.delivery;
+              if (itemDelivery) {
+                setDeliveryTracking(itemDelivery);
+                setDeliveries([itemDelivery]);
+                setSelectedOrder(order);
+                setTrackingModalVisible(true);
+              }
+            } catch (error) {
+              console.error('Failed to load tracking from URL params:', error);
+            }
+          }
+        }
+      };
+      // Wait for orders to load
+      if (orders.length === 0) {
+        loadOrders().then(() => {
+          setTimeout(handleOpenTracking, 500);
+        });
+      } else {
+        handleOpenTracking();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, orders]);
 
   const loadProducts = async () => {
     const token = getToken();

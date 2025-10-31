@@ -222,34 +222,163 @@ export const updateDeliveryStatus = async (req, res) => {
       await Order.findByIdAndUpdate(orderId, { deliveryStatus: status });
     }
 
-    // Notify delivery agency when seller marks item as ready_to_ship
-    if (status === "ready_to_ship" && delivery.assignedDeliveryAgency) {
-      try {
-        const { createNotification } = await import("./notifications.js");
-        const Product = (await import("../models/product.js")).default;
-        const product = await Product.findById(delivery.productId).populate("userID", "fullName");
-        
-        await createNotification({
-          userId: delivery.assignedDeliveryAgency,
-          type: "order",
-          title: "Item Ready to Ship",
-          message: `Item "${product?.title || "Product"}" from order #${orderId.toString().slice(-8)} is ready to ship. Please assign a delivery person.`,
-          relatedEntity: {
-            entityType: "order",
-            entityId: orderId,
-          },
-          actionUrl: `/user/delivery-agency`,
-          metadata: {
-            orderId: orderId.toString(),
-            deliveryId: delivery._id.toString(),
-            productId: delivery.productId.toString(),
-            productTitle: product?.title || "Product",
-          },
-        });
-      } catch (notifError) {
-        console.error("Error creating ready_to_ship notification:", notifError);
-        // Don't fail the request if notification creation fails
+    // Notify relevant parties about status update
+    try {
+      const { createNotification } = await import("./notifications.js");
+      const Product = (await import("../models/product.js")).default;
+      const product = await Product.findById(delivery.productId).populate("userID", "fullName");
+      const order = await Order.findById(orderId).populate("userId", "fullName email");
+      
+      const orderItemIdStr = (orderItemId || delivery.orderItemId)?.toString() || '';
+      const productIdStr = (productId || delivery.productId)?.toString() || '';
+      const statusLabel = status.split('_').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+      
+      // Build action URL with item context
+      const actionUrlBase = `/user/orders?orderId=${orderId}&orderItemId=${orderItemIdStr}&productId=${productIdStr}`;
+
+      // Notify seller (product owner) about status updates
+      if (product?.userID && userRole !== "seller") {
+        // Don't notify seller if they're the one updating
+        try {
+          await createNotification({
+            userId: product.userID._id || product.userID,
+            type: "order",
+            title: `Delivery Status Updated: ${statusLabel}`,
+            message: `Delivery status for "${product.title}" from order #${orderId.toString().slice(-8)} has been updated to ${statusLabel}.`,
+            relatedEntity: {
+              entityType: "order",
+              entityId: orderId,
+            },
+            actionUrl: `/user/products?orderId=${orderId}&orderItemId=${orderItemIdStr}&productId=${productIdStr}`,
+            metadata: {
+              orderId: orderId.toString(),
+              deliveryId: delivery._id.toString(),
+              productId: productIdStr,
+              orderItemId: orderItemIdStr,
+              productTitle: product.title,
+              status: status,
+              updatedBy: userId.toString(),
+              updatedByRole: userRole,
+            },
+          });
+        } catch (notifError) {
+          console.error("Error creating seller notification:", notifError);
+        }
       }
+
+      // Notify delivery agency about status updates (except if they're the ones updating)
+      if (delivery.assignedDeliveryAgency && userRole !== "delivery_agency" && userRole !== "admin") {
+        try {
+          await createNotification({
+            userId: delivery.assignedDeliveryAgency,
+            type: "order",
+            title: `Delivery Status Updated: ${statusLabel}`,
+            message: `Delivery status for order #${orderId.toString().slice(-8)} item "${product?.title || "Product"}" has been updated to ${statusLabel}.`,
+            relatedEntity: {
+              entityType: "order",
+              entityId: orderId,
+            },
+            actionUrl: `/user/delivery-agency?orderId=${orderId}&orderItemId=${orderItemIdStr}&productId=${productIdStr}`,
+            metadata: {
+              orderId: orderId.toString(),
+              deliveryId: delivery._id.toString(),
+              productId: productIdStr,
+              orderItemId: orderItemIdStr,
+              productTitle: product?.title || "Product",
+              status: status,
+              updatedBy: userId.toString(),
+              updatedByRole: userRole,
+            },
+          });
+        } catch (notifError) {
+          console.error("Error creating delivery agency notification:", notifError);
+        }
+      }
+
+      // Notify deliverer about status updates (except if they're the ones updating)
+      if (delivery.assignedDeliveryPerson && userRole !== "delivery_person" && userRole !== "admin") {
+        try {
+          await createNotification({
+            userId: delivery.assignedDeliveryPerson,
+            type: "order",
+            title: `Delivery Status Updated: ${statusLabel}`,
+            message: `Delivery status for order #${orderId.toString().slice(-8)} item "${product?.title || "Product"}" has been updated to ${statusLabel}.`,
+            relatedEntity: {
+              entityType: "order",
+              entityId: orderId,
+            },
+            actionUrl: `/user/delivery-person?orderId=${orderId}&orderItemId=${orderItemIdStr}&productId=${productIdStr}`,
+            metadata: {
+              orderId: orderId.toString(),
+              deliveryId: delivery._id.toString(),
+              productId: productIdStr,
+              orderItemId: orderItemIdStr,
+              productTitle: product?.title || "Product",
+              status: status,
+              updatedBy: userId.toString(),
+              updatedByRole: userRole,
+            },
+          });
+        } catch (notifError) {
+          console.error("Error creating deliverer notification:", notifError);
+        }
+      }
+
+      // Special notification for ready_to_ship to delivery agency
+      if (status === "ready_to_ship" && delivery.assignedDeliveryAgency) {
+        try {
+          await createNotification({
+            userId: delivery.assignedDeliveryAgency,
+            type: "order",
+            title: "Item Ready to Ship",
+            message: `Item "${product?.title || "Product"}" from order #${orderId.toString().slice(-8)} is ready to ship. Please assign a delivery person.`,
+            relatedEntity: {
+              entityType: "order",
+              entityId: orderId,
+            },
+            actionUrl: `/user/delivery-agency?orderId=${orderId}&orderItemId=${orderItemIdStr}&productId=${productIdStr}`,
+            metadata: {
+              orderId: orderId.toString(),
+              deliveryId: delivery._id.toString(),
+              productId: productIdStr,
+              orderItemId: orderItemIdStr,
+              productTitle: product?.title || "Product",
+            },
+          });
+        } catch (notifError) {
+          console.error("Error creating ready_to_ship notification:", notifError);
+        }
+      }
+
+      // Notify buyer about significant status updates
+      if (order?.userId && (status === "out_for_delivery" || status === "delivered")) {
+        try {
+          await createNotification({
+            userId: order.userId._id || order.userId,
+            type: "order",
+            title: `Delivery Update: ${statusLabel}`,
+            message: `Your order #${orderId.toString().slice(-8)} item "${product?.title || "Product"}" is now ${statusLabel.toLowerCase()}.`,
+            relatedEntity: {
+              entityType: "order",
+              entityId: orderId,
+            },
+            actionUrl: `/user/orders?orderId=${orderId}&orderItemId=${orderItemIdStr}&productId=${productIdStr}`,
+            metadata: {
+              orderId: orderId.toString(),
+              deliveryId: delivery._id.toString(),
+              productId: productIdStr,
+              orderItemId: orderItemIdStr,
+              productTitle: product?.title || "Product",
+              status: status,
+            },
+          });
+        } catch (notifError) {
+          console.error("Error creating buyer notification:", notifError);
+        }
+      }
+    } catch (notifError) {
+      console.error("Error creating status update notifications:", notifError);
+      // Don't fail the request if notification creation fails
     }
 
     return res.json({ message: "Delivery status updated", delivery });

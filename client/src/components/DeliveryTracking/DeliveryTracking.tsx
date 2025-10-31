@@ -11,6 +11,8 @@ import {
 import { IDeliveryTracking } from 'types/delivery/deliveryTypes';
 import { updateDeliveryStatusApi } from 'services/endPoints/delivery';
 import { getToken } from 'utils/localStorage';
+import { useAppSelector } from 'redux/store';
+import { authSelector } from 'redux/slice';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -25,6 +27,8 @@ interface DeliveryTrackingProps {
 }
 
 export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUpdate, orderItemId, productId }: DeliveryTrackingProps) => {
+  const { result: user } = useAppSelector(authSelector);
+  const userRole = user?.role;
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [updateNote, setUpdateNote] = useState<string>('');
@@ -66,15 +70,31 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
     return 'wait';
   };
 
-  const validStatuses = [
-    { value: 'packing', label: 'Packing' },
-    { value: 'ready_to_ship', label: 'Ready to Ship' },
-    { value: 'picked_up', label: 'Picked Up' },
-    { value: 'in_facility', label: 'In Delivery Facility' },
-    { value: 'in_transit', label: 'In Transit' },
-    { value: 'out_for_delivery', label: 'Out for Delivery' },
-    { value: 'delivered', label: 'Delivered' },
-  ];
+  // Determine allowed statuses based on role
+  const getAllowedStatuses = () => {
+    if (userRole === 'seller') {
+      // Sellers can only update to ready_to_ship
+      return [
+        { value: 'packing', label: 'Packing' },
+        { value: 'ready_to_ship', label: 'Ready to Ship' },
+      ];
+    } else if (userRole === 'delivery_person') {
+      // Delivery persons can update from picked_up onwards
+      return [
+        { value: 'picked_up', label: 'Picked Up' },
+        { value: 'in_facility', label: 'In Delivery Facility' },
+        { value: 'in_transit', label: 'In Transit' },
+        { value: 'out_for_delivery', label: 'Out for Delivery' },
+        { value: 'delivered', label: 'Delivered' },
+      ];
+    }
+    return []; // Delivery agencies cannot update
+  };
+
+  const validStatuses = getAllowedStatuses();
+  const canUpdate = (userRole === 'seller' || userRole === 'delivery_person') && 
+                    currentStatus !== 'delivered' && 
+                    currentStatus !== 'cancelled';
 
   const handleUpdateStatus = async () => {
     if (!selectedStatus || !order?._id) return;
@@ -109,7 +129,7 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
       <Card 
         title="Delivery Tracking"
         className="delivery-tracking"
-        extra={isSeller && currentStatus !== 'delivered' && currentStatus !== 'cancelled' ? (
+        extra={canUpdate ? (
           <Button
             type="primary"
             icon={<EditOutlined />}

@@ -9,6 +9,7 @@ import {
   UserAddOutlined,
 } from '@ant-design/icons';
 import { useAuth } from 'hooks';
+import { useSearchParams } from 'react-router-dom';
 import { 
   getAgencyDeliveriesApi, 
   getAgencyPersonsApi, 
@@ -44,6 +45,7 @@ interface IDelivery {
 
 const DeliveryAgencyDashboard = () => {
   const auth = useAuth();
+  const [searchParams] = useSearchParams();
   const [deliveries, setDeliveries] = useState<IDelivery[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDelivery, setSelectedDelivery] = useState<IDelivery | null>(null);
@@ -63,6 +65,25 @@ const DeliveryAgencyDashboard = () => {
     loadDeliveries();
     loadDeliveryPersons();
   }, []);
+
+  // Handle URL params for notification navigation
+  useEffect(() => {
+    const orderId = searchParams.get('orderId');
+    const orderItemId = searchParams.get('orderItemId');
+    const productId = searchParams.get('productId');
+    
+    if (orderId && deliveries.length > 0) {
+      const delivery = deliveries.find(
+        (d) => String(d.orderId._id) === orderId &&
+               (!orderItemId || String(d.orderItemId) === orderItemId) &&
+               (!productId || String(d.productId) === productId)
+      );
+      if (delivery) {
+        handleViewTracking(delivery);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, deliveries]);
 
   const loadDeliveries = async () => {
     try {

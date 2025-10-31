@@ -143,7 +143,10 @@ export const assignToDeliveryPerson = async (req, res) => {
       }
     }
 
-    // Assign all deliveries
+    // Assign all deliveries and send notifications
+    const { createNotification } = await import("./notifications.js");
+    const Product = (await import("../models/product.js")).default;
+    
     for (const delivery of deliveries) {
       delivery.assignedDeliveryPerson = deliveryPersonId;
       if (!delivery.assignedAt) {
@@ -157,6 +160,60 @@ export const assignToDeliveryPerson = async (req, res) => {
         updatedByRole: userRole,
       });
       await delivery.save();
+
+      // Notify deliverer and seller about assignment
+      try {
+        const product = await Product.findById(delivery.productId).populate("userID", "fullName");
+        const order = await Order.findById(delivery.orderId);
+        
+        // Notify deliverer that they've been assigned
+        await createNotification({
+          userId: deliveryPersonId,
+          type: "order",
+          title: "New Delivery Assignment",
+          message: `You have been assigned to deliver "${product?.title || "Product"}" from order #${delivery.orderId.toString().slice(-8)}.`,
+          relatedEntity: {
+            entityType: "order",
+            entityId: delivery.orderId,
+          },
+          actionUrl: `/user/delivery-person?orderId=${delivery.orderId}&orderItemId=${delivery.orderItemId || ''}&productId=${delivery.productId}`,
+          metadata: {
+            orderId: delivery.orderId.toString(),
+            deliveryId: delivery._id.toString(),
+            productId: delivery.productId.toString(),
+            orderItemId: delivery.orderItemId?.toString(),
+            productTitle: product?.title || "Product",
+          },
+        });
+
+        // Notify seller about assignment
+        if (product?.userID) {
+          try {
+            await createNotification({
+              userId: product.userID._id || product.userID,
+              type: "order",
+              title: "Delivery Person Assigned",
+              message: `Delivery person "${deliveryPerson.fullName || deliveryPerson.email}" has been assigned to deliver your product "${product.title}" from order #${delivery.orderId.toString().slice(-8)}.`,
+              relatedEntity: {
+                entityType: "order",
+                entityId: delivery.orderId,
+              },
+              actionUrl: `/user/products?orderId=${delivery.orderId}&orderItemId=${delivery.orderItemId || ''}&productId=${delivery.productId}`,
+              metadata: {
+                orderId: delivery.orderId.toString(),
+                deliveryId: delivery._id.toString(),
+                productId: delivery.productId.toString(),
+                orderItemId: delivery.orderItemId?.toString(),
+                productTitle: product.title,
+              },
+            });
+          } catch (notifError) {
+            console.error("Error creating seller notification:", notifError);
+          }
+        }
+      } catch (notifError) {
+        console.error("Error creating deliverer assignment notification:", notifError);
+      }
     }
 
     return res.json({ 
