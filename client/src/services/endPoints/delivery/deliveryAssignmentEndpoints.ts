@@ -46,22 +46,22 @@ export const markAsDeliveredApi = async (orderId: string, note?: string, deliver
   );
 };
 
-export const acceptDeliveryApi = async (orderId: string) => {
+export const acceptDeliveryApi = async (orderId: string, reason?: string, orderItemId?: string, productId?: string) => {
   const token = getToken() || "";
   return axios.post(
     `${DELIVERY_API}/${orderId}/accept`,
-    {},
+    { reason, orderItemId, productId },
     {
       headers: { Authorization: `Bearer ${token}` },
     }
   );
 };
 
-export const rejectDeliveryApi = async (orderId: string, reason: string) => {
+export const rejectDeliveryApi = async (orderId: string, reason: string, orderItemId?: string, productId?: string) => {
   const token = getToken() || "";
   return axios.post(
     `${DELIVERY_API}/${orderId}/reject`,
-    { reason },
+    { reason, orderItemId, productId },
     {
       headers: { Authorization: `Bearer ${token}` },
     }

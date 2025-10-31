@@ -9,7 +9,7 @@ import User from "../models/user.js";
 export const assignToDeliveryAgency = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { deliveryAgencyId } = req.body;
+    const { deliveryAgencyId, orderItemId, productId } = req.body; // Support per-item assignment
     const userId = req.userId;
     const userRole = req.userRole;
 
@@ -26,31 +26,54 @@ export const assignToDeliveryAgency = async (req, res) => {
       return res.status(404).json({ message: "Delivery agency not found" });
     }
 
-    const delivery = await Delivery.findOne({ orderId });
-    if (!delivery) {
-      return res.status(404).json({ message: "Delivery tracking not found" });
+    // Find delivery tracking for specific item or all items (if per-item not specified)
+    let deliveries;
+    if (orderItemId || productId) {
+      const query = { orderId };
+      if (orderItemId) query.orderItemId = orderItemId;
+      if (productId) query.productId = productId;
+      deliveries = [await Delivery.findOne(query)];
+      if (!deliveries[0]) {
+        return res.status(404).json({ message: "Delivery tracking for this item not found" });
+      }
+    } else {
+      // Assign all items in the order (backward compatibility)
+      deliveries = await Delivery.find({ orderId });
+      if (!deliveries || deliveries.length === 0) {
+        return res.status(404).json({ message: "Delivery tracking not found for this order" });
+      }
     }
 
     // Only assign if status is ready_to_ship or picked_up
-    if (delivery.status !== "ready_to_ship" && delivery.status !== "picked_up") {
-      return res.status(400).json({ 
-        message: "Can only assign to delivery agency when status is 'ready_to_ship' or 'picked_up'" 
-      });
+    for (const delivery of deliveries) {
+      if (delivery.status !== "ready_to_ship" && delivery.status !== "picked_up") {
+        return res.status(400).json({ 
+          message: `Can only assign to delivery agency when status is 'ready_to_ship' or 'picked_up'. Item ${delivery.orderItemId || delivery.productId} is currently ${delivery.status}` 
+        });
+      }
     }
 
-    delivery.assignedDeliveryAgency = deliveryAgencyId;
-    delivery.assignedAt = new Date();
-    delivery.statusHistory.push({
-      status: delivery.status,
-      timestamp: new Date(),
-      note: `Assigned to delivery agency: ${deliveryAgency.fullName || deliveryAgency.email}`,
-      updatedBy: userId,
-      updatedByRole: userRole,
+    // Assign all deliveries
+    for (const delivery of deliveries) {
+      delivery.assignedDeliveryAgency = deliveryAgencyId;
+      if (!delivery.assignedAt) {
+        delivery.assignedAt = new Date();
+      }
+      delivery.statusHistory.push({
+        status: delivery.status,
+        timestamp: new Date(),
+        note: `Assigned to delivery agency: ${deliveryAgency.fullName || deliveryAgency.email}`,
+        updatedBy: userId,
+        updatedByRole: userRole,
+      });
+      await delivery.save();
+    }
+
+    return res.json({ 
+      message: `Delivery${deliveries.length > 1 ? 's' : ''} assigned to agency successfully`, 
+      deliveries: deliveries.length === 1 ? deliveries[0] : deliveries,
+      count: deliveries.length,
     });
-
-    await delivery.save();
-
-    return res.json({ message: "Delivery assigned to agency successfully", delivery });
   } catch (error) {
     console.error("Error assigning to delivery agency:", error);
     return res.status(500).json({ message: "Failed to assign delivery to agency" });
@@ -75,16 +98,33 @@ export const assignToDeliveryPerson = async (req, res) => {
       });
     }
 
-    const delivery = await Delivery.findOne({ orderId });
-    if (!delivery) {
-      return res.status(404).json({ message: "Delivery tracking not found" });
+    // Find delivery tracking for specific item or all items
+    let deliveries;
+    if (orderItemId || productId) {
+      const query = { orderId };
+      if (orderItemId) query.orderItemId = orderItemId;
+      if (productId) query.productId = productId;
+      deliveries = [await Delivery.findOne(query)];
+      if (!deliveries[0]) {
+        return res.status(404).json({ message: "Delivery tracking for this item not found" });
+      }
+    } else {
+      // Assign all items in the order
+      deliveries = await Delivery.find({ orderId });
+      if (!deliveries || deliveries.length === 0) {
+        return res.status(404).json({ message: "Delivery tracking not found for this order" });
+      }
     }
 
-    // If delivery agency is assigning, verify they own this delivery
-    if (userRole === "delivery_agency" && String(delivery.assignedDeliveryAgency) !== String(userId)) {
-      return res.status(403).json({ 
-        message: "Unauthorized. You can only assign deliveries assigned to your agency." 
-      });
+    // If delivery agency is assigning, verify they own these deliveries
+    if (userRole === "delivery_agency") {
+      for (const delivery of deliveries) {
+        if (String(delivery.assignedDeliveryAgency) !== String(userId)) {
+          return res.status(403).json({ 
+            message: "Unauthorized. You can only assign deliveries assigned to your agency." 
+          });
+        }
+      }
     }
 
     // Verify delivery person exists and has correct role
@@ -100,21 +140,27 @@ export const assignToDeliveryPerson = async (req, res) => {
       });
     }
 
-    delivery.assignedDeliveryPerson = deliveryPersonId;
-    if (!delivery.assignedAt) {
-      delivery.assignedAt = new Date();
+    // Assign all deliveries
+    for (const delivery of deliveries) {
+      delivery.assignedDeliveryPerson = deliveryPersonId;
+      if (!delivery.assignedAt) {
+        delivery.assignedAt = new Date();
+      }
+      delivery.statusHistory.push({
+        status: delivery.status,
+        timestamp: new Date(),
+        note: `Assigned to delivery person: ${deliveryPerson.fullName || deliveryPerson.email}`,
+        updatedBy: userId,
+        updatedByRole: userRole,
+      });
+      await delivery.save();
     }
-    delivery.statusHistory.push({
-      status: delivery.status,
-      timestamp: new Date(),
-      note: `Assigned to delivery person: ${deliveryPerson.fullName || deliveryPerson.email}`,
-      updatedBy: userId,
-      updatedByRole: userRole,
+
+    return res.json({ 
+      message: `Delivery${deliveries.length > 1 ? 's' : ''} assigned to person successfully`, 
+      deliveries: deliveries.length === 1 ? deliveries[0] : deliveries,
+      count: deliveries.length,
     });
-
-    await delivery.save();
-
-    return res.json({ message: "Delivery assigned to person successfully", delivery });
   } catch (error) {
     console.error("Error assigning to delivery person:", error);
     return res.status(500).json({ message: "Failed to assign delivery to person" });
@@ -128,7 +174,7 @@ export const assignToDeliveryPerson = async (req, res) => {
 export const markAsDelivered = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { note } = req.body;
+    const { note, orderItemId, productId } = req.body; // Support per-item delivery
     const deliveryProof = req.file ? `/uploads/${req.file.filename}` : null;
     const userId = req.userId;
     const userRole = req.userRole;
@@ -139,9 +185,22 @@ export const markAsDelivered = async (req, res) => {
       });
     }
 
-    const delivery = await Delivery.findOne({ orderId });
-    if (!delivery) {
-      return res.status(404).json({ message: "Delivery tracking not found" });
+    // Find delivery tracking for specific item (per-item tracking requires itemId)
+    let delivery;
+    if (orderItemId || productId) {
+      const query = { orderId };
+      if (orderItemId) query.orderItemId = orderItemId;
+      if (productId) query.productId = productId;
+      delivery = await Delivery.findOne(query);
+      if (!delivery) {
+        return res.status(404).json({ message: "Delivery tracking for this item not found" });
+      }
+    } else {
+      // Backward compatibility: find first delivery for order
+      delivery = await Delivery.findOne({ orderId });
+      if (!delivery) {
+        return res.status(404).json({ message: "Delivery tracking not found" });
+      }
     }
 
     // Verify delivery is assigned to this person
@@ -175,8 +234,20 @@ export const markAsDelivered = async (req, res) => {
 
     await delivery.save();
 
-    // Update order delivery status
-    await Order.findByIdAndUpdate(orderId, { deliveryStatus: "delivered" });
+    // Update order item delivery status
+    const order = await Order.findById(orderId);
+    if (order) {
+      const itemIndex = order.items.findIndex(
+        (item) => 
+          (orderItemId && String(item._id) === String(orderItemId)) ||
+          (productId && String(item.productId) === String(productId))
+      );
+      if (itemIndex !== -1) {
+        order.items[itemIndex].deliveryStatus = "delivered";
+        order.items[itemIndex].actualDeliveryDate = new Date();
+        await order.save();
+      }
+    }
 
     return res.json({ 
       message: "Delivery marked as delivered successfully", 
@@ -195,6 +266,7 @@ export const markAsDelivered = async (req, res) => {
 export const acceptDelivery = async (req, res) => {
   try {
     const { orderId } = req.params;
+    const { orderItemId, productId } = req.body; // Support per-item acceptance
     const userId = req.userId;
 
     const order = await Order.findById(orderId);
@@ -207,13 +279,26 @@ export const acceptDelivery = async (req, res) => {
       return res.status(403).json({ message: "Unauthorized to accept this delivery" });
     }
 
-    const delivery = await Delivery.findOne({ orderId });
-    if (!delivery) {
-      return res.status(404).json({ message: "Delivery tracking not found" });
+    // Find delivery tracking for specific item
+    let delivery;
+    if (orderItemId || productId) {
+      const query = { orderId };
+      if (orderItemId) query.orderItemId = orderItemId;
+      if (productId) query.productId = productId;
+      delivery = await Delivery.findOne(query);
+      if (!delivery) {
+        return res.status(404).json({ message: "Delivery tracking for this item not found" });
+      }
+    } else {
+      // Backward compatibility: find first delivery for order
+      delivery = await Delivery.findOne({ orderId });
+      if (!delivery) {
+        return res.status(404).json({ message: "Delivery tracking not found" });
+      }
     }
 
     if (delivery.status !== "delivered") {
-      return res.status(400).json({ message: "Order is not in delivered status" });
+      return res.status(400).json({ message: "Order item is not in delivered status" });
     }
 
     if (delivery.buyerAcceptance !== "pending") {
@@ -248,7 +333,7 @@ export const acceptDelivery = async (req, res) => {
 export const rejectDelivery = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { reason } = req.body;
+    const { reason, orderItemId, productId } = req.body; // Support per-item rejection
     const userId = req.userId;
 
     const order = await Order.findById(orderId);
@@ -261,13 +346,26 @@ export const rejectDelivery = async (req, res) => {
       return res.status(403).json({ message: "Unauthorized to reject this delivery" });
     }
 
-    const delivery = await Delivery.findOne({ orderId });
-    if (!delivery) {
-      return res.status(404).json({ message: "Delivery tracking not found" });
+    // Find delivery tracking for specific item
+    let delivery;
+    if (orderItemId || productId) {
+      const query = { orderId };
+      if (orderItemId) query.orderItemId = orderItemId;
+      if (productId) query.productId = productId;
+      delivery = await Delivery.findOne(query);
+      if (!delivery) {
+        return res.status(404).json({ message: "Delivery tracking for this item not found" });
+      }
+    } else {
+      // Backward compatibility: find first delivery for order
+      delivery = await Delivery.findOne({ orderId });
+      if (!delivery) {
+        return res.status(404).json({ message: "Delivery tracking not found" });
+      }
     }
 
     if (delivery.status !== "delivered") {
-      return res.status(400).json({ message: "Order is not in delivered status" });
+      return res.status(400).json({ message: "Order item is not in delivered status" });
     }
 
     if (delivery.buyerAcceptance !== "pending") {

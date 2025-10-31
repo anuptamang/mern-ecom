@@ -168,8 +168,27 @@ export const updateDeliveryStatus = async (req, res) => {
 
     await delivery.save();
 
-    // Update order delivery status
-    await Order.findByIdAndUpdate(orderId, { deliveryStatus: status });
+    // Update order item delivery status if updating specific item
+    if (orderItemId || productId) {
+      const order = await Order.findById(orderId);
+      if (order) {
+        const itemIndex = order.items.findIndex(
+          (item) => 
+            (orderItemId && String(item._id) === String(orderItemId)) ||
+            (productId && String(item.productId) === String(productId))
+        );
+        if (itemIndex !== -1) {
+          order.items[itemIndex].deliveryStatus = status;
+          if (status === "delivered") {
+            order.items[itemIndex].actualDeliveryDate = new Date();
+          }
+          await order.save();
+        }
+      }
+    } else {
+      // Backward compatibility: update overall order delivery status
+      await Order.findByIdAndUpdate(orderId, { deliveryStatus: status });
+    }
 
     return res.json({ message: "Delivery status updated", delivery });
   } catch (error) {
@@ -206,12 +225,26 @@ export const getDeliveryTracking = async (req, res) => {
       }
     }
 
-    const delivery = await Delivery.findOne({ orderId });
-    if (!delivery) {
-      return res.status(404).json({ message: "Delivery tracking not found" });
+    // Get all delivery tracking records for this order (one per item)
+    const deliveries = await Delivery.find({ orderId }).populate("productId", "title thumbnail");
+    
+    if (!deliveries || deliveries.length === 0) {
+      return res.json({ deliveries: [], order });
     }
 
-    return res.json({ delivery });
+    // Map deliveries to include order item info
+    const deliveriesWithItems = deliveries.map(delivery => {
+      const orderItem = order.items.find(
+        item => String(item._id) === String(delivery.orderItemId) || 
+                String(item.productId) === String(delivery.productId)
+      );
+      return {
+        ...delivery.toObject(),
+        orderItem: orderItem || null,
+      };
+    });
+
+    return res.json({ deliveries: deliveriesWithItems, order });
   } catch (error) {
     console.error("Error fetching delivery tracking:", error);
     return res.status(500).json({ message: "Failed to fetch delivery tracking" });

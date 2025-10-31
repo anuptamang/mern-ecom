@@ -103,18 +103,33 @@ export const listMyOrders = async (req, res) => {
     const userId = req.userId;
     const orders = await Order.find({ userId }).sort({ createdAt: -1 });
     
-    // Include delivery tracking info (especially buyerAcceptance) for each order
+    // Include delivery tracking info (per-item) for each order
     const Delivery = (await import("../models/delivery.js")).default;
     const ordersWithDelivery = await Promise.all(
       orders.map(async (order) => {
-        const delivery = await Delivery.findOne({ orderId: order._id });
+        // Get all delivery tracking records for this order (one per item)
+        const deliveries = await Delivery.find({ orderId: order._id });
         const orderObj = order.toObject();
-        if (delivery) {
-          orderObj.deliveryTracking = {
-            buyerAcceptance: delivery.buyerAcceptance,
-            deliveryProof: delivery.deliveryProof,
-          };
-        }
+        
+        // Map each order item with its delivery tracking
+        orderObj.items = order.items.map((item) => {
+          const itemObj = item.toObject();
+          const itemDelivery = deliveries.find(
+            (d) => String(d.orderItemId) === String(item._id) || 
+                   String(d.productId) === String(item.productId)
+          );
+          if (itemDelivery) {
+            itemObj.deliveryTracking = {
+              buyerAcceptance: itemDelivery.buyerAcceptance,
+              deliveryProof: itemDelivery.deliveryProof,
+              status: itemDelivery.status,
+              trackingNumber: itemDelivery.trackingNumber,
+              actualDeliveryDate: itemDelivery.actualDeliveryDate,
+            };
+          }
+          return itemObj;
+        });
+        
         return orderObj;
       })
     );

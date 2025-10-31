@@ -31,8 +31,13 @@ async function main() {
   try {
     await connect();
     await resetDatabase();
-    console.log("You can now run the seed script:");
-    console.log("  npm run seed\n");
+    
+    // Import and run seed script
+    console.log("Running seed script...\n");
+    const seedModule = await import("./seed.js");
+    await seedModule.default();
+    
+    console.log("\n✓ Database reset and seeded successfully!");
   } catch (e) {
     console.error("Error:", e);
     process.exitCode = 1;

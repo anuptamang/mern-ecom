@@ -29,6 +29,7 @@ const OrdersDashboard = (props: TProps) => {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [deliveryTracking, setDeliveryTracking] = useState<any>(null);
+  const [deliveries, setDeliveries] = useState<any[]>([]);
   const [trackingModalVisible, setTrackingModalVisible] = useState(false);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
@@ -64,7 +65,10 @@ const OrdersDashboard = (props: TProps) => {
   const loadDeliveryTracking = async (orderId: string) => {
     try {
       const { data } = await getDeliveryTrackingApi(orderId);
-      setDeliveryTracking(data.delivery);
+      // API now returns deliveries array (per-item tracking)
+      setDeliveries(data.deliveries || []);
+      // For backward compatibility, also set delivery if single item
+      setDeliveryTracking(data.deliveries?.[0] || data.delivery || null);
       setSelectedOrder(orders.find((o) => o._id === orderId));
       setTrackingModalVisible(true);
     } catch (error: any) {
@@ -72,9 +76,9 @@ const OrdersDashboard = (props: TProps) => {
     }
   };
 
-  const handleAcceptDelivery = async (orderId: string) => {
+  const handleAcceptDelivery = async (orderId: string, orderItemId?: string, productId?: string) => {
     try {
-      await acceptDeliveryApi(orderId);
+      await acceptDeliveryApi(orderId, undefined, orderItemId, productId);
       message.success('Delivery accepted successfully');
       // Reload orders and tracking
       const token = getToken();
@@ -83,7 +87,8 @@ const OrdersDashboard = (props: TProps) => {
         setOrders(data.orders || []);
         if (selectedOrder && selectedOrder._id === orderId) {
           const { data: trackingData } = await getDeliveryTrackingApi(orderId);
-          setDeliveryTracking(trackingData.delivery);
+          setDeliveries(trackingData.deliveries || []);
+          setDeliveryTracking(trackingData.deliveries?.[0] || trackingData.delivery || null);
         }
       }
     } catch (error: any) {
@@ -91,13 +96,13 @@ const OrdersDashboard = (props: TProps) => {
     }
   };
 
-  const handleRejectDelivery = async () => {
+  const handleRejectDelivery = async (orderItemId?: string, productId?: string) => {
     if (!rejectingOrderId || !rejectReason.trim()) {
       message.error('Please provide a reason for rejecting delivery');
       return;
     }
     try {
-      await rejectDeliveryApi(rejectingOrderId, rejectReason);
+      await rejectDeliveryApi(rejectingOrderId, rejectReason, orderItemId, productId);
       message.success('Delivery rejected. The seller will be notified.');
       setRejectModalVisible(false);
       setRejectReason('');
@@ -109,7 +114,8 @@ const OrdersDashboard = (props: TProps) => {
         setOrders(data.orders || []);
         if (selectedOrder && selectedOrder._id === rejectingOrderId) {
           const { data: trackingData } = await getDeliveryTrackingApi(rejectingOrderId);
-          setDeliveryTracking(trackingData.delivery);
+          setDeliveries(trackingData.deliveries || []);
+          setDeliveryTracking(trackingData.deliveries?.[0] || trackingData.delivery || null);
         }
       }
     } catch (error: any) {
@@ -292,48 +298,6 @@ const OrdersDashboard = (props: TProps) => {
                               </Button>
                             </Popconfirm>
                           )}
-                          {order.deliveryStatus === 'delivered' && 
-                           order.status !== 'cancelled' && 
-                           order.status !== 'refunded' && (
-                            <>
-                              {(!order.deliveryTracking || order.deliveryTracking?.buyerAcceptance === 'pending') && (
-                                <>
-                                  <Button
-                                    type="primary"
-                                    icon={<CheckOutlined />}
-                                    onClick={() => handleAcceptDelivery(order._id)}
-                                  >
-                                    Accept Delivery
-                                  </Button>
-                                  <Button
-                                    type="default"
-                                    danger
-                                    icon={<CloseOutlined />}
-                                    onClick={() => {
-                                      setRejectingOrderId(order._id);
-                                      setRejectModalVisible(true);
-                                    }}
-                                  >
-                                    Reject Delivery
-                                  </Button>
-                                </>
-                              )}
-                              {order.deliveryTracking?.buyerAcceptance === 'accepted' && (
-                                <Tag color="success">Delivery Accepted</Tag>
-                              )}
-                              {order.deliveryTracking?.buyerAcceptance === 'rejected' && (
-                                <Tag color="error">Delivery Rejected</Tag>
-                              )}
-                              {order.deliveryTracking?.buyerAcceptance !== 'pending' && (
-                                <Button
-                                  type="default"
-                                  onClick={() => navigate(`/${pageRoutes.userReturns}?orderId=${order._id}`)}
-                                >
-                                  Request Return/Refund
-                                </Button>
-                              )}
-                            </>
-                          )}
                         </Space>
                       </div>
 
@@ -426,7 +390,32 @@ const OrdersDashboard = (props: TProps) => {
         >
           {selectedOrder && (
             <div>
-              <DeliveryTracking delivery={deliveryTracking} order={selectedOrder} />
+              {deliveries.length > 0 ? (
+                // Per-item tracking display
+                <div>
+                  {deliveries.map((delivery: any, index: number) => {
+                    const orderItem = selectedOrder.items?.find(
+                      (item: any) => String(item._id) === String(delivery.orderItemId) || 
+                                    String(item.productId) === String(delivery.productId)
+                    );
+                    return (
+                      <div key={delivery._id || index} style={{ marginBottom: deliveries.length > 1 ? 24 : 0 }}>
+                        {deliveries.length > 1 && (
+                          <h4 style={{ marginBottom: 16 }}>
+                            {orderItem?.title || `Item ${index + 1}`}
+                          </h4>
+                        )}
+                        <DeliveryTracking delivery={delivery} order={selectedOrder} />
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : deliveryTracking ? (
+                // Backward compatibility: single delivery
+                <DeliveryTracking delivery={deliveryTracking} order={selectedOrder} />
+              ) : (
+                <Empty description="No delivery tracking found" />
+              )}
               {(selectedOrder.status === 'cancelled' || selectedOrder.status === 'refunded' || selectedOrder.refundStatus) && (
                 <div style={{ marginTop: 24 }}>
                   <RefundStatus orderId={selectedOrder._id} order={selectedOrder} />
@@ -462,7 +451,13 @@ const OrdersDashboard = (props: TProps) => {
         <Modal
           title="Reject Delivery"
           open={rejectModalVisible}
-          onOk={handleRejectDelivery}
+            onOk={() => {
+              const itemId = (window as any).rejectItemId;
+              const productId = (window as any).rejectProductId;
+              handleRejectDelivery(itemId, productId);
+              (window as any).rejectItemId = undefined;
+              (window as any).rejectProductId = undefined;
+            }}
           onCancel={() => {
             setRejectModalVisible(false);
             setRejectReason('');
