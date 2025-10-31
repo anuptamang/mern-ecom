@@ -13,6 +13,8 @@ const { Text } = Typography;
 interface DeliveryTrackingProps {
   delivery: IDeliveryTracking | null;
   order: any;
+  isSeller?: boolean;
+  onStatusUpdate?: () => void;
 }
 
 export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUpdate }: DeliveryTrackingProps) => {
