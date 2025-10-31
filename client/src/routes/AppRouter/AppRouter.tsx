@@ -27,6 +27,7 @@ const ProductsDashboardPage = lazy(
   () => import('pages/private/Products/Dashboard')
 );
 const CartsDashboard = lazy(() => import('pages/private/Carts/Dashboard'));
+const UserCheckoutPage = lazy(() => import('pages/private/User/Checkout'));
 
 const AppRouter = () => {
   const auth = useAuth();
@@ -67,6 +68,7 @@ const AppRouter = () => {
               element={<ProductsDashboardPage />}
             />
             <Route path={pageRoutes.carts} element={<CartsDashboard />} />
+            <Route path={'checkout'} element={<UserCheckoutPage />} />
           </Route>
 
           {isAuthenticated ? (

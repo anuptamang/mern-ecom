@@ -18,6 +18,7 @@ interface IPageRoutes {
   settings: string,
   carts: string,
   userCarts: string,
+  checkout?: string,
 }
 
 export const pageRoutes: IPageRoutes = {
@@ -40,4 +41,5 @@ export const pageRoutes: IPageRoutes = {
   userProducts: 'user/products',
   userPrivacyPolicy: 'user/privacy-policy',
   userCarts: 'user/carts',
+  checkout: 'user/checkout',
 }
