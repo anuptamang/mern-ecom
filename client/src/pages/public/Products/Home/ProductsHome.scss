@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
+  cursor: pointer;
 
   &:hover {
     transform: translateY(-4px);
@@ -74,14 +75,40 @@
   .ant-card-actions {
     border-top: 1px solid #f0f0f0;
     background: #fafafa;
+    display: flex;
+    justify-content: space-around;
 
     li {
       margin: 8px 0;
+      flex: 1;
+      text-align: center;
+
+      .product-card-actions {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        .ant-btn {
+          cursor: pointer;
+          pointer-events: auto;
+        }
+      }
 
       a {
         display: block;
         width: 100%;
       }
+    }
+  }
+
+  // Prevent card click when clicking on buttons
+  .product-card-actions {
+    pointer-events: auto;
+    cursor: default;
+
+    .ant-btn {
+      pointer-events: auto;
     }
   }
 }
