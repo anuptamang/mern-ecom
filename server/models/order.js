@@ -27,7 +27,8 @@ const orderSchema = new mongoose.Schema(
     refundStatus: {
       type: String,
       enum: ["pending", "processing", "succeeded", "failed", "canceled"],
-      default: null,
+      default: undefined,
+      sparse: true,
     },
     refundAmount: { type: Number }, // Amount refunded in cents
     refundCreatedAt: { type: Date },

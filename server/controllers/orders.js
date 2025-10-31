@@ -49,9 +49,11 @@ export const createOrder = async (req, res) => {
       amount: finalAmount,
       currency,
       status: paymentIntentId ? "paid" : "created",
-      paymentIntentId,
-      deliveryAddress: deliveryAddress || null,
+      paymentIntentId: paymentIntentId || undefined,
+      deliveryAddress: deliveryAddress || undefined,
       deliveryStatus: "packing",
+      // Do not set refundStatus - it defaults to null in schema which is invalid
+      // refundStatus will only be set when a refund is actually processed
     });
 
     // Update stock for each product in the order
