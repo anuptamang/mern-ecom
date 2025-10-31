@@ -44,6 +44,16 @@ REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_test_REMOVED_FOR_SECURITY_FOR_SECURITY_FOR_S
 3. Start backend: (cd server && npm run start)
 4. Start frontend: (cd client && npm start)
 
+## Seeding data
+
+Populate a test user and sample products:
+
+```
+(cd server && npm run seed)
+```
+
+Default user: `test@example.com` / `password123`
+
 ## Features implemented
 
 - Products list and single product view
