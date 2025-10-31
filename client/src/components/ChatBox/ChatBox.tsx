@@ -64,7 +64,7 @@ interface Chat {
     senderId: string;
     timestamp: string;
   };
-  unreadCount?: number;
+  unreadCount?: number | { [key: string]: number };
   status: string;
 }
 
@@ -327,7 +327,18 @@ const ChatBox: React.FC<ChatBoxProps> = ({
                     if (!otherParticipant) return null;
                     
                     const isActive = chatItem._id === chatIdRef.current;
-                    const unreadCount = chatItem.unreadCount || 0;
+                    // unreadCount is a Map/object: { userId: count }
+                    // Extract count for current user
+                    const unreadCountMap = chatItem.unreadCount || {};
+                    let unreadCount = 0;
+                    if (typeof unreadCountMap === 'number') {
+                      unreadCount = unreadCountMap;
+                    } else if (typeof unreadCountMap === 'object' && unreadCountMap !== null && user?._id) {
+                      const userId = user._id;
+                      unreadCount = (unreadCountMap as { [key: string]: number })[userId] 
+                        || (unreadCountMap as { [key: string]: number })[String(userId)] 
+                        || 0;
+                    }
                     
                     return (
                       <List.Item
