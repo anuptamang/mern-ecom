@@ -15,6 +15,7 @@ import orderRoutes from "./routes/orders.js";
 import notificationRoutes from "./routes/notifications.js";
 import wishlistRoutes from "./routes/wishlist.js";
 import deliveryRoutes from "./routes/delivery.js";
+import chatRoutes from "./routes/chat.js";
 import returnRoutes from "./routes/return.js";
 
 const app = express();
@@ -35,6 +36,7 @@ app.use("/notifications", notificationRoutes);
 app.use("/wishlist", wishlistRoutes);
 app.use("/delivery", deliveryRoutes);
 app.use("/returns", returnRoutes);
+app.use("/chat", chatRoutes);
 
 const PORT = process.env.PORT || 3010;
 

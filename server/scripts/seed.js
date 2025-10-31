@@ -15,7 +15,7 @@ async function connect() {
 
 async function seedUser() {
   // Create buyer user
-  const buyerEmail = "test@example.com";
+  const buyerEmail = "buyer@example.com";
   let buyer = await User.findOne({ email: buyerEmail });
   if (!buyer) {
     const password = await bcrypt.hash("password123", 12);
@@ -23,10 +23,10 @@ async function seedUser() {
       email: buyerEmail,
       role: "user",
       password,
-      fullName: "Test User",
+      fullName: "Test Buyer",
       phone: "+1-555-0101",
       secondaryPhone: "+1-555-0102",
-      secondaryEmail: "test.secondary@example.com",
+      secondaryEmail: "buyer.secondary@example.com",
       primaryAddress: {
         street: "123 Main Street",
         city: "New York",
@@ -172,6 +172,30 @@ async function seedUser() {
     console.log(`Delivery agency already exists: ${agencyEmail}`);
   }
 
+  // Create support user
+  const supportEmail = "support@example.com";
+  let support = await User.findOne({ email: supportEmail });
+  if (!support) {
+    const password = await bcrypt.hash("password123", 12);
+    support = await User.create({
+      email: supportEmail,
+      role: "support",
+      password,
+      fullName: "Support Team",
+      phone: "+1-555-0501",
+      primaryAddress: {
+        street: "200 Support Center",
+        city: "New York",
+        state: "NY",
+        zipCode: "10001",
+        country: "USA",
+      },
+    });
+    console.log(`Created support user: ${supportEmail} / password123`);
+  } else {
+    console.log(`Support user already exists: ${supportEmail}`);
+  }
+
   // Create delivery person users (belonging to the delivery agency)
   const person1Email = "deliverer1@example.com";
   let deliveryPerson1 = await User.findOne({ email: person1Email });
@@ -228,6 +252,7 @@ async function seedUser() {
     deliveryAgency,
     deliveryPerson1,
     deliveryPerson2,
+    support,
   };
 }
 
@@ -238,7 +263,8 @@ function sampleProducts() {
       title: "Wireless Mouse",
       body: {
         summary: "Ergonomic 2.4GHz wireless mouse with long battery life",
-        description: "<p>Experience comfort and precision with our wireless mouse. Features include:</p><ul><li>2.4GHz wireless connection</li><li>Long battery life (up to 12 months)</li><li>Ergonomic design</li><li>High-precision optical sensor</li></ul>",
+        description:
+          "<p>Experience comfort and precision with our wireless mouse. Features include:</p><ul><li>2.4GHz wireless connection</li><li>Long battery life (up to 12 months)</li><li>Ergonomic design</li><li>High-precision optical sensor</li></ul>",
         price: 24.99,
       },
       categories: ["electronics"],
@@ -319,7 +345,8 @@ function sampleProducts() {
       title: "Laptop Stand",
       body: {
         summary: "Adjustable aluminum laptop stand for better ergonomics",
-        description: "<p>Improve your workspace ergonomics with this sturdy aluminum laptop stand.</p>",
+        description:
+          "<p>Improve your workspace ergonomics with this sturdy aluminum laptop stand.</p>",
         price: 29.99,
       },
       categories: ["accessories"],
@@ -334,7 +361,8 @@ function sampleProducts() {
       title: "Phone Case",
       body: {
         summary: "Protective phone case with shock absorption",
-        description: "<p>Keep your phone safe with this durable protective case featuring advanced shock absorption technology.</p>",
+        description:
+          "<p>Keep your phone safe with this durable protective case featuring advanced shock absorption technology.</p>",
         price: 19.99,
       },
       categories: ["accessories"],
@@ -349,7 +377,8 @@ function sampleProducts() {
       title: "Laptop Bag",
       body: {
         summary: "Water-resistant laptop bag with padded compartment",
-        description: "<p>Carry your laptop safely with this water-resistant bag featuring a padded compartment for maximum protection.</p>",
+        description:
+          "<p>Carry your laptop safely with this water-resistant bag featuring a padded compartment for maximum protection.</p>",
         price: 59.99,
       },
       categories: ["accessories"],
@@ -365,7 +394,8 @@ function sampleProducts() {
       title: "Cotton T-Shirt",
       body: {
         summary: "100% cotton comfortable t-shirt in various colors",
-        description: "<p>Soft and comfortable 100% cotton t-shirt available in multiple colors and sizes.</p>",
+        description:
+          "<p>Soft and comfortable 100% cotton t-shirt available in multiple colors and sizes.</p>",
         price: 24.99,
       },
       categories: ["clothing"],
@@ -380,7 +410,8 @@ function sampleProducts() {
       title: "Denim Jeans",
       body: {
         summary: "Classic fit denim jeans in multiple sizes",
-        description: "<p>Timeless classic fit denim jeans crafted from premium denim fabric.</p>",
+        description:
+          "<p>Timeless classic fit denim jeans crafted from premium denim fabric.</p>",
         price: 49.99,
       },
       categories: ["clothing"],
@@ -395,7 +426,8 @@ function sampleProducts() {
       title: "Running Shoes",
       body: {
         summary: "Lightweight running shoes with cushioned sole",
-        description: "<p>Perfect for your daily runs, these lightweight shoes feature advanced cushioning technology.</p>",
+        description:
+          "<p>Perfect for your daily runs, these lightweight shoes feature advanced cushioning technology.</p>",
         price: 79.99,
       },
       categories: ["clothing", "sports"],
@@ -411,7 +443,8 @@ function sampleProducts() {
       title: "JavaScript Guide",
       body: {
         summary: "Comprehensive guide to modern JavaScript programming",
-        description: "<p>A complete reference guide covering modern JavaScript features, ES6+, and best practices.</p>",
+        description:
+          "<p>A complete reference guide covering modern JavaScript features, ES6+, and best practices.</p>",
         price: 34.99,
       },
       categories: ["books"],
@@ -426,7 +459,8 @@ function sampleProducts() {
       title: "Design Patterns Book",
       body: {
         summary: "Essential design patterns for software development",
-        description: "<p>Learn essential software design patterns and when to apply them in your projects.</p>",
+        description:
+          "<p>Learn essential software design patterns and when to apply them in your projects.</p>",
         price: 39.99,
       },
       categories: ["books"],
@@ -442,7 +476,8 @@ function sampleProducts() {
       title: "Coffee Maker",
       body: {
         summary: "Programmable coffee maker with 12-cup capacity",
-        description: "<p>Start your day right with this programmable coffee maker featuring a 12-cup capacity and auto-shutoff.</p>",
+        description:
+          "<p>Start your day right with this programmable coffee maker featuring a 12-cup capacity and auto-shutoff.</p>",
         price: 89.99,
       },
       categories: ["home", "kitchen"],
@@ -457,7 +492,8 @@ function sampleProducts() {
       title: "Bluetooth Speaker",
       body: {
         summary: "Portable Bluetooth speaker with 360-degree sound",
-        description: "<p>Enjoy immersive 360-degree sound with this portable Bluetooth speaker perfect for any room.</p>",
+        description:
+          "<p>Enjoy immersive 360-degree sound with this portable Bluetooth speaker perfect for any room.</p>",
         price: 49.99,
       },
       categories: ["electronics", "home"],
@@ -473,7 +509,8 @@ function sampleProducts() {
       title: "Vintage Watch",
       body: {
         summary: "Classic vintage watch with leather strap",
-        description: "<p>A timeless vintage watch featuring a genuine leather strap and classic design elements.</p>",
+        description:
+          "<p>A timeless vintage watch featuring a genuine leather strap and classic design elements.</p>",
         price: 149.99,
       },
       categories: ["accessories"],
@@ -488,7 +525,8 @@ function sampleProducts() {
       title: "Limited Edition Headphones",
       body: {
         summary: "Premium limited edition headphones with wood accents",
-        description: "<p>Exclusive limited edition headphones featuring premium wood accents and exceptional sound quality.</p>",
+        description:
+          "<p>Exclusive limited edition headphones featuring premium wood accents and exceptional sound quality.</p>",
         price: 299.99,
       },
       categories: ["electronics"],
@@ -513,7 +551,8 @@ async function seedProducts(sellerId) {
     ...p,
     userID: sellerId,
     // Use estimatedDeliveryDays from product data if provided, otherwise random
-    estimatedDeliveryDays: p.estimatedDeliveryDays || Math.floor(Math.random() * 5) + 3,
+    estimatedDeliveryDays:
+      p.estimatedDeliveryDays || Math.floor(Math.random() * 5) + 3,
     createdAt: now,
     views: Math.floor(Math.random() * 500), // Random views
     likes: Math.floor(Math.random() * 50), // Random likes
@@ -563,6 +602,7 @@ async function main() {
       deliveryAgency,
       deliveryPerson1,
       deliveryPerson2,
+      support,
     } = await seedUser();
     await seedProducts(seller._id);
     console.log("Seeding completed successfully!");
@@ -573,6 +613,7 @@ async function main() {
     console.log("Delivery Agency: delivery@example.com / password123");
     console.log("Delivery Person 1: deliverer1@example.com / password123");
     console.log("Delivery Person 2: deliverer2@example.com / password123");
+    console.log("Support: support@example.com / password123");
   } catch (e) {
     console.error(e);
     process.exitCode = 1;

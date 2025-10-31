@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["admin", "seller", "user", "delivery_agency", "delivery_person"],
+    enum: ["admin", "seller", "user", "delivery_agency", "delivery_person", "support"],
     required: true,
   },
   // For delivery persons - reference to their delivery agency
