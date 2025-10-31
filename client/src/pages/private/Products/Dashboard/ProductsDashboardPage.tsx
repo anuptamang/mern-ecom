@@ -40,6 +40,7 @@ const ProductsDashboardPage = (props: Props) => {
   const [activeTab, setActiveTab] = useState('products');
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [deliveryTracking, setDeliveryTracking] = useState<any>(null);
+  const [deliveries, setDeliveries] = useState<any[]>([]);
   const [trackingModalVisible, setTrackingModalVisible] = useState(false);
   const [returns, setReturns] = useState<any[]>([]);
   const [rejectReason, setRejectReason] = useState('');
@@ -361,32 +362,91 @@ const ProductsDashboardPage = (props: Props) => {
                     </div>
                     <div className="border-t pt-4">
                       <div className="font-semibold mb-2">Items:</div>
-                      {order.items?.map((item: any, idx: number) => (
-                        <div key={idx} className="flex items-center gap-4 mb-2 pb-2 border-b last:border-b-0">
-                          {item.thumbnail && (
-                            <Image
-                              src={item.thumbnail}
-                              alt={item.title}
-                              width={60}
-                              height={60}
-                              style={{ objectFit: 'cover' }}
-                              preview={false}
-                            />
-                          )}
-                          <div className="flex-1">
-                            <div className="font-medium">{item.title}</div>
-                            <div className="text-sm text-gray-500">
-                              ${item.price} x {item.quantity} = ${(item.price * item.quantity).toFixed(2)}
+                      {order.items?.map((item: any, idx: number) => {
+                        const itemDeliveryTracking = item.deliveryTracking;
+                        const itemStatus = item.deliveryStatus || itemDeliveryTracking?.status;
+                        
+                        return (
+                          <div key={idx} className="flex items-start gap-4 mb-3 pb-3 border-b last:border-b-0">
+                            {item.thumbnail && (
+                              <Image
+                                src={item.thumbnail}
+                                alt={item.title}
+                                width={60}
+                                height={60}
+                                style={{ objectFit: 'cover' }}
+                                preview={false}
+                              />
+                            )}
+                            <div className="flex-1">
+                              <div className="font-medium">{item.title}</div>
+                              <div className="text-sm text-gray-500">
+                                ${item.price} x {item.quantity} = ${(item.price * item.quantity).toFixed(2)}
+                              </div>
+                              {itemDeliveryTracking && (
+                                <div className="mt-2">
+                                  <Tag color="blue" style={{ marginTop: 4 }}>
+                                    Delivery: {itemDeliveryTracking.status?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || itemStatus?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || 'Packing'}
+                                  </Tag>
+                                  {itemDeliveryTracking.buyerAcceptance === 'accepted' && (
+                                    <Tag color="success" style={{ marginLeft: 4 }}>Buyer Accepted</Tag>
+                                  )}
+                                  {itemDeliveryTracking.buyerAcceptance === 'rejected' && (
+                                    <Tag color="error" style={{ marginLeft: 4 }}>Buyer Rejected</Tag>
+                                  )}
+                                  {itemDeliveryTracking.buyerAcceptance === 'pending' && itemStatus === 'delivered' && (
+                                    <Tag color="warning" style={{ marginLeft: 4 }}>Pending Buyer Acceptance</Tag>
+                                  )}
+                                  {item.returnStatus && (
+                                    <Tag color="orange" style={{ marginLeft: 4 }}>
+                                      Return: {item.returnStatus.replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                                    </Tag>
+                                  )}
+                                  {item.refundStatus && (
+                                    <Tag 
+                                      color={item.refundStatus === 'succeeded' ? 'success' : item.refundStatus === 'failed' ? 'error' : 'warning'}
+                                      style={{ marginLeft: 4 }}
+                                    >
+                                      Refund: {item.refundStatus.replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                                    </Tag>
+                                  )}
+                                </div>
+                              )}
                             </div>
+                            <Space direction="vertical" size="small">
+                              <Button
+                                type="link"
+                                size="small"
+                                onClick={() => navigate(`/products/${item.productId}`)}
+                              >
+                                View Product
+                              </Button>
+                              {itemDeliveryTracking && (
+                                <Button
+                                  type="default"
+                                  size="small"
+                                  onClick={async () => {
+                                    try {
+                                      const { data } = await getDeliveryTrackingApi(order._id);
+                                      setDeliveries(data.deliveries || []);
+                                      setDeliveryTracking(data.deliveries?.find(
+                                        (d: any) => String(d.orderItemId) === String(item._id) || 
+                                                   String(d.productId) === String(item.productId)
+                                      ) || data.deliveries?.[0] || data.delivery || null);
+                                      setSelectedOrder(order);
+                                      setTrackingModalVisible(true);
+                                    } catch (error: any) {
+                                      message.error(error?.response?.data?.message || 'Failed to load delivery tracking');
+                                    }
+                                  }}
+                                >
+                                  Track Item
+                                </Button>
+                              )}
+                            </Space>
                           </div>
-                          <Button
-                            type="link"
-                            onClick={() => navigate(`/products/${item.productId}`)}
-                          >
-                            View Product
-                          </Button>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                     <div className="border-t pt-4 mt-4">
                       <Space>
@@ -396,7 +456,10 @@ const ProductsDashboardPage = (props: Props) => {
                           onClick={async () => {
                             try {
                               const { data } = await getDeliveryTrackingApi(order._id);
-                              setDeliveryTracking(data.delivery);
+                              // API now returns deliveries array (per-item tracking)
+                              setDeliveries(data.deliveries || []);
+                              // For backward compatibility, also set delivery if single item
+                              setDeliveryTracking(data.deliveries?.[0] || data.delivery || null);
                               setSelectedOrder(order);
                               setTrackingModalVisible(true);
                             } catch (error: any) {
@@ -413,7 +476,8 @@ const ProductsDashboardPage = (props: Props) => {
                             onClick={async () => {
                               try {
                                 const { data } = await getDeliveryTrackingApi(order._id);
-                                setDeliveryTracking(data.delivery);
+                                setDeliveries(data.deliveries || []);
+                                setDeliveryTracking(data.deliveries?.[0] || data.delivery || null);
                                 setSelectedOrder(order);
                                 setTrackingModalVisible(true);
                               } catch (error: any) {
@@ -781,12 +845,14 @@ const ProductsDashboardPage = (props: Props) => {
           onCancel={() => {
             setTrackingModalVisible(false);
             setDeliveryTracking(null);
+            setDeliveries([]);
             setSelectedOrder(null);
           }}
           footer={[
             <Button key="close" onClick={() => {
               setTrackingModalVisible(false);
               setDeliveryTracking(null);
+              setDeliveries([]);
               setSelectedOrder(null);
             }}>
               Close
@@ -796,22 +862,72 @@ const ProductsDashboardPage = (props: Props) => {
         >
           {selectedOrder && (
             <div>
-              <DeliveryTracking 
-                delivery={deliveryTracking} 
-                order={selectedOrder}
-                isSeller={true}
-                onStatusUpdate={async () => {
-                  // Reload delivery tracking after update
-                  try {
-                    const { data } = await getDeliveryTrackingApi(selectedOrder._id);
-                    setDeliveryTracking(data.delivery);
-                    // Also reload orders to refresh status
-                    loadOrders();
-                  } catch (error: any) {
-                    console.error('Failed to reload delivery tracking:', error);
-                  }
-                }}
-              />
+              {deliveries.length > 0 ? (
+                // Per-item tracking display for sellers
+                <div>
+                  {deliveries.map((delivery: any, index: number) => {
+                    const orderItem = selectedOrder.items?.find(
+                      (item: any) => String(item._id) === String(delivery.orderItemId) || 
+                                    String(item.productId) === String(delivery.productId)
+                    );
+                    // Only show deliveries for seller's products
+                    if (!orderItem) return null;
+                    
+                    return (
+                      <div key={delivery._id || index} style={{ marginBottom: deliveries.length > 1 ? 24 : 0 }}>
+                        {deliveries.length > 1 && (
+                          <h4 style={{ marginBottom: 16 }}>
+                            {orderItem.title || `Item ${index + 1}`}
+                          </h4>
+                        )}
+                        <DeliveryTracking 
+                          delivery={delivery} 
+                          order={selectedOrder}
+                          isSeller={true}
+                          orderItemId={delivery.orderItemId}
+                          productId={delivery.productId}
+                          onStatusUpdate={async () => {
+                            // Reload delivery tracking after update
+                            try {
+                              const { data } = await getDeliveryTrackingApi(selectedOrder._id);
+                              setDeliveries(data.deliveries || []);
+                              setDeliveryTracking(data.deliveries?.find(
+                                (d: any) => String(d.orderItemId) === String(delivery.orderItemId) || 
+                                           String(d.productId) === String(delivery.productId)
+                              ) || data.deliveries?.[0] || data.delivery || null);
+                              // Also reload orders to refresh status
+                              loadOrders();
+                            } catch (error: any) {
+                              console.error('Failed to reload delivery tracking:', error);
+                            }
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : deliveryTracking ? (
+                // Backward compatibility: single delivery
+                <DeliveryTracking 
+                  delivery={deliveryTracking} 
+                  order={selectedOrder}
+                  isSeller={true}
+                  onStatusUpdate={async () => {
+                    // Reload delivery tracking after update
+                    try {
+                      const { data } = await getDeliveryTrackingApi(selectedOrder._id);
+                      setDeliveries(data.deliveries || []);
+                      setDeliveryTracking(data.deliveries?.[0] || data.delivery || null);
+                      // Also reload orders to refresh status
+                      loadOrders();
+                    } catch (error: any) {
+                      console.error('Failed to reload delivery tracking:', error);
+                    }
+                  }}
+                />
+              ) : (
+                <Empty description="No delivery tracking found for this order" />
+              )}
               {(selectedOrder.status === 'cancelled' || selectedOrder.status === 'refunded' || selectedOrder.refundStatus) && (
                 <div style={{ marginTop: 24 }}>
                   <RefundStatus orderId={selectedOrder._id} order={selectedOrder} />

@@ -585,7 +585,6 @@ async function resetDatabase() {
   }
 }
 
-
 async function main() {
   const reset = process.argv.includes("--reset");
 

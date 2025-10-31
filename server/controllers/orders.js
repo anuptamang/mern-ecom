@@ -169,7 +169,42 @@ export const getSellerOrders = async (req, res) => {
       .populate("userId", "fullName email")
       .sort({ createdAt: -1 });
     
-    return res.json({ orders });
+    // Include delivery tracking info (per-item) for each order
+    const Delivery = (await import("../models/delivery.js")).default;
+    const ordersWithDelivery = await Promise.all(
+      orders.map(async (order) => {
+        // Get all delivery tracking records for this order (one per item)
+        const deliveries = await Delivery.find({ orderId: order._id });
+        const orderObj = order.toObject();
+        
+        // Filter items to only show seller's products
+        // Map each order item with its delivery tracking (only seller's items)
+        orderObj.items = order.items
+          .filter((item) => productIds.some((pid) => String(pid) === String(item.productId)))
+          .map((item) => {
+            const itemObj = item.toObject();
+            const itemDelivery = deliveries.find(
+              (d) => String(d.orderItemId) === String(item._id) || 
+                     String(d.productId) === String(item.productId)
+            );
+            if (itemDelivery) {
+              itemObj.deliveryTracking = {
+                buyerAcceptance: itemDelivery.buyerAcceptance,
+                deliveryProof: itemDelivery.deliveryProof,
+                status: itemDelivery.status,
+                trackingNumber: itemDelivery.trackingNumber,
+                actualDeliveryDate: itemDelivery.actualDeliveryDate,
+                _id: itemDelivery._id,
+              };
+            }
+            return itemObj;
+          });
+        
+        return orderObj;
+      })
+    );
+    
+    return res.json({ orders: ordersWithDelivery });
   } catch (error) {
     console.error("Error fetching seller orders:", error);
     return res.status(500).json({ message: "Failed to fetch seller orders" });

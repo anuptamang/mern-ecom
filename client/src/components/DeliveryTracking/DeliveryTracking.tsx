@@ -20,9 +20,11 @@ interface DeliveryTrackingProps {
   order: any;
   isSeller?: boolean;
   onStatusUpdate?: () => void;
+  orderItemId?: string;
+  productId?: string;
 }
 
-export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUpdate }: DeliveryTrackingProps) => {
+export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUpdate, orderItemId, productId }: DeliveryTrackingProps) => {
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [updateNote, setUpdateNote] = useState<string>('');
@@ -84,7 +86,7 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
         message.error('Authentication required');
         return;
       }
-      await updateDeliveryStatusApi(order._id, selectedStatus, updateNote);
+      await updateDeliveryStatusApi(order._id, selectedStatus, updateNote, orderItemId, productId);
       message.success('Delivery status updated successfully');
       setUpdateModalVisible(false);
       setSelectedStatus('');
