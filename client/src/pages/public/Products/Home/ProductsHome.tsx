@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from 'redux/store';
 import { fetchProducts } from 'redux/action/products';
 import { Link, useNavigate } from 'react-router-dom';
 import { ProductImagePlaceholder } from 'components/ProductImageGallery/ProductImagePlaceholder';
-import { addToCart } from 'redux/slice/carts/cartsSlice';
+import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { authSelector } from 'redux/slice';
 import './ProductsHome.scss';
 
@@ -53,7 +53,7 @@ const ProductsList = () => {
     navigate(`/products/${productId}`);
   };
 
-  const handleAddToCart = (productId: string, e: React.MouseEvent) => {
+  const handleAddToCart = (productId: string, stock: number, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -67,8 +67,18 @@ const ProductsList = () => {
       return;
     }
 
-    dispatch(addToCart({ productId }));
-    message.success('Product added to cart');
+    if (stock <= 0) {
+      message.error('Product is out of stock');
+      return;
+    }
+
+    dispatch(addToCart({ productId })).then(() => {
+      message.success('Product added to cart');
+      // Refresh cart count after adding
+      dispatch(fetchMyCart());
+    }).catch((error: any) => {
+      message.error(error?.message || 'Failed to add product to cart');
+    });
   };
 
   return (
@@ -113,7 +123,8 @@ const ProductsList = () => {
                   <Button
                     type="primary"
                     size="small"
-                    onClick={(e) => handleAddToCart(item._id, e)}
+                    disabled={(item.stock || 0) <= 0}
+                    onClick={(e) => handleAddToCart(item._id, item.stock || 0, e)}
                   >
                     Add to Cart
                   </Button>
@@ -121,6 +132,7 @@ const ProductsList = () => {
                   <Button
                     type="primary"
                     size="small"
+                    disabled={(item.stock || 0) <= 0}
                     onClick={(e) => {
                       e.stopPropagation();
                       message.warning('Please log in to add items to cart');
@@ -141,6 +153,15 @@ const ProductsList = () => {
                   {item.price && (
                     <div className="product-price">${item.price.toFixed(2)}</div>
                   )}
+                  <div className="product-stock">
+                    {item.stock !== undefined ? (
+                      <span className={item.stock > 0 ? 'stock-available' : 'stock-out'}>
+                        {item.stock > 0 ? `In Stock (${item.stock})` : 'Out of Stock'}
+                      </span>
+                    ) : (
+                      <span className="stock-unknown">Stock information unavailable</span>
+                    )}
+                  </div>
                 </div>
               }
             />

@@ -1,18 +1,22 @@
-import { Card, List, Tag, Spin, Empty, message } from 'antd';
+import { Card, List, Tag, Spin, Empty, message, Button, Image } from 'antd';
 import { Container } from 'components/UI';
 import { usePageTitle } from 'hooks/usePageTitle';
 import { useEffect, useState } from 'react';
 import { listMyOrdersApi } from 'services/endPoints/orders/ordersEndpoints';
 import { getToken } from 'utils/localStorage';
-import { useAppSelector } from 'redux/store';
+import { useAppSelector, useAppDispatch } from 'redux/store';
 import { authSelector } from 'redux/slice';
-import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, EyeOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import './OrdersDashboard.scss';
 
 type TProps = {};
 
 const OrdersDashboard = (props: TProps) => {
   const title = usePageTitle();
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const { result } = useAppSelector(authSelector);
   const isSeller = result?.role === 'seller';
   const [orders, setOrders] = useState<any[]>([]);
@@ -84,6 +88,16 @@ const OrdersDashboard = (props: TProps) => {
     });
   };
 
+  const handleBuyAgain = async (item: any) => {
+    try {
+      await dispatch(addToCart({ productId: item.productId })).unwrap();
+      message.success(`${item.title} added to cart`);
+      dispatch(fetchMyCart());
+    } catch (error: any) {
+      message.error(error?.message || 'Failed to add item to cart');
+    }
+  };
+
   if (isSeller) {
     return (
       <>
@@ -144,24 +158,47 @@ const OrdersDashboard = (props: TProps) => {
                           dataSource={order.items || []}
                           renderItem={(item: any) => (
                             <List.Item>
-                              <div className="order-item-detail">
-                                {item.thumbnail && (
-                                  <img
-                                    src={item.thumbnail}
-                                    alt={item.title}
-                                    className="order-item-thumbnail"
-                                  />
-                                )}
-                                <div className="order-item-info">
-                                  <div className="order-item-title">{item.title}</div>
-                                  <div className="order-item-meta">
-                                    ${item.price} × {item.quantity}
+                              <Card className="order-product-card" style={{ width: '100%' }}>
+                                <div className="order-item-detail">
+                                  {item.thumbnail ? (
+                                    <Image
+                                      src={item.thumbnail}
+                                      alt={item.title}
+                                      className="order-item-thumbnail"
+                                      width={80}
+                                      height={80}
+                                      preview={false}
+                                    />
+                                  ) : (
+                                    <div className="order-item-thumbnail-placeholder">
+                                      No Image
+                                    </div>
+                                  )}
+                                  <div className="order-item-info">
+                                    <div className="order-item-title">{item.title}</div>
+                                    <div className="order-item-meta">
+                                      ${item.price} × {item.quantity} = ${(item.price * item.quantity).toFixed(2)}
+                                    </div>
+                                  </div>
+                                  <div className="order-item-actions">
+                                    <Button
+                                      type="default"
+                                      icon={<EyeOutlined />}
+                                      size="small"
+                                      onClick={() => navigate(`/products/${item.productId}`)}
+                                    >
+                                      View
+                                    </Button>
+                                    <Button
+                                      type="primary"
+                                      size="small"
+                                      onClick={() => handleBuyAgain(item)}
+                                    >
+                                      Buy Again
+                                    </Button>
                                   </div>
                                 </div>
-                                <div className="order-item-total">
-                                  ${(item.price * item.quantity).toFixed(2)}
-                                </div>
-                              </div>
+                              </Card>
                             </List.Item>
                           )}
                         />

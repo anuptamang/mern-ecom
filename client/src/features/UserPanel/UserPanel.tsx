@@ -5,8 +5,10 @@ import { pageRoutes } from 'data/static/pageRoutes';
 import { useAuth } from 'hooks';
 import { Link } from 'react-router-dom';
 import { signOut } from 'redux/slice';
-import { useAppDispatch } from 'redux/store';
+import { useAppDispatch, useAppSelector } from 'redux/store';
 import { getNameInitials } from 'utils';
+import { useEffect } from 'react';
+import { fetchMyCart } from 'redux/slice/carts/cartsSlice';
 
 const { useToken } = theme;
 
@@ -23,6 +25,13 @@ export const UserPanel = (props: Props) => {
   const { token } = useToken();
   const auth = useAuth();
   const dispatch = useAppDispatch();
+  const carts = useAppSelector((state) => state.carts);
+
+  useEffect(() => {
+    if (auth?.tokenStatus === 'valid') {
+      dispatch(fetchMyCart());
+    }
+  }, [auth?.tokenStatus, dispatch]);
 
   const handleLogout = () => {
     dispatch(signOut());
@@ -59,7 +68,7 @@ export const UserPanel = (props: Props) => {
         {auth?.tokenStatus === 'valid' ? (
           <li style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
             <Link to={`/${pageRoutes.userCarts}`}>
-              <Badge size="small" count={0} color={token.colorPrimaryBg}>
+              <Badge size="small" count={carts.totalCount || 0} color={token.colorPrimaryBg}>
                 <ShoppingCartOutlined
                   style={{ color: 'white', fontSize: '24px' }}
                 />

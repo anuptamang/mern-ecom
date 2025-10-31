@@ -70,6 +70,26 @@
       font-weight: 700;
       color: #1890ff;
     }
+
+    .product-stock {
+      margin-top: 8px;
+      font-size: 14px;
+
+      .stock-available {
+        color: #52c41a;
+        font-weight: 500;
+      }
+
+      .stock-out {
+        color: #ff4d4f;
+        font-weight: 500;
+      }
+
+      .stock-unknown {
+        color: #999;
+        font-style: italic;
+      }
+    }
   }
 
   .ant-card-actions {

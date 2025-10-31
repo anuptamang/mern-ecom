@@ -5,7 +5,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import styles from 'assets/styles/Common.module.scss';
 import { useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'redux/store';
-import { addToCart } from 'redux/slice/carts/cartsSlice';
+import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { authSelector } from 'redux/slice';
 import { fetchProductByIdApi } from 'services/endPoints/products/productsEndpoints';
 import {
@@ -169,14 +169,43 @@ const ProductDetails = () => {
 
             <Divider />
 
+            <div className="product-stock-info">
+              <h3>Availability</h3>
+              {product.stock !== undefined ? (
+                <div className={`stock-badge ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}`}>
+                  {product.stock > 0 ? (
+                    <span>✓ In Stock ({product.stock} available)</span>
+                  ) : (
+                    <span>✗ Out of Stock</span>
+                  )}
+                </div>
+              ) : (
+                <div className="stock-badge unknown">
+                  <span>Stock information unavailable</span>
+                </div>
+              )}
+            </div>
+
+            <Divider />
+
             <div className="product-actions">
               {!isSeller && result && (
                 <Button
                   type="primary"
                   size="large"
-                  onClick={() =>
-                    dispatch(addToCart({ productId: product._id }))
-                  }
+                  disabled={(product.stock || 0) <= 0}
+                  onClick={() => {
+                    if ((product.stock || 0) <= 0) {
+                      message.error('Product is out of stock');
+                      return;
+                    }
+                    dispatch(addToCart({ productId: product._id })).then(() => {
+                      message.success('Product added to cart');
+                      dispatch(fetchMyCart());
+                    }).catch((error: any) => {
+                      message.error(error?.message || 'Failed to add product to cart');
+                    });
+                  }}
                   className="add-to-cart-btn"
                 >
                   Add to Cart

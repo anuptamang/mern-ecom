@@ -12,6 +12,7 @@ const productSchema = mongoose.Schema({
   thumbnail: { type: String },
   images: [{ type: String }], // Gallery images
   price: { type: Number },
+  stock: { type: Number, default: 0 }, // Stock availability count
   rating: { type: Number, default: 0 }, // Average rating
   ratings: [
     {
