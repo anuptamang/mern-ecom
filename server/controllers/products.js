@@ -9,11 +9,36 @@ const PORT = process.env.PORT || 3010;
 export const getProduct = async (req, res) => {
   const { id } = req.params;
   try {
-    const product = await Product.findById(id);
+    const product = await Product.findById(id).populate('userID', 'fullName email profilePhoto');
     res.status(200).json(product);
   } catch (error) {
     console.log(error);
     res.status(404).json({ message: error.message });
+  }
+};
+
+export const getRelatedProducts = async (req, res) => {
+  const { id } = req.params;
+  const { limit = 4 } = req.query;
+  try {
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Find products with similar categories, excluding current product
+    const relatedProducts = await Product.find({
+      _id: { $ne: id },
+      categories: { $in: product.categories },
+    })
+      .populate('userID', 'fullName email profilePhoto')
+      .limit(Number(limit))
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(relatedProducts);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
   }
 };
 

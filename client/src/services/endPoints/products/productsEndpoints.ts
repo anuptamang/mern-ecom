@@ -24,6 +24,12 @@ export const fetchProductByIdApi = async (id: string) => {
   return axios.get(`${PRODUCTS_API}/${id}`);
 }
 
+export const fetchRelatedProductsApi = async (id: string, limit: number = 4) => {
+  return axios.get(`${PRODUCTS_API}/${id}/related`, {
+    params: { limit }
+  });
+}
+
 export const fetchProductRatingsApi = async (id: string) => {
   return axios.get(`${PRODUCTS_API}/${id}/ratings`);
 }

@@ -1,4 +1,5 @@
-import { Button, Card, Spin, message, Rate, Divider, Tag } from 'antd';
+import { Button, Card, Spin, message, Rate, Divider, Tag, Avatar } from 'antd';
+import { UserOutlined, MailOutlined } from '@ant-design/icons';
 import { Container } from 'components/UI';
 import { usePageTitle } from 'hooks/usePageTitle';
 import { ReactNode, useEffect, useState } from 'react';
@@ -7,11 +8,12 @@ import { useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { authSelector } from 'redux/slice';
-import { fetchProductByIdApi } from 'services/endPoints/products/productsEndpoints';
+import { fetchProductByIdApi, fetchRelatedProductsApi } from 'services/endPoints/products/productsEndpoints';
 import {
   ProductImageGallery,
   ProductRatings,
   ProductComments,
+  RelatedProducts,
 } from 'components';
 import { EyeOutlined, LikeOutlined } from '@ant-design/icons';
 import './ProductsSinglePage.scss';
@@ -36,7 +38,9 @@ export { ProductsSinglePage };
 const ProductDetails = () => {
   const { id } = useParams();
   const [product, setProduct] = useState<any>(null);
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingRelated, setLoadingRelated] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const dispatch = useAppDispatch();
   const { result } = useAppSelector(authSelector);
@@ -58,6 +62,23 @@ const ProductDetails = () => {
         if (isMounted) {
           setProduct(res.data);
           setLoading(false);
+          
+          // Fetch related products
+          setLoadingRelated(true);
+          fetchRelatedProductsApi(id, 4)
+            .then((relatedRes) => {
+              if (isMounted) {
+                setRelatedProducts(relatedRes.data || []);
+              }
+            })
+            .catch(() => {
+              // Silently fail for related products
+            })
+            .finally(() => {
+              if (isMounted) {
+                setLoadingRelated(false);
+              }
+            });
         }
       })
       .catch((err: any) => {
@@ -167,12 +188,43 @@ const ProductDetails = () => {
               </div>
             )}
 
+            {product.userID && (
+              <>
+                <Divider />
+                <div className="product-seller-info">
+                  <h3>Seller Information</h3>
+                  <div className="seller-details">
+                    <Avatar
+                      src={(product.userID as any)?.profilePhoto}
+                      icon={<UserOutlined />}
+                      size={64}
+                      className="seller-avatar"
+                    />
+                    <div className="seller-info">
+                      <div className="seller-name">
+                        {(product.userID as any)?.fullName || 'Unknown Seller'}
+                      </div>
+                      {(product.userID as any)?.email && (
+                        <div className="seller-email">
+                          <MailOutlined /> {(product.userID as any)?.email}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
             <Divider />
 
             <div className="product-stock-info">
               <h3>Availability</h3>
               {product.stock !== undefined ? (
-                <div className={`stock-badge ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}`}>
+                <div
+                  className={`stock-badge ${
+                    product.stock > 0 ? 'in-stock' : 'out-of-stock'
+                  }`}
+                >
                   {product.stock > 0 ? (
                     <span>✓ In Stock ({product.stock} available)</span>
                   ) : (
@@ -199,12 +251,16 @@ const ProductDetails = () => {
                       message.error('Product is out of stock');
                       return;
                     }
-                    dispatch(addToCart({ productId: product._id })).then(() => {
-                      message.success('Product added to cart');
-                      dispatch(fetchMyCart());
-                    }).catch((error: any) => {
-                      message.error(error?.message || 'Failed to add product to cart');
-                    });
+                    dispatch(addToCart({ productId: product._id }))
+                      .then(() => {
+                        message.success('Product added to cart');
+                        dispatch(fetchMyCart());
+                      })
+                      .catch((error: any) => {
+                        message.error(
+                          error?.message || 'Failed to add product to cart'
+                        );
+                      });
                   }}
                   className="add-to-cart-btn"
                 >
@@ -241,6 +297,11 @@ const ProductDetails = () => {
       {/* Comments Section */}
       <div className="product-detail-bottom">
         <ProductComments productId={product._id} />
+      </div>
+
+      {/* Related Products Section */}
+      <div className="product-detail-bottom">
+        <RelatedProducts products={relatedProducts} loading={loadingRelated} />
       </div>
     </div>
   );

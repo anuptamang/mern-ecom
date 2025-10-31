@@ -7,6 +7,7 @@ export * from './Nav';
 export * from './ProductImageGallery';
 export * from './ProductRatings';
 export * from './ProductComments';
+export * from './RelatedProducts';
 export * from './UI';
 export * from './UserProfile';
 export * from '../features/UserProfileDetails';

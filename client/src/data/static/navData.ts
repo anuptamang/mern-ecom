@@ -16,12 +16,6 @@ export const navData: NavDataProps[] = [
     key: `/${pageRoutes.about}`,
     label: 'About',
     to: `/${pageRoutes.about}`,
-
-  },
-  {
-    key: `/${pageRoutes.products}`,
-    label: 'Products',
-    to: `/${pageRoutes.products}`,
   },
   {
     key: `/${pageRoutes.contact}`,

@@ -148,6 +148,50 @@
         }
       }
 
+      .product-seller-info {
+        margin-bottom: 16px;
+
+        h3 {
+          font-size: 18px;
+          font-weight: 600;
+          margin-bottom: 12px;
+          color: #333;
+        }
+
+        .seller-details {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding: 16px;
+          background: #fafafa;
+          border-radius: 8px;
+          border: 1px solid #f0f0f0;
+
+          .seller-avatar {
+            flex-shrink: 0;
+          }
+
+          .seller-info {
+            flex: 1;
+
+            .seller-name {
+              font-size: 18px;
+              font-weight: 600;
+              color: #333;
+              margin-bottom: 8px;
+            }
+
+            .seller-email {
+              font-size: 14px;
+              color: #666;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            }
+          }
+        }
+      }
+
       .product-actions {
         .add-to-cart-btn {
           width: 100%;
