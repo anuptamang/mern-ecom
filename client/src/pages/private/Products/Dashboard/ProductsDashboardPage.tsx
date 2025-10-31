@@ -796,7 +796,22 @@ const ProductsDashboardPage = (props: Props) => {
         >
           {selectedOrder && (
             <div>
-              <DeliveryTracking delivery={deliveryTracking} order={selectedOrder} />
+              <DeliveryTracking 
+                delivery={deliveryTracking} 
+                order={selectedOrder}
+                isSeller={true}
+                onStatusUpdate={async () => {
+                  // Reload delivery tracking after update
+                  try {
+                    const { data } = await getDeliveryTrackingApi(selectedOrder._id);
+                    setDeliveryTracking(data.delivery);
+                    // Also reload orders to refresh status
+                    loadOrders();
+                  } catch (error: any) {
+                    console.error('Failed to reload delivery tracking:', error);
+                  }
+                }}
+              />
               {(selectedOrder.status === 'cancelled' || selectedOrder.status === 'refunded' || selectedOrder.refundStatus) && (
                 <div style={{ marginTop: 24 }}>
                   <RefundStatus orderId={selectedOrder._id} order={selectedOrder} />
