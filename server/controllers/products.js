@@ -321,34 +321,49 @@ export const getMyProducts = async (req, res) => {
   try {
     const userId = req.userId;
     
-    // Convert userId to ObjectId for querying
-    let query;
-    try {
-      // Try to convert to ObjectId first
-      const objectIdUserId = mongoose.Types.ObjectId.isValid(userId) 
-        ? new mongoose.Types.ObjectId(userId) 
-        : userId;
-      
-      // Query with ObjectId
-      query = { userID: objectIdUserId };
-    } catch (e) {
-      // Fallback to string comparison
-      query = { userID: String(userId) };
+    if (!userId) {
+      return res.status(401).json({ message: "User ID not found" });
     }
     
-    // Also try querying with string format for backward compatibility
-    const products = await Product.find({
-      $or: [
-        query,
-        { userID: String(userId) },
-        { userID: mongoose.Types.ObjectId.isValid(userId) ? new mongoose.Types.ObjectId(userId) : userId }
-      ]
-    }).sort({ _id: -1 });
+    // Convert userId to ObjectId - since schema uses ObjectId with ref
+    let objectIdUserId;
+    try {
+      if (mongoose.Types.ObjectId.isValid(userId)) {
+        objectIdUserId = new mongoose.Types.ObjectId(userId);
+      } else {
+        // If not a valid ObjectId, try string comparison for backward compatibility
+        const products = await Product.find({
+          $or: [
+            { userID: String(userId) },
+            { userID: userId }
+          ]
+        }).sort({ _id: -1 });
+        return res.status(200).json({ data: products });
+      }
+    } catch (e) {
+      console.error('Error converting userId to ObjectId:', e);
+      // Fallback to string query
+      const products = await Product.find({ userID: String(userId) }).sort({ _id: -1 });
+      return res.status(200).json({ data: products });
+    }
+    
+    // Query with ObjectId first (new format)
+    let products = await Product.find({ userID: objectIdUserId }).sort({ _id: -1 });
+    
+    // If no products found with ObjectId, try string format for backward compatibility
+    if (products.length === 0) {
+      products = await Product.find({
+        $or: [
+          { userID: String(userId) },
+          { userID: userId }
+        ]
+      }).sort({ _id: -1 });
+    }
     
     res.status(200).json({ data: products });
   } catch (error) {
     console.error('Error in getMyProducts:', error);
-    res.status(404).json({ message: error.message });
+    res.status(500).json({ message: error.message || 'Failed to fetch products' });
   }
 };
 
