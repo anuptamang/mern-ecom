@@ -32,7 +32,7 @@ async function resetDatabase() {
 async function runSeedScript() {
   // Import seed functions
   const { seedUser, seedProducts } = await import("./seed.js");
-  
+
   // Run seeding (connection is already established from main())
   const {
     buyer,
@@ -59,11 +59,11 @@ async function main() {
   try {
     await connect();
     await resetDatabase();
-    
+
     // Run seed script functions directly (connection already established)
     console.log("Running seed script...\n");
     await runSeedScript();
-    
+
     console.log("\n✓ Database reset and seeded successfully!");
   } catch (e) {
     console.error("Error:", e);

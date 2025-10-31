@@ -329,6 +329,19 @@ const OrdersDashboard = (props: TProps) => {
                                     <div className="order-item-meta">
                                       ${item.price} × {item.quantity} = ${(item.price * item.quantity).toFixed(2)}
                                     </div>
+                                    {item.deliveryTracking && (
+                                      <div style={{ marginTop: 8 }}>
+                                        <Tag color="blue" style={{ marginTop: 4 }}>
+                                          Delivery: {item.deliveryTracking.status?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || item.deliveryStatus?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || 'Packing'}
+                                        </Tag>
+                                        {item.deliveryTracking.buyerAcceptance === 'accepted' && (
+                                          <Tag color="success" style={{ marginLeft: 4 }}>Accepted</Tag>
+                                        )}
+                                        {item.deliveryTracking.buyerAcceptance === 'rejected' && (
+                                          <Tag color="error" style={{ marginLeft: 4 }}>Rejected</Tag>
+                                        )}
+                                      </div>
+                                    )}
                                   </div>
                                   <div className="order-item-actions">
                                     <Button
@@ -339,6 +352,56 @@ const OrdersDashboard = (props: TProps) => {
                                     >
                                       View
                                     </Button>
+                                    {item.deliveryStatus && item.deliveryStatus !== 'delivered' && item.deliveryStatus !== 'cancelled' && (
+                                      <Popconfirm
+                                        title="Cancel This Item"
+                                        description="Are you sure you want to cancel this item? A refund will be processed."
+                                        onConfirm={() => {
+                                          message.info('Per-item cancellation will be implemented');
+                                        }}
+                                        okText="Yes, Cancel"
+                                        cancelText="No"
+                                      >
+                                        <Button type="default" danger size="small" icon={<StopOutlined />}>
+                                          Cancel Item
+                                        </Button>
+                                      </Popconfirm>
+                                    )}
+                                    {item.deliveryTracking?.buyerAcceptance === 'pending' && item.deliveryStatus === 'delivered' && (
+                                      <>
+                                        <Button
+                                          type="primary"
+                                          size="small"
+                                          icon={<CheckOutlined />}
+                                          onClick={() => handleAcceptDelivery(order._id, item._id, item.productId)}
+                                        >
+                                          Accept
+                                        </Button>
+                                        <Button
+                                          type="default"
+                                          danger
+                                          size="small"
+                                          icon={<CloseOutlined />}
+                                          onClick={() => {
+                                            setRejectingOrderId(order._id);
+                                            setRejectModalVisible(true);
+                                            (window as any).rejectItemId = item._id;
+                                            (window as any).rejectProductId = item.productId;
+                                          }}
+                                        >
+                                          Reject
+                                        </Button>
+                                      </>
+                                    )}
+                                    {item.deliveryTracking?.buyerAcceptance === 'accepted' && item.deliveryStatus === 'delivered' && (
+                                      <Button
+                                        type="default"
+                                        size="small"
+                                        onClick={() => navigate(`/${pageRoutes.userReturns}?orderId=${order._id}&itemId=${item._id}`)}
+                                      >
+                                        Return/Refund
+                                      </Button>
+                                    )}
                                     <Button
                                       type="primary"
                                       size="small"

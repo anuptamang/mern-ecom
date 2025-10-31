@@ -540,7 +540,7 @@ function sampleProducts() {
   ];
 }
 
-async function seedProducts(sellerId) {
+export async function seedProducts(sellerId) {
   const count = await Product.countDocuments();
   if (count > 0) {
     console.log(`Products already present: ${count}`);
@@ -585,15 +585,6 @@ async function resetDatabase() {
   }
 }
 
-export async function seedUser() {
-  // Extract seedUser function to be callable
-  // ... existing seedUser code ...
-}
-
-export async function seedProducts(sellerId) {
-  // Extract seedProducts function to be callable
-  // ... existing seedProducts code ...
-}
 
 async function main() {
   const reset = process.argv.includes("--reset");
