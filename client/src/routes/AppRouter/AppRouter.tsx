@@ -4,6 +4,8 @@ import { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import PrivateRoute from 'routes/PrivateRoute';
 import { SellerRoute } from 'routes/SellerRoute';
+import { DeliveryAgencyRoute } from 'routes/DeliveryAgencyRoute/DeliveryAgencyRoute';
+import { DeliveryPersonRoute } from 'routes/DeliveryPersonRoute/DeliveryPersonRoute';
 
 const GeneralLayout = lazy(() => import('layouts/General'));
 
@@ -31,6 +33,8 @@ const OrdersDashboard = lazy(() => import('pages/private/Orders/Dashboard'));
 const UserCheckoutPage = lazy(() => import('pages/private/User/Checkout'));
 const WishlistDashboard = lazy(() => import('pages/private/Wishlist/Dashboard'));
 const ReturnsDashboard = lazy(() => import('pages/private/Returns/Dashboard'));
+const DeliveryAgencyDashboard = lazy(() => import('pages/private/DeliveryAgency/Dashboard'));
+const DeliveryPersonDashboard = lazy(() => import('pages/private/DeliveryPerson/Dashboard'));
 
 const AppRouter = () => {
   const auth = useAuth();
@@ -78,6 +82,22 @@ const AppRouter = () => {
             <Route path={'checkout'} element={<UserCheckoutPage />} />
             <Route path={'wishlist'} element={<WishlistDashboard />} />
             <Route path={'returns'} element={<ReturnsDashboard />} />
+            <Route 
+              path={'delivery-agency'} 
+              element={
+                <DeliveryAgencyRoute>
+                  <DeliveryAgencyDashboard />
+                </DeliveryAgencyRoute>
+              } 
+            />
+            <Route 
+              path={'delivery-person'} 
+              element={
+                <DeliveryPersonRoute>
+                  <DeliveryPersonDashboard />
+                </DeliveryPersonRoute>
+              } 
+            />
           </Route>
 
           {isAuthenticated ? (

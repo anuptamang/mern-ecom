@@ -221,7 +221,14 @@ async function seedUser() {
     console.log(`Delivery person 2 already exists: ${person2Email}`);
   }
 
-  return { buyer, seller, admin, deliveryAgency, deliveryPerson1, deliveryPerson2 };
+  return {
+    buyer,
+    seller,
+    admin,
+    deliveryAgency,
+    deliveryPerson1,
+    deliveryPerson2,
+  };
 }
 
 function sampleProducts() {
@@ -520,7 +527,14 @@ async function main() {
       await resetDatabase();
     }
 
-    const { buyer, seller, admin, deliveryAgency, deliveryPerson1, deliveryPerson2 } = await seedUser();
+    const {
+      buyer,
+      seller,
+      admin,
+      deliveryAgency,
+      deliveryPerson1,
+      deliveryPerson2,
+    } = await seedUser();
     await seedProducts(seller._id);
     console.log("Seeding completed successfully!");
     console.log("\n=== Test Credentials ===");

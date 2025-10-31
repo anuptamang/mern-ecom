@@ -89,4 +89,3 @@ export const getAgencyPersonsApi = async (agencyId?: string) => {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
-

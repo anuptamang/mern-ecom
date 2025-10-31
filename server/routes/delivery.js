@@ -61,4 +61,3 @@ router.post("/:orderId/reject", rejectDelivery);
 router.post("/:orderId/cancel", cancelOrder);
 
 export default router;
-

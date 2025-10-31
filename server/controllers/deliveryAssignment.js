@@ -381,4 +381,3 @@ export const getAgencyPersons = async (req, res) => {
     return res.status(500).json({ message: "Failed to fetch delivery persons" });
   }
 };
-

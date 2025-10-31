@@ -7,6 +7,8 @@ import {
   ShoppingOutlined,
   HeartOutlined,
   UndoOutlined,
+  TruckOutlined,
+  CarOutlined,
 } from '@ant-design/icons';
 import { Menu, MenuProps } from 'antd';
 import { pageRoutes } from 'data/static/pageRoutes';
@@ -28,6 +30,8 @@ export const UserSidePanel = () => {
   const [current, setCurrent] = useState(location?.pathname);
   const { result } = useAppSelector(authSelector);
   const isSeller = result?.role === 'seller';
+  const isDeliveryAgency = result?.role === 'delivery_agency';
+  const isDeliveryPerson = result?.role === 'delivery_person';
 
   const onClick: MenuProps['onClick'] = (e) => {
     navigate(e.key);
