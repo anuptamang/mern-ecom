@@ -31,6 +31,7 @@ Client (client/.env):
 
 ```
 REACT_APP_BACKEND_API_URL=http://localhost:3010
+REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_test_REMOVED_FOR_SECURITY_FOR_SECURITY_FOR_SECURITY
 ```
 
 ## Running locally
