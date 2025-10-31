@@ -1,5 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { checkUserApi, forgotPasswordApi, loginApi, registerApi } from "services/endPoints/auth/authEndpoints";
+import { getUserApi, updateUserApi } from "services/endPoints/user/userEndpoints";
+import { getToken } from "utils/localStorage";
 import { IAuthSlice, ILogin, IRegister } from "types/store/auth/authSliceTypes";
 
 export type TError = {
@@ -53,4 +55,16 @@ export const changePassword = createAsyncThunk<IAuthSlice, ILogin, { rejectValue
       error.data
     );
   }
+});
+
+export const fetchUserProfile = createAsyncThunk<any, { id: string }>("auth/fetch-user-profile", async ({ id }) => {
+  const token = getToken() || '';
+  const response = await getUserApi(token, id);
+  return response.data;
+});
+
+export const updateUserProfileThunk = createAsyncThunk<any, { id: string, data: any }>("auth/update-user-profile", async ({ id, data }) => {
+  const token = getToken() || '';
+  const response = await updateUserApi(token, id, data);
+  return response.data;
 });

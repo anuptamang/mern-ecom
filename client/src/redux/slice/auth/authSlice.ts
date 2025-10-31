@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { changePassword, login, register, validateUser } from "redux/action/auth/authAction";
+import { changePassword, fetchUserProfile, login, register, updateUserProfileThunk, validateUser } from "redux/action/auth/authAction";
 import { IAuthSlice } from "types/store/auth/authSliceTypes";
 
 const initialState: IAuthSlice = {
@@ -97,6 +97,13 @@ export const authSlice = createSlice({
         state.status.error.message = action.payload.message;
       }
       state.status.success = false;
+    });
+
+    builder.addCase(fetchUserProfile.fulfilled, (state, action) => {
+      state.result = action.payload;
+    });
+    builder.addCase(updateUserProfileThunk.fulfilled, (state, action) => {
+      state.result = action.payload;
     });
   }
 })
