@@ -67,6 +67,7 @@ export const NotificationDropdown = ({
 
     // Navigate to the related content
     let navigateUrl = notification.actionUrl;
+    let scrollTarget: string | null = null;
     
     // If actionUrl is not set, try to construct it from relatedEntity
     if (!navigateUrl && notification.relatedEntity) {
@@ -90,7 +91,26 @@ export const NotificationDropdown = ({
       }
     }
 
+    // Determine scroll target based on notification type
+    if (notification.type === "comment" || notification.type === "reply") {
+      scrollTarget = "product-comments-section";
+    } else if (notification.type === "rating" || notification.type === "review") {
+      scrollTarget = "product-ratings-section";
+    }
+
+    // Extract hash from actionUrl if present, or add scroll target
     if (navigateUrl) {
+      const url = new URL(navigateUrl, window.location.origin);
+      const existingHash = url.hash;
+      
+      if (scrollTarget && !existingHash) {
+        // Add hash fragment for scrolling
+        navigateUrl = `${navigateUrl}#${scrollTarget}`;
+      } else if (existingHash) {
+        // Keep existing hash
+        navigateUrl = url.href.replace(url.origin, '');
+      }
+      
       onNavigate(navigateUrl);
     }
   };

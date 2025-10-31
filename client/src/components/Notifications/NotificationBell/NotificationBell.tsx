@@ -86,6 +86,20 @@ export const NotificationBell = () => {
           onNavigate={(url) => {
             setDropdownVisible(false);
             navigate(url);
+            
+            // Handle scrolling after navigation
+            // Use setTimeout to ensure page has loaded
+            setTimeout(() => {
+              const hash = url.split('#')[1];
+              if (hash) {
+                const element = document.getElementById(hash);
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  // Add a small offset from top
+                  window.scrollBy(0, -80);
+                }
+              }
+            }, 100);
           }}
         />
       )}
