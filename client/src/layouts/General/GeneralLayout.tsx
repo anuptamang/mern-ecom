@@ -1,7 +1,9 @@
 import { Layout } from 'antd';
-import { Header, Content, Footer } from 'components';
+import { Header, Footer } from 'components';
+import { ContentLayout } from 'components/UI';
 import { ReactElement } from 'react';
 import { ToastContainer } from 'react-toastify';
+import { Outlet } from 'react-router-dom';
 
 type Iprops = {
   children?: ReactElement;
@@ -17,18 +19,19 @@ const GeneralLayout = ({ children }: Iprops) => {
           minHeight: '100vh',
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden',
         }}
       >
         <Header />
-        <div
+        <ContentLayout
           style={{
             flexGrow: 1,
             width: '100%',
+            padding: '24px',
+            overflow: 'auto',
           }}
         >
-          <Content>{children}</Content>
-        </div>
+          {children || <Outlet />}
+        </ContentLayout>
         <Footer />
         <ToastContainer />
       </Layout>
