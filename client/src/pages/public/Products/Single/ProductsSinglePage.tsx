@@ -19,7 +19,7 @@ import {
   RelatedProducts,
   WishlistButton,
 } from 'components';
-import { EyeOutlined, LikeOutlined } from '@ant-design/icons';
+import { EyeOutlined, LikeOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import './ProductsSinglePage.scss';
 
 type Props = {};
