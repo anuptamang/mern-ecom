@@ -238,6 +238,7 @@ function sampleProducts() {
       title: "Wireless Mouse",
       body: {
         summary: "Ergonomic 2.4GHz wireless mouse with long battery life",
+        description: "<p>Experience comfort and precision with our wireless mouse. Features include:</p><ul><li>2.4GHz wireless connection</li><li>Long battery life (up to 12 months)</li><li>Ergonomic design</li><li>High-precision optical sensor</li></ul>",
         price: 24.99,
       },
       categories: ["electronics"],
@@ -246,6 +247,7 @@ function sampleProducts() {
       thumbnail: "",
       stock: 50,
       price: 24.99,
+      estimatedDeliveryDays: 5,
     },
     {
       title: "Mechanical Keyboard",
@@ -317,6 +319,7 @@ function sampleProducts() {
       title: "Laptop Stand",
       body: {
         summary: "Adjustable aluminum laptop stand for better ergonomics",
+        description: "<p>Improve your workspace ergonomics with this sturdy aluminum laptop stand.</p>",
         price: 29.99,
       },
       categories: ["accessories"],
@@ -325,11 +328,13 @@ function sampleProducts() {
       thumbnail: "",
       stock: 40,
       price: 29.99,
+      estimatedDeliveryDays: 4,
     },
     {
       title: "Phone Case",
       body: {
         summary: "Protective phone case with shock absorption",
+        description: "<p>Keep your phone safe with this durable protective case featuring advanced shock absorption technology.</p>",
         price: 19.99,
       },
       categories: ["accessories"],
@@ -338,11 +343,13 @@ function sampleProducts() {
       thumbnail: "",
       stock: 80,
       price: 19.99,
+      estimatedDeliveryDays: 3,
     },
     {
       title: "Laptop Bag",
       body: {
         summary: "Water-resistant laptop bag with padded compartment",
+        description: "<p>Carry your laptop safely with this water-resistant bag featuring a padded compartment for maximum protection.</p>",
         price: 59.99,
       },
       categories: ["accessories"],
@@ -351,12 +358,14 @@ function sampleProducts() {
       thumbnail: "",
       stock: 20,
       price: 59.99,
+      estimatedDeliveryDays: 5,
     },
     // Clothing
     {
       title: "Cotton T-Shirt",
       body: {
         summary: "100% cotton comfortable t-shirt in various colors",
+        description: "<p>Soft and comfortable 100% cotton t-shirt available in multiple colors and sizes.</p>",
         price: 24.99,
       },
       categories: ["clothing"],
@@ -365,11 +374,13 @@ function sampleProducts() {
       thumbnail: "",
       stock: 150,
       price: 24.99,
+      estimatedDeliveryDays: 4,
     },
     {
       title: "Denim Jeans",
       body: {
         summary: "Classic fit denim jeans in multiple sizes",
+        description: "<p>Timeless classic fit denim jeans crafted from premium denim fabric.</p>",
         price: 49.99,
       },
       categories: ["clothing"],
@@ -378,11 +389,13 @@ function sampleProducts() {
       thumbnail: "",
       stock: 60,
       price: 49.99,
+      estimatedDeliveryDays: 5,
     },
     {
       title: "Running Shoes",
       body: {
         summary: "Lightweight running shoes with cushioned sole",
+        description: "<p>Perfect for your daily runs, these lightweight shoes feature advanced cushioning technology.</p>",
         price: 79.99,
       },
       categories: ["clothing", "sports"],
@@ -391,12 +404,14 @@ function sampleProducts() {
       thumbnail: "",
       stock: 40,
       price: 79.99,
+      estimatedDeliveryDays: 6,
     },
     // Books
     {
       title: "JavaScript Guide",
       body: {
         summary: "Comprehensive guide to modern JavaScript programming",
+        description: "<p>A complete reference guide covering modern JavaScript features, ES6+, and best practices.</p>",
         price: 34.99,
       },
       categories: ["books"],
@@ -405,11 +420,13 @@ function sampleProducts() {
       thumbnail: "",
       stock: 25,
       price: 34.99,
+      estimatedDeliveryDays: 7,
     },
     {
       title: "Design Patterns Book",
       body: {
         summary: "Essential design patterns for software development",
+        description: "<p>Learn essential software design patterns and when to apply them in your projects.</p>",
         price: 39.99,
       },
       categories: ["books"],
@@ -418,12 +435,14 @@ function sampleProducts() {
       thumbnail: "",
       stock: 15,
       price: 39.99,
+      estimatedDeliveryDays: 7,
     },
     // Home & Kitchen
     {
       title: "Coffee Maker",
       body: {
         summary: "Programmable coffee maker with 12-cup capacity",
+        description: "<p>Start your day right with this programmable coffee maker featuring a 12-cup capacity and auto-shutoff.</p>",
         price: 89.99,
       },
       categories: ["home", "kitchen"],
@@ -432,11 +451,13 @@ function sampleProducts() {
       thumbnail: "",
       stock: 30,
       price: 89.99,
+      estimatedDeliveryDays: 5,
     },
     {
       title: "Bluetooth Speaker",
       body: {
         summary: "Portable Bluetooth speaker with 360-degree sound",
+        description: "<p>Enjoy immersive 360-degree sound with this portable Bluetooth speaker perfect for any room.</p>",
         price: 49.99,
       },
       categories: ["electronics", "home"],
@@ -445,12 +466,14 @@ function sampleProducts() {
       thumbnail: "",
       stock: 50,
       price: 49.99,
+      estimatedDeliveryDays: 4,
     },
-    // Some out of stock items
+    // Some out of stock items (for wishlist testing)
     {
       title: "Vintage Watch",
       body: {
         summary: "Classic vintage watch with leather strap",
+        description: "<p>A timeless vintage watch featuring a genuine leather strap and classic design elements.</p>",
         price: 149.99,
       },
       categories: ["accessories"],
@@ -459,11 +482,13 @@ function sampleProducts() {
       thumbnail: "",
       stock: 0,
       price: 149.99,
+      estimatedDeliveryDays: 7,
     },
     {
       title: "Limited Edition Headphones",
       body: {
         summary: "Premium limited edition headphones with wood accents",
+        description: "<p>Exclusive limited edition headphones featuring premium wood accents and exceptional sound quality.</p>",
         price: 299.99,
       },
       categories: ["electronics"],
@@ -472,6 +497,7 @@ function sampleProducts() {
       thumbnail: "",
       stock: 0,
       price: 299.99,
+      estimatedDeliveryDays: 10,
     },
   ];
 }
@@ -486,14 +512,17 @@ async function seedProducts(sellerId) {
   const data = sampleProducts().map((p) => ({
     ...p,
     userID: sellerId,
-    estimatedDeliveryDays: 7, // Default delivery time
+    // Use estimatedDeliveryDays from product data if provided, otherwise random
+    estimatedDeliveryDays: p.estimatedDeliveryDays || Math.floor(Math.random() * 5) + 3,
     createdAt: now,
-    views: 0,
-    likes: 0,
-    rating: 0,
-    ratings: [],
-    comments: [],
-    images: [], // Gallery images array
+    views: Math.floor(Math.random() * 500), // Random views
+    likes: Math.floor(Math.random() * 50), // Random likes
+    rating: 0, // Will be calculated from ratings array
+    ratings: [], // Empty initially - can be populated later
+    comments: [], // Empty initially - can be populated later
+    images: [], // Gallery images array - empty initially (can add images via UI)
+    status: "published", // Default status
+    name: p.title.toLowerCase().replace(/\s+/g, "-"), // Generate name from title
   }));
   await Product.insertMany(data);
   console.log(`Inserted ${data.length} products.`);

@@ -16,7 +16,7 @@ import {
   getPersonDeliveries,
   getAgencyPersons,
 } from "../controllers/deliveryAssignment.js";
-import { Upload, UploadSingle } from "../middlewares/upload.js";
+import { Upload } from "../middlewares/upload.js";
 
 const router = express.Router();
 
