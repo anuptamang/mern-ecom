@@ -4,7 +4,7 @@ import { Container } from 'components/UI';
 import { usePageTitle } from 'hooks/usePageTitle';
 import { ReactNode, useEffect, useState } from 'react';
 import styles from 'assets/styles/Common.module.scss';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { authSelector } from 'redux/slice';
@@ -40,6 +40,7 @@ export { ProductsSinglePage };
 
 const ProductDetails = () => {
   const { id } = useParams();
+  const location = useLocation();
   const [product, setProduct] = useState<any>(null);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,25 +50,38 @@ const ProductDetails = () => {
   const { result } = useAppSelector(authSelector);
   const isSeller = result?.role === 'seller';
 
-  // Handle scroll to hash on page load or when hash changes
+  // Handle scroll to hash when product is loaded and hash is present
   useEffect(() => {
-    const handleHashScroll = () => {
-      const hash = window.location.hash.replace('#', '');
-      if (hash) {
-        setTimeout(() => {
-          const element = document.getElementById(hash);
-          if (element) {
+    if (!product || loading) return;
+
+    const scrollToHash = () => {
+      const hash = location.hash.replace('#', '');
+      if (!hash) return;
+
+      // Try multiple times with increasing delays to ensure element is rendered
+      const tryScroll = (attempt = 0) => {
+        const element = document.getElementById(hash);
+        if (element) {
+          // Use requestAnimationFrame for smoother scrolling
+          requestAnimationFrame(() => {
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            window.scrollBy(0, -80); // Offset from top
-          }
-        }, 500); // Wait for page to render
-      }
+            // Add offset after a short delay
+            setTimeout(() => {
+              window.scrollBy(0, -80);
+            }, 100);
+          });
+        } else if (attempt < 10) {
+          // Try again after a delay if element not found (max 10 attempts)
+          setTimeout(() => tryScroll(attempt + 1), 100 * (attempt + 1));
+        }
+      };
+
+      // Start trying after a short initial delay
+      setTimeout(() => tryScroll(), 100);
     };
 
-    handleHashScroll();
-    window.addEventListener('hashchange', handleHashScroll);
-    return () => window.removeEventListener('hashchange', handleHashScroll);
-  }, [product]);
+    scrollToHash();
+  }, [product, loading, location.hash]);
 
   useEffect(() => {
     if (!id) {
