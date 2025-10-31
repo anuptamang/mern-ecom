@@ -144,7 +144,7 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
         title="Related Products" 
         className="related-products-card"
         extra={
-          useCarousel && carouselRef.current && (
+          useCarousel && (
             <div className="carousel-controls">
               <Button
                 type="text"
