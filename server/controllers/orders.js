@@ -1,5 +1,6 @@
 import Order from "../models/order.js";
 import Cart from "../models/cart.js";
+import Product from "../models/product.js";
 
 export const createOrder = async (req, res) => {
   try {
@@ -24,6 +25,23 @@ export const createOrder = async (req, res) => {
       finalAmount = Math.round(totals.totalPrice * 100);
     }
 
+    // Validate stock availability before creating order
+    for (const item of orderItems) {
+      const product = await Product.findById(item.productId);
+      if (!product) {
+        return res.status(404).json({ 
+          message: `Product ${item.title || item.productId} not found` 
+        });
+      }
+      const currentStock = product.stock || 0;
+      if (currentStock < item.quantity) {
+        return res.status(400).json({ 
+          message: `Insufficient stock for ${item.title || product.title}. Available: ${currentStock}, Requested: ${item.quantity}` 
+        });
+      }
+    }
+
+    // Create the order
     const order = await Order.create({
       userId,
       items: orderItems,
@@ -33,12 +51,24 @@ export const createOrder = async (req, res) => {
       paymentIntentId,
     });
 
+    // Update stock for each product in the order
+    for (const item of orderItems) {
+      await Product.findByIdAndUpdate(
+        item.productId,
+        { 
+          $inc: { stock: -item.quantity } 
+        },
+        { new: true }
+      );
+    }
+
     // Clear cart on order creation
     await Cart.findOneAndUpdate({ userId }, { items: [] });
 
     return res.status(201).json({ order });
   } catch (error) {
-    return res.status(500).json({ message: "Failed to create order" });
+    console.error("Error creating order:", error);
+    return res.status(500).json({ message: "Failed to create order", error: error.message });
   }
 };
 
