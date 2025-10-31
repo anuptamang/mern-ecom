@@ -290,9 +290,24 @@ const ProductsDashboardPage = (props: Props) => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <Tag color={getStatusColor(order.status)}>
-                          {order.status?.toUpperCase()}
-                        </Tag>
+                        <div className="mb-2">
+                          <Tag color={getStatusColor(order.status)}>
+                            {order.status?.toUpperCase()}
+                          </Tag>
+                          {order.deliveryStatus && (
+                            <Tag color="blue" style={{ marginLeft: 8 }}>
+                              {order.deliveryStatus.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                            </Tag>
+                          )}
+                          {order.refundStatus && (
+                            <Tag 
+                              color={order.refundStatus === 'succeeded' ? 'success' : order.refundStatus === 'failed' ? 'error' : 'warning'} 
+                              style={{ marginLeft: 8 }}
+                            >
+                              Refund: {order.refundStatus.replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                            </Tag>
+                          )}
+                        </div>
                         <div className="font-semibold text-lg mt-2">
                           ${(order.amount / 100).toFixed(2)}
                         </div>
@@ -326,6 +341,44 @@ const ProductsDashboardPage = (props: Props) => {
                           </Button>
                         </div>
                       ))}
+                    </div>
+                    <div className="border-t pt-4 mt-4">
+                      <Space>
+                        <Button
+                          type="default"
+                          size="small"
+                          onClick={async () => {
+                            try {
+                              const { data } = await getDeliveryTrackingApi(order._id);
+                              setDeliveryTracking(data.delivery);
+                              setSelectedOrder(order);
+                              setTrackingModalVisible(true);
+                            } catch (error: any) {
+                              message.error(error?.response?.data?.message || 'Failed to load delivery tracking');
+                            }
+                          }}
+                        >
+                          Track Delivery
+                        </Button>
+                        {(order.status === 'cancelled' || order.status === 'refunded' || order.refundStatus) && (
+                          <Button
+                            type="default"
+                            size="small"
+                            onClick={async () => {
+                              try {
+                                const { data } = await getDeliveryTrackingApi(order._id);
+                                setDeliveryTracking(data.delivery);
+                                setSelectedOrder(order);
+                                setTrackingModalVisible(true);
+                              } catch (error: any) {
+                                message.error(error?.response?.data?.message || 'Failed to load order details');
+                              }
+                            }}
+                          >
+                            View Refund Status
+                          </Button>
+                        )}
+                      </Space>
                     </div>
                   </Card>
                 </List.Item>
