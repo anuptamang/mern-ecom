@@ -6,7 +6,6 @@ import {
   HomeOutlined,
   CloseCircleOutlined,
 } from '@ant-design/icons';
-import moment from 'moment';
 import { IDeliveryTracking } from 'types/delivery/deliveryTypes';
 
 const { Text } = Typography;
