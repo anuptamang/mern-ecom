@@ -86,7 +86,10 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
         message.error('Authentication required');
         return;
       }
-      await updateDeliveryStatusApi(order._id, selectedStatus, updateNote, orderItemId, productId);
+      // Use orderItemId/productId from props, or extract from delivery object
+      const itemId = orderItemId || (delivery as any)?.orderItemId;
+      const prodId = productId || (delivery as any)?.productId;
+      await updateDeliveryStatusApi(order._id, selectedStatus, updateNote, itemId, prodId);
       message.success('Delivery status updated successfully');
       setUpdateModalVisible(false);
       setSelectedStatus('');
