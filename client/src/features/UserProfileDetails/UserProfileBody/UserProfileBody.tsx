@@ -1,8 +1,8 @@
-import { Form } from 'antd';
+import { Form, message } from 'antd';
 import { ProfileBody } from 'components';
 import { authSelector } from 'redux/slice';
 import { useAppDispatch, useAppSelector } from 'redux/store';
-import { updateUserProfileThunk } from 'redux/action/auth/authAction';
+import { updateUserProfileThunk, fetchUserProfile } from 'redux/action/auth/authAction';
 import { useEffect } from 'react';
 
 export const UserProfileBody = () => {
@@ -26,9 +26,22 @@ export const UserProfileBody = () => {
     }
   }, [result, form]);
 
-  const onFormSubmit = (values: any) => {
+  const onFormSubmit = async (values: any) => {
     if (!result?._id) return;
-    dispatch(updateUserProfileThunk({ id: result._id, data: values }));
+    try {
+      // Convert firstName and lastName to fullName
+      const fullName = `${values.firstName} ${values.lastName}`.trim();
+      const updateData = {
+        email: values.email,
+        fullName,
+      };
+      await dispatch(updateUserProfileThunk({ id: result._id, data: updateData })).unwrap();
+      // Refresh user profile to show updated data
+      dispatch(fetchUserProfile({ id: result._id }));
+      message.success('Profile updated successfully');
+    } catch (e: any) {
+      message.error(e?.message || 'Failed to update profile');
+    }
   };
 
   return (

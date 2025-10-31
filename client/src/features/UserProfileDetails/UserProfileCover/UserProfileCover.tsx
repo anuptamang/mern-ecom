@@ -1,3 +1,4 @@
+import { message } from 'antd';
 import { ProfileCover } from 'components';
 import { getToken } from 'utils/localStorage';
 import { authSelector } from 'redux/slice';
@@ -9,15 +10,20 @@ import { fetchUserProfile } from 'redux/action/auth/authAction';
 export const UserProfileCover = () => {
   const { result } = useAppSelector(authSelector);
   const dispatch = useAppDispatch();
-  const onCoverPhotoChange = async (fileOrUrl: any) => {
+  const onCoverPhotoChange = async (file: any) => {
     if (!result?._id) return;
     const token = getToken() || '';
-    const form = new FormData();
-    form.append('thumbnail', fileOrUrl as any);
-    await axios.patch(`${AUTH_API}/${result._id}/cover-photo`, form, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    dispatch(fetchUserProfile({ id: result._id }));
+    try {
+      const form = new FormData();
+      form.append('thumbnail', file);
+      await axios.patch(`${AUTH_API}/${result._id}/cover-photo`, form, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      dispatch(fetchUserProfile({ id: result._id }));
+      message.success('Cover photo updated successfully');
+    } catch (e: any) {
+      message.error(e?.response?.data?.message || 'Failed to upload cover photo');
+    }
   };
 
   return (

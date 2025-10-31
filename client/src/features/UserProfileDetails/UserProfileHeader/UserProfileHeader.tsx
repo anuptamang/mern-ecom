@@ -1,3 +1,4 @@
+import { message } from 'antd';
 import { ProfileHeader } from 'components';
 import { authSelector } from 'redux/slice';
 import { useAppSelector, useAppDispatch } from 'redux/store';
@@ -9,15 +10,20 @@ import { fetchUserProfile } from 'redux/action/auth/authAction';
 export const UserProfileHeader = () => {
   const { result } = useAppSelector(authSelector);
   const dispatch = useAppDispatch();
-  const onProfilePhotoChange = async (fileOrUrl: any) => {
+  const onProfilePhotoChange = async (file: any) => {
     if (!result?._id) return;
     const token = getToken() || '';
-    const form = new FormData();
-    form.append('thumbnail', fileOrUrl as any);
-    await axios.patch(`${AUTH_API}/${result._id}/profile-photo`, form, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    dispatch(fetchUserProfile({ id: result._id }));
+    try {
+      const form = new FormData();
+      form.append('thumbnail', file);
+      await axios.patch(`${AUTH_API}/${result._id}/profile-photo`, form, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      dispatch(fetchUserProfile({ id: result._id }));
+      message.success('Profile photo updated successfully');
+    } catch (e: any) {
+      message.error(e?.response?.data?.message || 'Failed to upload profile photo');
+    }
   };
 
   return (

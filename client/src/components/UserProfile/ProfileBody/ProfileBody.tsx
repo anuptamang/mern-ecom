@@ -57,6 +57,12 @@ export const ProfileBody = ({
     }
   }, [action]);
 
+  const handleSubmit = (values: any) => {
+    if (onFormSubmit) {
+      onFormSubmit(values);
+    }
+  };
+
   return (
     <div className="pt-10">
       <Form
@@ -64,6 +70,7 @@ export const ProfileBody = ({
         {...formItemLayout}
         form={form}
         disabled={componentDisabled}
+        onFinish={handleSubmit}
         initialValues={{
           email: 'anup@gmail.com',
           firstName: 'Anup',

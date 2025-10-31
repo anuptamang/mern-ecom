@@ -5,7 +5,7 @@ import { pageRoutes } from 'data/static/pageRoutes';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 type TProfileHeader = {
-  onProfilePhotoChange: (photoUrl: string) => void;
+  onProfilePhotoChange: (file: File) => void;
   profilePhotoUrl: string;
   fullName: string;
 };
@@ -15,28 +15,19 @@ export const ProfileHeader = ({
   profilePhotoUrl,
   fullName,
 }: TProfileHeader) => {
-  const handlePhotoChange = () => {
-    onProfilePhotoChange('photoUrl');
-  };
   const navigate = useNavigate();
   const { hash } = useLocation();
   const action = hash?.slice(1);
 
   const props: UploadProps = {
-    action: '//jsonplaceholder.typicode.com/posts/',
-    listType: 'picture',
-    previewFile(file) {
-      console.log('Your upload file:', file);
-      // Your process logic. Here we just mock to the same file
-      return fetch('https://next.json-generator.com/api/json/get/4ytyBoLK8', {
-        method: 'POST',
-        body: file,
-      })
-        .then((res) => res.json())
-        .then(({ thumbnail }) => {
-          console.log(thumbnail);
-          return thumbnail;
-        });
+    name: 'thumbnail',
+    accept: 'image/*',
+    showUploadList: false,
+    beforeUpload: (file) => {
+      // Call the upload handler with the file
+      onProfilePhotoChange(file);
+      // Return false to prevent default upload
+      return false;
     },
   };
   return (
