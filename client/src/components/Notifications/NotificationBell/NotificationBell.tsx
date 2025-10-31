@@ -26,13 +26,13 @@ export const NotificationBell = () => {
       dispatch(fetchNotifications({ limit: 20 }));
       dispatch(fetchUnreadCount());
 
-      // Poll for new notifications every 30 seconds
+      // Poll for new notifications every 5 seconds for faster updates
       const interval = setInterval(() => {
         dispatch(fetchUnreadCount());
         if (dropdownVisible) {
           dispatch(fetchNotifications({ limit: 20 }));
         }
-      }, 30000);
+      }, 5000);
 
       return () => clearInterval(interval);
     }

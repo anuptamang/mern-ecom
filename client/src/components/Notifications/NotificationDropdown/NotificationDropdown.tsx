@@ -60,12 +60,38 @@ export const NotificationDropdown = ({
   };
 
   const handleNotificationClick = async (notification: INotification) => {
+    // Mark as read first
     if (!notification.read) {
       dispatch(markNotificationAsRead(notification._id));
     }
 
-    if (notification.actionUrl) {
-      onNavigate(notification.actionUrl);
+    // Navigate to the related content
+    let navigateUrl = notification.actionUrl;
+    
+    // If actionUrl is not set, try to construct it from relatedEntity
+    if (!navigateUrl && notification.relatedEntity) {
+      const { entityType, entityId } = notification.relatedEntity;
+      switch (entityType) {
+        case "product":
+          navigateUrl = `/products/${entityId}`;
+          break;
+        case "order":
+          navigateUrl = `/user/orders`;
+          break;
+        case "comment":
+        case "rating":
+          // For comments/ratings, navigate to the product page
+          if (notification.metadata?.productId) {
+            navigateUrl = `/products/${notification.metadata.productId}`;
+          }
+          break;
+        default:
+          break;
+      }
+    }
+
+    if (navigateUrl) {
+      onNavigate(navigateUrl);
     }
   };
 
