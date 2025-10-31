@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const deliveryTrackingSchema = mongoose.Schema(
+const deliveryTrackingSchema = new mongoose.Schema(
   {
     orderId: {
       type: mongoose.Types.ObjectId,
