@@ -71,4 +71,3 @@ returnSchema.index({ userId: 1, returnStatus: 1 });
 const Return = mongoose.model("returns", returnSchema);
 
 export default Return;
-

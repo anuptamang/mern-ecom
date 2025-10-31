@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Card, List, message, Modal, Tabs, Tag, Statistic, Row, Col, Space, Image, Popconfirm, Spin, Empty } from 'antd';
+import { Button, Card, List, message, Modal, Tabs, Tag, Statistic, Row, Col, Space, Image, Popconfirm, Spin, Empty, Input } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { fetchMyProductsApi, deleteProductApi } from 'services/endPoints/products/productsEndpoints';
 import { getSellerOrdersApi } from 'services/endPoints/orders/ordersEndpoints';
@@ -137,6 +137,44 @@ const ProductsDashboardPage = (props: Props) => {
       message.error(e?.response?.data?.message || 'Failed to load stats');
     } finally {
       setStatsLoading(false);
+    }
+  };
+
+  const loadReturns = async () => {
+    setReturnsLoading(true);
+    try {
+      const token = getToken();
+      if (!token) return;
+      const { data } = await getSellerReturnsApi();
+      setReturns(data.returns || []);
+    } catch (e: any) {
+      message.error(e?.response?.data?.message || 'Failed to load returns');
+    } finally {
+      setReturnsLoading(false);
+    }
+  };
+
+  const handleApproveReturn = async (returnId: string) => {
+    try {
+      await approveReturnApi(returnId);
+      message.success('Return approved and refund processed');
+      loadReturns();
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || 'Failed to approve return');
+    }
+  };
+
+  const handleRejectReturn = async () => {
+    if (!rejectingReturnId) return;
+    try {
+      await rejectReturnApi(rejectingReturnId, rejectReason);
+      message.success('Return rejected');
+      setRejectModalVisible(false);
+      setRejectReason('');
+      setRejectingReturnId(null);
+      loadReturns();
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || 'Failed to reject return');
     }
   };
 

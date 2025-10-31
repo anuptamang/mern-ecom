@@ -29,4 +29,3 @@ router.post("/:returnId/approve", blockBuyers, approveReturn);
 router.post("/:returnId/reject", blockBuyers, rejectReturn);
 
 export default router;
-

@@ -402,4 +402,3 @@ export const cancelReturn = async (req, res) => {
     return res.status(500).json({ message: "Failed to cancel return" });
   }
 };
-
