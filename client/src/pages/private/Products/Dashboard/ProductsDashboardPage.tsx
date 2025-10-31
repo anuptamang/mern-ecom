@@ -223,7 +223,7 @@ const ProductsDashboardPage = (props: Props) => {
                           {item.categories && item.categories.length > 0 && (
                             <div className="mt-2">
                               {item.categories.slice(0, 2).map((cat: string) => (
-                                <Tag key={cat} size="small">{cat}</Tag>
+                                <Tag key={cat}>{cat}</Tag>
                               ))}
                             </div>
                           )}
