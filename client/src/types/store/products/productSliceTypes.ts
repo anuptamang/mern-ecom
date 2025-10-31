@@ -21,5 +21,5 @@ export interface IProductSlice {
 
 
 export interface IProductSliceParams {
-  category: string
+  category: string | null
 }
