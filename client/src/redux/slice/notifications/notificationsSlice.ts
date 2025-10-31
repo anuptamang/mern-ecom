@@ -23,8 +23,8 @@ const initialState: INotificationState = {
 // Fetch notifications
 export const fetchNotifications = createAsyncThunk<
   { notifications: INotification[]; unreadCount: number; total: number },
-  { read?: boolean; limit?: number; skip?: number } | void
->("notifications/fetch", async (params = {}) => {
+  { read?: boolean; limit?: number; skip?: number } | undefined
+>("notifications/fetch", async (params) => {
   const response = await getNotificationsApi(params);
   return response.data;
 });
