@@ -22,7 +22,7 @@ export const createOrGetChat = async (req, res) => {
         return res.status(404).json({ message: "Product seller not found" });
       }
       // product.userID is either ObjectId (not populated) or populated User object
-      const sellerId = product.userID._id || product.userID;
+      const sellerId = product.userID?._id ? product.userID._id : product.userID;
       recipientId = String(sellerId);
     }
 
