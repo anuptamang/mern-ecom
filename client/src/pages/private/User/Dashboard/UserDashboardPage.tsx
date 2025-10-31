@@ -19,7 +19,7 @@ const UserDashboardPage = (): JSX.Element => {
   const auth = useAuth();
   const dispatch = useAppDispatch();
   const { result } = useAppSelector(authSelector);
-  const userName = getUserName(result?.fullName);
+  const userName = result?.fullName || (result?.email ? getUserName(result.email) : '');
   const title = usePageTitle();
 
   useEffect(() => {

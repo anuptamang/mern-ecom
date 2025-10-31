@@ -9,5 +9,6 @@ export interface IUser {
   avatarUrl?: string;
   profilePhoto?: string;
   coverPhoto?: string;
+  role?: string;
   __v?: number
 }
