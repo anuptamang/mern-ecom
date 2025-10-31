@@ -81,6 +81,24 @@ const UserCheckoutPage = () => {
                 showIcon
                 className="mb-4"
               />
+              <Divider>Delivery Address</Divider>
+              {user && (
+                <div className="mb-4">
+                  <AddressSelect
+                    user={user}
+                    onSelect={handleAddressSelect}
+                    selectedAddressType={selectedAddressType}
+                  />
+                  {!selectedAddress && (
+                    <Alert
+                      message="Please add an address in your profile settings"
+                      type="warning"
+                      className="mt-2"
+                    />
+                  )}
+                </div>
+              )}
+              <Divider>Payment</Divider>
               <div className="mb-4 text-right">
                 <div className="text-lg font-semibold">Total: ${(carts.totalPrice || 0).toFixed(2)}</div>
                 {carts.totalPrice === 0 && (
@@ -88,7 +106,13 @@ const UserCheckoutPage = () => {
                 )}
               </div>
               <Elements stripe={stripePromise} options={{ appearance: { theme: 'stripe' } }}>
-                <StripeCheckoutForm onSuccess={() => setPaid(true)} />
+                <StripeCheckoutForm
+                  onSuccess={() => setPaid(true)}
+                  deliveryAddress={selectedAddress ? {
+                    ...selectedAddress,
+                    addressType: selectedAddressType,
+                  } : null}
+                />
               </Elements>
             </div>
           )}
