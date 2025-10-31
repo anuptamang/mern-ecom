@@ -401,8 +401,18 @@ export const getDeliveryTracking = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Check if user owns the order or is seller of products in order
-    if (String(order.userId) !== String(userId)) {
+    // Get user role from request (set by Auth middleware)
+    const userRole = req.userRole;
+    
+    // Check authorization: user can view if:
+    // 1. They own the order (buyer)
+    // 2. They are seller of products in the order
+    // 3. They are delivery agency assigned to the delivery
+    // 4. They are delivery person assigned to the delivery
+    // 5. They are admin
+    if (String(order.userId) !== String(userId) && userRole !== "admin") {
+      let isAuthorized = false;
+      
       // Check if user is seller of any product in the order
       const Product = (await import("../models/product.js")).default;
       const productIds = order.items.map((item) => item.productId);
@@ -410,8 +420,24 @@ export const getDeliveryTracking = async (req, res) => {
       const isSeller = products.some(
         (p) => String(p.userID) === String(userId)
       );
+      
+      if (isSeller) {
+        isAuthorized = true;
+      } else if (userRole === "delivery_agency" || userRole === "delivery_person") {
+        // Check if deliveries are assigned to this user
+        const deliveries = await Delivery.find({ orderId });
+        if (userRole === "delivery_agency") {
+          isAuthorized = deliveries.some(
+            (d) => d.assignedDeliveryAgency && String(d.assignedDeliveryAgency) === String(userId)
+          );
+        } else if (userRole === "delivery_person") {
+          isAuthorized = deliveries.some(
+            (d) => d.assignedDeliveryPerson && String(d.assignedDeliveryPerson) === String(userId)
+          );
+        }
+      }
 
-      if (!isSeller) {
+      if (!isAuthorized) {
         return res.status(403).json({ message: "Unauthorized to view this delivery" });
       }
     }

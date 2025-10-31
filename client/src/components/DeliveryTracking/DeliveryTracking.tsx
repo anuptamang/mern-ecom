@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Steps, Tag, Timeline, Typography, Empty, Button, Modal, Select, Input, Space, message } from 'antd';
 import { 
   ShoppingOutlined, 
@@ -33,13 +33,21 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [updateNote, setUpdateNote] = useState<string>('');
   const [updating, setUpdating] = useState(false);
+  const [currentDelivery, setCurrentDelivery] = useState(delivery);
 
-  if (!delivery && !order) {
+  // Update currentDelivery when delivery prop changes
+  useEffect(() => {
+    if (delivery) {
+      setCurrentDelivery(delivery);
+    }
+  }, [delivery]);
+
+  if (!currentDelivery && !order) {
     return <Empty description="No delivery tracking information available" />;
   }
 
-  const currentStatus = delivery?.status || order?.deliveryStatus || 'packing';
-  const statusHistory = delivery?.statusHistory || [];
+  const currentStatus = currentDelivery?.status || order?.deliveryStatus || 'packing';
+  const statusHistory = currentDelivery?.statusHistory || [];
 
   const statusMap: Record<string, { step: number; title: string; icon: any; description: string }> = {
     packing: { step: 0, title: 'Packing', icon: <ShoppingOutlined />, description: 'Order is being prepared' },
@@ -107,13 +115,39 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
         return;
       }
       // Use orderItemId/productId from props, or extract from delivery object
-      const itemId = orderItemId || (delivery as any)?.orderItemId;
-      const prodId = productId || (delivery as any)?.productId;
-      await updateDeliveryStatusApi(order._id, selectedStatus, updateNote, itemId, prodId);
+      const itemId = orderItemId || (currentDelivery as any)?.orderItemId;
+      const prodId = productId || (currentDelivery as any)?.productId;
+      const response = await updateDeliveryStatusApi(order._id, selectedStatus, updateNote, itemId, prodId);
       message.success('Delivery status updated successfully');
       setUpdateModalVisible(false);
       setSelectedStatus('');
       setUpdateNote('');
+      
+      // Update the current delivery with the response data
+      if (response?.data?.delivery) {
+        setCurrentDelivery(response.data.delivery);
+      }
+      
+      // Reload tracking data from API to get the latest status
+      try {
+        const { getDeliveryTrackingApi } = await import('services/endPoints/delivery');
+        const { data } = await getDeliveryTrackingApi(order._id);
+        if (data.deliveries) {
+          const updatedDelivery = data.deliveries.find(
+            (d: any) => (itemId && String(d.orderItemId) === String(itemId)) ||
+                       (prodId && String(d.productId) === String(prodId)) ||
+                       (!itemId && !prodId && data.deliveries[0])
+          );
+          if (updatedDelivery) {
+            setCurrentDelivery(updatedDelivery);
+          }
+        } else if (data.delivery) {
+          setCurrentDelivery(data.delivery);
+        }
+      } catch (reloadError) {
+        console.error('Failed to reload delivery tracking:', reloadError);
+      }
+      
       if (onStatusUpdate) {
         onStatusUpdate();
       }
@@ -142,24 +176,24 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
           </Button>
         ) : null}
       >
-      {delivery?.trackingNumber && (
+      {currentDelivery?.trackingNumber && (
         <div className="mb-4">
           <Text strong>Tracking Number: </Text>
-          <Tag color="blue">{delivery.trackingNumber}</Tag>
+          <Tag color="blue">{currentDelivery.trackingNumber}</Tag>
         </div>
       )}
 
-      {delivery?.carrier && (
+      {currentDelivery?.carrier && (
         <div className="mb-4">
           <Text strong>Carrier: </Text>
-          <Text>{delivery.carrier}</Text>
+          <Text>{currentDelivery.carrier}</Text>
         </div>
       )}
 
-      {delivery?.estimatedDeliveryDate && (
+      {currentDelivery?.estimatedDeliveryDate && (
         <div className="mb-4">
           <Text strong>Estimated Delivery: </Text>
-          <Text>{new Date(delivery.estimatedDeliveryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</Text>
+          <Text>{new Date(currentDelivery.estimatedDeliveryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</Text>
         </div>
       )}
 

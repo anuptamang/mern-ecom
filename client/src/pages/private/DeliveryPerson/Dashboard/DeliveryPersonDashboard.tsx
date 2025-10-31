@@ -308,7 +308,23 @@ const DeliveryPersonDashboard = () => {
             isSeller={false}
             orderItemId={deliveryTracking?.orderItemId || selectedDelivery.orderItemId}
             productId={deliveryTracking?.productId || selectedDelivery.productId}
-            onStatusUpdate={loadDeliveries}
+            onStatusUpdate={async () => {
+              await loadDeliveries();
+              // Reload tracking data after update
+              try {
+                const { data } = await getDeliveryTrackingApi(selectedDelivery.orderId._id);
+                const itemDelivery = data.deliveries?.find(
+                  (d: any) => String(d._id) === String(selectedDelivery._id) ||
+                             (selectedDelivery.orderItemId && String(d.orderItemId) === String(selectedDelivery.orderItemId)) ||
+                             (selectedDelivery.productId && String(d.productId) === String(selectedDelivery.productId))
+                ) || data.deliveries?.[0] || data.delivery;
+                if (itemDelivery) {
+                  setDeliveryTracking(itemDelivery);
+                }
+              } catch (error) {
+                console.error('Failed to reload tracking:', error);
+              }
+            }}
           />
         )}
       </Modal>
@@ -367,4 +383,3 @@ const DeliveryPersonDashboard = () => {
 };
 
 export default DeliveryPersonDashboard;
-
