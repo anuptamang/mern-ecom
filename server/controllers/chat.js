@@ -168,44 +168,36 @@ export const getChatById = async (req, res) => {
 
     // Mark messages as read and seen for current user
     const now = new Date();
-    let unreadCountReset = false;
+    let hasUnreadMessages = false;
 
     chat.messages.forEach((msg) => {
       // Mark as read if it's not from current user and not already read
       if (String(msg.senderId) !== String(userId) && !msg.read) {
         msg.read = true;
         msg.readAt = now;
-        unreadCountReset = true;
+        hasUnreadMessages = true;
       }
 
-      // Mark as seen by current user (for messages sent by current user to others)
-      // This tracks when the recipient has seen the message
+      // Initialize seenBy Map if it doesn't exist
       if (!msg.seenBy) {
         msg.seenBy = new Map();
       }
       
-      // If current user sent this message, mark when others saw it
-      // If current user received this message, mark that they saw it
-      if (String(msg.senderId) === String(userId)) {
-        // This is a message sent by current user - track when others see it
-        // (This will be updated when recipients view the chat)
-      } else {
+      // For messages received by current user, mark as seen
+      if (String(msg.senderId) !== String(userId)) {
         // This is a message received by current user - mark that they saw it
         msg.seenBy.set(userId.toString(), now);
         if (!msg.seenAt) {
           msg.seenAt = now;
         }
       }
+      // For messages sent by current user, seenBy will be updated by recipients when they view the chat
     });
 
-    // Reset unread count for current user if any messages were marked as read
-    if (unreadCountReset) {
-      chat.unreadCount.set(userId.toString(), 0);
-      await chat.save();
-    } else {
-      // Still save to persist seenBy updates
-      await chat.save();
-    }
+    // Always reset unread count for current user when they view the chat
+    // This ensures the count is cleared even if messages were already marked as read
+    chat.unreadCount.set(userId.toString(), 0);
+    await chat.save();
 
     return res.json({ chat });
   } catch (error) {

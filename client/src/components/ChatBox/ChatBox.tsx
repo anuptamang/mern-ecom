@@ -529,10 +529,26 @@ const ChatBox: React.FC<ChatBoxProps> = ({
                         )}
                         <div className="message-text">{msg.text}</div>
                         <div className="message-time">
-                          {new Date(msg.createdAt).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
+                          <span>
+                            {new Date(msg.createdAt).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                          {isOwnMessage && msg.seenBy && user?._id && (() => {
+                            const otherParticipant = getOtherParticipant();
+                            if (!otherParticipant) return null;
+                            const otherUserId = otherParticipant.userId._id;
+                            const seenByOther = msg.seenBy[otherUserId] || msg.seenBy[String(otherUserId)];
+                            return seenByOther ? (
+                              <span className="message-seen">✓✓</span>
+                            ) : (
+                              <span className="message-sent">✓</span>
+                            );
+                          })()}
+                          {!isOwnMessage && msg.read && (
+                            <span className="message-read">✓✓</span>
+                          )}
                         </div>
                       </div>
                       {isOwnMessage && (
