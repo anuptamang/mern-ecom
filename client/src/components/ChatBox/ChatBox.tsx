@@ -11,7 +11,6 @@ import {
   createOrGetChatApi,
   getChatByIdApi,
   sendMessageApi,
-  getMyChatsApi,
 } from 'services/endPoints/chat/chatEndpoints';
 import { useAppSelector } from 'redux/store';
 import { authSelector } from 'redux/slice';
@@ -97,10 +96,11 @@ const ChatBox: React.FC<ChatBoxProps> = ({
 
   // Auto-open if productId is provided
   useEffect(() => {
-    if (productId && sellerId) {
+    if (productId && sellerId && user) {
       handleOpenChat();
     }
-  }, [productId, sellerId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId, sellerId, user]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -110,6 +110,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
     if (chat && isOpen && !isMinimized) {
       scrollToBottom();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chat?.messages, isOpen, isMinimized]);
 
   const handleOpenChat = async () => {

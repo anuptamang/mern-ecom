@@ -2,7 +2,9 @@ import axios from "axios";
 import { BACKEND_API } from "configs/api";
 import { getToken } from "utils/localStorage";
 
-export const DELIVERY_API = `${BACKEND_API}/delivery`;
+// DELIVERY_API is already exported from deliveryEndpoints.ts, so we don't export it again
+
+import { DELIVERY_API } from './deliveryEndpoints';
 
 export const assignToDeliveryAgencyApi = async (orderId: string, deliveryAgencyId: string) => {
   const token = getToken() || "";

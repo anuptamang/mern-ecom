@@ -6,7 +6,7 @@ interface IProps {
   children: React.ReactNode;
 }
 
-function DeliveryPersonRoute({ children }: IProps) {
+function DeliveryPersonRoute({ children }: IProps): JSX.Element | null {
   const auth = useAuth();
   const location = useLocation();
 
@@ -20,7 +20,7 @@ function DeliveryPersonRoute({ children }: IProps) {
     return <Navigate to={`/${pageRoutes.userDashboard}`} replace />;
   }
 
-  return children || null;
+  return <>{children}</>;
 }
 
 export { DeliveryPersonRoute };

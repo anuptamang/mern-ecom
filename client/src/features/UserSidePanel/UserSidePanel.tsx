@@ -7,7 +7,6 @@ import {
   ShoppingOutlined,
   HeartOutlined,
   UndoOutlined,
-  TruckOutlined,
   CarOutlined,
 } from '@ant-design/icons';
 import { Menu, MenuProps } from 'antd';
@@ -133,7 +132,7 @@ export const UserSidePanel = () => {
           style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
           to={`/${pageRoutes.deliveryAgencyDashboard}`}
         >
-          <TruckOutlined /> Delivery Dashboard
+          <CarOutlined /> Delivery Dashboard
         </Link>
       ),
     }] : []),

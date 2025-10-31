@@ -3,7 +3,7 @@ import { Card, List, Tag, Button, Modal, Upload, message, Empty, Spin, Typograph
 import { 
   CheckCircleOutlined, 
   ClockCircleOutlined, 
-  TruckOutlined,
+  CarOutlined,
   EyeOutlined,
   CheckOutlined,
   CameraOutlined,
@@ -18,7 +18,7 @@ import { DeliveryTracking } from 'components';
 import type { UploadFile } from 'antd/es/upload/interface';
 import './DeliveryPersonDashboard.scss';
 
-const { Text, Title, TextArea } = Typography;
+const { Text, Title } = Typography;
 
 interface IDelivery {
   _id: string;

@@ -28,7 +28,7 @@ router.get("/stats", Auth, getUserStats);
 router.get("/:id", getUser);
 router.patch("/:id", Auth, updateUserProfile);
 router.delete("/:id", Auth, deleteUser);
-router.patch("/:id/profile-photo", Auth, Upload, uploadProfilePhoto);
-router.patch("/:id/cover-photo", Auth, Upload, uploadCoverPhoto);
+router.patch("/:id/profile-photo", Auth, Upload.single("photo"), uploadProfilePhoto);
+router.patch("/:id/cover-photo", Auth, Upload.single("photo"), uploadCoverPhoto);
 
 export default router;
