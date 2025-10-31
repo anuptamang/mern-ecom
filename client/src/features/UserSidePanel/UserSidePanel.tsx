@@ -6,6 +6,7 @@ import {
   UserOutlined,
   ShoppingOutlined,
   HeartOutlined,
+  UndoOutlined,
 } from '@ant-design/icons';
 import { Menu, MenuProps } from 'antd';
 import { pageRoutes } from 'data/static/pageRoutes';
@@ -110,6 +111,17 @@ export const UserSidePanel = () => {
         </Link>
       ),
     },
+    ...(!isSeller ? [{
+      key: `/${pageRoutes.userReturns}`,
+      label: (
+        <Link
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+          to={`/${pageRoutes.userReturns}`}
+        >
+          <UndoOutlined /> Returns & Refunds
+        </Link>
+      ),
+    }] : []),
     {
       key: `/${pageRoutes.userSettings}`,
       label: (

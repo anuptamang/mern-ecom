@@ -177,6 +177,13 @@ export const cancelOrder = async (req, res) => {
       return res.status(400).json({ message: "Only paid orders can be cancelled" });
     }
 
+    // Check if order has been delivered - if delivered, should use return instead
+    if (order.deliveryStatus === "delivered") {
+      return res.status(400).json({
+        message: "Delivered orders cannot be cancelled. Please use the Return/Refund feature instead.",
+      });
+    }
+
     // Process refund via Stripe if paymentIntentId exists
     let refundId = null;
     let refundStatus = "pending";

@@ -222,7 +222,9 @@ const OrdersDashboard = (props: TProps) => {
                           >
                             Track Delivery
                           </Button>
-                          {order.status === 'paid' && order.deliveryStatus !== 'cancelled' && (
+                          {order.status === 'paid' && 
+                           order.deliveryStatus !== 'cancelled' && 
+                           order.deliveryStatus !== 'delivered' && (
                             <Popconfirm
                               title="Cancel Order"
                               description="Are you sure you want to cancel this order? A refund will be processed."
@@ -237,6 +239,16 @@ const OrdersDashboard = (props: TProps) => {
                                 Cancel Order
                               </Button>
                             </Popconfirm>
+                          )}
+                          {order.deliveryStatus === 'delivered' && 
+                           order.status !== 'cancelled' && 
+                           order.status !== 'refunded' && (
+                            <Button
+                              type="default"
+                              onClick={() => navigate(`/${pageRoutes.userReturns}?orderId=${order._id}`)}
+                            >
+                              Request Return/Refund
+                            </Button>
                           )}
                         </Space>
                       </div>

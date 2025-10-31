@@ -20,6 +20,7 @@ interface IPageRoutes {
   userCarts: string,
   userOrders?: string,
   checkout?: string,
+  userReturns?: string,
 }
 
 export const pageRoutes: IPageRoutes = {
@@ -44,4 +45,5 @@ export const pageRoutes: IPageRoutes = {
   userCarts: 'user/carts',
   userOrders: 'user/orders',
   checkout: 'user/checkout',
+  userReturns: 'user/returns',
 }

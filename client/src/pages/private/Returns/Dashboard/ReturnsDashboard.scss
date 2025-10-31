@@ -1,0 +1,73 @@
+.returns-dashboard {
+  .return-item {
+    margin-bottom: 16px;
+  }
+
+  .return-card {
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+
+    .return-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #f0f0f0;
+
+      .return-info {
+        flex: 1;
+
+        .return-id {
+          font-weight: 600;
+          margin-bottom: 8px;
+        }
+
+        .return-date,
+        .return-order-id {
+          color: #666;
+          font-size: 14px;
+          margin-top: 4px;
+        }
+      }
+
+      .return-status-section {
+        text-align: right;
+
+        .return-amount {
+          font-weight: 600;
+          font-size: 18px;
+          margin-top: 8px;
+          color: #1890ff;
+        }
+      }
+    }
+
+    .return-reason {
+      padding: 12px;
+      background: #f5f5f5;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+
+    .return-items {
+      .return-items-title {
+        margin-bottom: 12px;
+      }
+    }
+
+    .return-actions {
+      padding-top: 16px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .return-rejection {
+      padding: 12px;
+      background: #fff1f0;
+      border: 1px solid #ffccc7;
+      border-radius: 4px;
+      color: #cf1322;
+    }
+  }
+}
+

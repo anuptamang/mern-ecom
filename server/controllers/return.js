@@ -1,0 +1,405 @@
+import Return from "../models/return.js";
+import Order from "../models/order.js";
+import Product from "../models/product.js";
+import Stripe from "stripe";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+  apiVersion: "2024-11-20.acacia",
+});
+
+/**
+ * Create a return request for delivered products
+ */
+export const createReturnRequest = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { items, reason } = req.body;
+    const userId = req.userId;
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Check if user owns the order
+    if (String(order.userId) !== String(userId)) {
+      return res.status(403).json({ message: "Unauthorized to return this order" });
+    }
+
+    // Check if order was delivered
+    if (order.deliveryStatus !== "delivered") {
+      return res.status(400).json({
+        message: "Only delivered orders can be returned. Please use cancellation for non-delivered orders.",
+      });
+    }
+
+    // Check if order is already cancelled or refunded
+    if (order.status === "cancelled" || order.status === "refunded") {
+      return res.status(400).json({ message: "This order has already been cancelled or refunded" });
+    }
+
+    // Check if there's already a pending return request
+    const existingReturn = await Return.findOne({
+      orderId,
+      returnStatus: { $in: ["pending", "approved", "processing"] },
+    });
+    if (existingReturn) {
+      return res.status(400).json({ message: "A return request is already pending for this order" });
+    }
+
+    // Validate return items
+    if (!items || items.length === 0) {
+      return res.status(400).json({ message: "At least one item must be returned" });
+    }
+
+    // Validate items are from the order
+    const orderItemMap = new Map();
+    order.items.forEach((item) => {
+      orderItemMap.set(String(item.productId), item);
+    });
+
+    let returnAmount = 0;
+    const returnItems = items.map((returnItem) => {
+      const orderItem = orderItemMap.get(String(returnItem.productId));
+      if (!orderItem) {
+        throw new Error(`Item ${returnItem.productId} not found in order`);
+      }
+      if (returnItem.quantity > orderItem.quantity) {
+        throw new Error(`Cannot return more than purchased quantity for ${orderItem.title}`);
+      }
+      returnAmount += orderItem.price * returnItem.quantity;
+      return {
+        productId: returnItem.productId,
+        title: orderItem.title,
+        quantity: returnItem.quantity,
+        price: orderItem.price,
+        reason: returnItem.reason || reason,
+      };
+    });
+
+    // Create return request
+    const returnRequest = await Return.create({
+      orderId,
+      userId,
+      items: returnItems,
+      returnAmount: Math.round(returnAmount * 100), // Convert to cents
+      reason: reason || "Return requested",
+      returnStatus: "pending",
+      statusHistory: [
+        {
+          status: "pending",
+          timestamp: new Date(),
+          note: "Return request created",
+          changedBy: userId,
+        },
+      ],
+    });
+
+    // Notify seller (can be added later via notifications)
+
+    return res.status(201).json({ returnRequest });
+  } catch (error) {
+    console.error("Error creating return request:", error);
+    if (error.message) {
+      return res.status(400).json({ message: error.message });
+    }
+    return res.status(500).json({ message: "Failed to create return request" });
+  }
+};
+
+/**
+ * Get return requests for a user (buyer)
+ */
+export const getMyReturns = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const returns = await Return.find({ userId })
+      .populate("orderId")
+      .sort({ createdAt: -1 });
+
+    return res.json({ returns, count: returns.length });
+  } catch (error) {
+    console.error("Error fetching returns:", error);
+    return res.status(500).json({ message: "Failed to fetch returns" });
+  }
+};
+
+/**
+ * Get return requests for seller's products
+ */
+export const getSellerReturns = async (req, res) => {
+  try {
+    const sellerId = req.userId;
+    const mongoose = (await import("mongoose")).default;
+
+    // Find all products owned by seller
+    const sellerProducts = await Product.find({
+      $or: [
+        { userID: sellerId },
+        { userID: String(sellerId) },
+        { userID: new mongoose.Types.ObjectId(sellerId) },
+      ],
+    }).select("_id");
+
+    const productIds = sellerProducts.map((p) => p._id);
+
+    if (productIds.length === 0) {
+      return res.json({ returns: [] });
+    }
+
+    // Find return requests where items contain seller's products
+    const returns = await Return.find({
+      "items.productId": { $in: productIds },
+    })
+      .populate("orderId")
+      .populate("userId", "fullName email")
+      .sort({ createdAt: -1 });
+
+    return res.json({ returns, count: returns.length });
+  } catch (error) {
+    console.error("Error fetching seller returns:", error);
+    return res.status(500).json({ message: "Failed to fetch seller returns" });
+  }
+};
+
+/**
+ * Get single return request
+ */
+export const getReturnRequest = async (req, res) => {
+  try {
+    const { returnId } = req.params;
+    const userId = req.userId;
+
+    const returnRequest = await Return.findById(returnId)
+      .populate("orderId")
+      .populate("userId", "fullName email");
+
+    if (!returnRequest) {
+      return res.status(404).json({ message: "Return request not found" });
+    }
+
+    // Check authorization - user must be buyer or seller of products in return
+    const isBuyer = String(returnRequest.userId) === String(userId);
+
+    if (!isBuyer) {
+      // Check if user is seller of any product in return
+      const Product = (await import("../models/product.js")).default;
+      const productIds = returnRequest.items.map((item) => item.productId);
+      const products = await Product.find({ _id: { $in: productIds } });
+      const isSeller = products.some((p) => String(p.userID) === String(userId));
+
+      if (!isSeller) {
+        return res.status(403).json({ message: "Unauthorized to view this return" });
+      }
+    }
+
+    return res.json({ returnRequest });
+  } catch (error) {
+    console.error("Error fetching return request:", error);
+    return res.status(500).json({ message: "Failed to fetch return request" });
+  }
+};
+
+/**
+ * Approve return request (seller action)
+ */
+export const approveReturn = async (req, res) => {
+  try {
+    const { returnId } = req.params;
+    const sellerId = req.userId;
+
+    const returnRequest = await Return.findById(returnId).populate("orderId");
+    if (!returnRequest) {
+      return res.status(404).json({ message: "Return request not found" });
+    }
+
+    // Verify seller owns products in return
+    const Product = (await import("../models/product.js")).default;
+    const mongoose = (await import("mongoose")).default;
+    const productIds = returnRequest.items.map((item) => item.productId);
+    const products = await Product.find({ _id: { $in: productIds } });
+    const sellerProducts = products.filter(
+      (p) => String(p.userID) === String(sellerId) || String(p.userID) === String(sellerId)
+    );
+
+    if (sellerProducts.length === 0) {
+      return res.status(403).json({ message: "Unauthorized to approve this return" });
+    }
+
+    if (returnRequest.returnStatus !== "pending") {
+      return res.status(400).json({ message: "Only pending returns can be approved" });
+    }
+
+    // Update return status
+    returnRequest.returnStatus = "approved";
+    returnRequest.approvedAt = new Date();
+    returnRequest.approvedBy = sellerId;
+    returnRequest.statusHistory.push({
+      status: "approved",
+      timestamp: new Date(),
+      note: "Return approved by seller",
+      changedBy: sellerId,
+    });
+
+    // Process refund
+    returnRequest.returnStatus = "processing";
+    returnRequest.statusHistory.push({
+      status: "processing",
+      timestamp: new Date(),
+      note: "Processing refund",
+      changedBy: sellerId,
+    });
+
+    await returnRequest.save();
+
+    // Process refund via Stripe
+    if (returnRequest.orderId.paymentIntentId) {
+      try {
+        const refund = await stripe.refunds.create({
+          payment_intent: returnRequest.orderId.paymentIntentId,
+          amount: returnRequest.returnAmount, // Partial refund
+        });
+
+        returnRequest.refundId = refund.id;
+        returnRequest.refundStatus = refund.status;
+        returnRequest.refundAmount = refund.amount;
+        returnRequest.refundCreatedAt = new Date();
+
+        if (refund.status === "succeeded") {
+          returnRequest.returnStatus = "refunded";
+          returnRequest.refundCompletedAt = new Date();
+          returnRequest.statusHistory.push({
+            status: "refunded",
+            timestamp: new Date(),
+            note: "Refund processed successfully",
+            changedBy: sellerId,
+          });
+        } else if (refund.status === "failed" || refund.status === "canceled") {
+          returnRequest.returnStatus = "approved"; // Revert to approved if refund fails
+          returnRequest.refundFailureReason = refund.failure_reason || "Refund processing failed";
+          returnRequest.statusHistory.push({
+            status: "approved",
+            timestamp: new Date(),
+            note: `Refund failed: ${refund.failure_reason || "Unknown error"}`,
+            changedBy: sellerId,
+          });
+        }
+      } catch (stripeError) {
+        console.error("Error processing refund:", stripeError);
+        returnRequest.returnStatus = "approved"; // Revert to approved
+        returnRequest.refundFailureReason = stripeError.message || "Failed to process refund";
+        returnRequest.statusHistory.push({
+          status: "approved",
+          timestamp: new Date(),
+          note: `Refund processing error: ${stripeError.message}`,
+          changedBy: sellerId,
+        });
+      }
+    }
+
+    await returnRequest.save();
+
+    // Restore stock for returned items
+    for (const item of returnRequest.items) {
+      await Product.findByIdAndUpdate(item.productId, {
+        $inc: { stock: item.quantity },
+      });
+    }
+
+    return res.json({ message: "Return approved and refund processed", returnRequest });
+  } catch (error) {
+    console.error("Error approving return:", error);
+    return res.status(500).json({ message: "Failed to approve return" });
+  }
+};
+
+/**
+ * Reject return request (seller action)
+ */
+export const rejectReturn = async (req, res) => {
+  try {
+    const { returnId } = req.params;
+    const { reason } = req.body;
+    const sellerId = req.userId;
+
+    const returnRequest = await Return.findById(returnId);
+    if (!returnRequest) {
+      return res.status(404).json({ message: "Return request not found" });
+    }
+
+    // Verify seller owns products in return
+    const Product = (await import("../models/product.js")).default;
+    const mongoose = (await import("mongoose")).default;
+    const productIds = returnRequest.items.map((item) => item.productId);
+    const products = await Product.find({ _id: { $in: productIds } });
+    const sellerProducts = products.filter(
+      (p) => String(p.userID) === String(sellerId) || String(p.userID) === String(sellerId)
+    );
+
+    if (sellerProducts.length === 0) {
+      return res.status(403).json({ message: "Unauthorized to reject this return" });
+    }
+
+    if (returnRequest.returnStatus !== "pending") {
+      return res.status(400).json({ message: "Only pending returns can be rejected" });
+    }
+
+    returnRequest.returnStatus = "rejected";
+    returnRequest.rejectedAt = new Date();
+    returnRequest.rejectedBy = sellerId;
+    returnRequest.rejectionReason = reason || "Return rejected by seller";
+    returnRequest.statusHistory.push({
+      status: "rejected",
+      timestamp: new Date(),
+      note: reason || "Return rejected by seller",
+      changedBy: sellerId,
+    });
+
+    await returnRequest.save();
+
+    return res.json({ message: "Return rejected", returnRequest });
+  } catch (error) {
+    console.error("Error rejecting return:", error);
+    return res.status(500).json({ message: "Failed to reject return" });
+  }
+};
+
+/**
+ * Cancel return request (buyer action)
+ */
+export const cancelReturn = async (req, res) => {
+  try {
+    const { returnId } = req.params;
+    const userId = req.userId;
+
+    const returnRequest = await Return.findById(returnId);
+    if (!returnRequest) {
+      return res.status(404).json({ message: "Return request not found" });
+    }
+
+    // Check if user owns the return
+    if (String(returnRequest.userId) !== String(userId)) {
+      return res.status(403).json({ message: "Unauthorized to cancel this return" });
+    }
+
+    if (returnRequest.returnStatus === "refunded" || returnRequest.returnStatus === "completed") {
+      return res.status(400).json({ message: "Cannot cancel a return that has already been refunded" });
+    }
+
+    returnRequest.returnStatus = "cancelled";
+    returnRequest.statusHistory.push({
+      status: "cancelled",
+      timestamp: new Date(),
+      note: "Return cancelled by buyer",
+      changedBy: userId,
+    });
+
+    await returnRequest.save();
+
+    return res.json({ message: "Return cancelled", returnRequest });
+  } catch (error) {
+    console.error("Error cancelling return:", error);
+    return res.status(500).json({ message: "Failed to cancel return" });
+  }
+};
+
