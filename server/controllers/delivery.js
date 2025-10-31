@@ -7,7 +7,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
 });
 
 /**
- * Create delivery tracking for an order
+ * Create delivery tracking for each order item
  */
 export const createDeliveryTracking = async (orderId, deliveryAddress) => {
   try {
@@ -20,31 +20,47 @@ export const createDeliveryTracking = async (orderId, deliveryAddress) => {
     const estimatedDeliveryDate = new Date();
     estimatedDeliveryDate.setDate(estimatedDeliveryDate.getDate() + 7);
 
-    const delivery = await Delivery.create({
-      orderId,
-      status: "packing",
-      deliveryAddress,
-      estimatedDeliveryDate,
-      buyerAcceptance: "pending",
-      statusHistory: [
-        {
-          status: "packing",
-          timestamp: new Date(),
-          note: "Order placed, preparing for shipment",
-          updatedBy: null, // System created
-          updatedByRole: "system",
-        },
-      ],
-    });
+    // Create delivery tracking for each item in the order
+    const deliveries = [];
+    for (let i = 0; i < order.items.length; i++) {
+      const item = order.items[i];
+      
+      // Create delivery tracking for this item
+      const delivery = await Delivery.create({
+        orderId,
+        orderItemId: String(item._id), // Use item's _id as unique identifier
+        productId: item.productId,
+        status: "packing",
+        deliveryAddress,
+        estimatedDeliveryDate,
+        buyerAcceptance: "pending",
+        statusHistory: [
+          {
+            status: "packing",
+            timestamp: new Date(),
+            note: `Order placed for ${item.title}, preparing for shipment`,
+            updatedBy: null, // System created
+            updatedByRole: "system",
+          },
+        ],
+      });
 
-    // Update order with delivery status
+      // Update order item with delivery status
+      order.items[i].deliveryStatus = "packing";
+      order.items[i].estimatedDeliveryDate = estimatedDeliveryDate;
+
+      deliveries.push(delivery);
+    }
+
+    // Update order with delivery address and overall status
     await Order.findByIdAndUpdate(orderId, {
       deliveryStatus: "packing",
       deliveryAddress,
       estimatedDeliveryDate,
+      "items": order.items, // Update items with delivery status
     });
 
-    return delivery;
+    return deliveries; // Return array of deliveries (one per item)
   } catch (error) {
     console.error("Error creating delivery tracking:", error);
     throw error;
@@ -61,7 +77,7 @@ export const createDeliveryTracking = async (orderId, deliveryAddress) => {
 export const updateDeliveryStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { status, note } = req.body;
+    const { status, note, orderItemId, productId } = req.body; // Support per-item updates
     const userId = req.userId;
     const userRole = req.userRole;
 
@@ -80,14 +96,28 @@ export const updateDeliveryStatus = async (req, res) => {
       return res.status(400).json({ message: "Invalid delivery status" });
     }
 
-    const delivery = await Delivery.findOne({ orderId });
-    if (!delivery) {
-      return res.status(404).json({ message: "Delivery tracking not found" });
-    }
-
     const order = await Order.findById(orderId).populate("userId");
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Find delivery tracking for specific item or order (backward compatibility)
+    let delivery;
+    if (orderItemId || productId) {
+      // Per-item tracking
+      const query = { orderId };
+      if (orderItemId) query.orderItemId = orderItemId;
+      if (productId) query.productId = productId;
+      delivery = await Delivery.findOne(query);
+      if (!delivery) {
+        return res.status(404).json({ message: "Delivery tracking for this item not found" });
+      }
+    } else {
+      // Backward compatibility: find first delivery for order (old behavior)
+      delivery = await Delivery.findOne({ orderId });
+      if (!delivery) {
+        return res.status(404).json({ message: "Delivery tracking not found" });
+      }
     }
 
     // Role-based authorization

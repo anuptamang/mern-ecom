@@ -182,7 +182,7 @@ export const getChatById = async (req, res) => {
       if (!msg.seenBy) {
         msg.seenBy = new Map();
       }
-      
+
       // For messages received by current user, mark as seen
       if (String(msg.senderId) !== String(userId)) {
         // This is a message received by current user - mark that they saw it

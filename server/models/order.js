@@ -7,8 +7,46 @@ const orderItemSchema = new mongoose.Schema(
     thumbnail: { type: String },
     price: { type: Number, required: true },
     quantity: { type: Number, required: true },
+    // Per-item tracking
+    deliveryStatus: {
+      type: String,
+      enum: [
+        "packing",
+        "ready_to_ship",
+        "picked_up",
+        "in_facility",
+        "in_transit",
+        "out_for_delivery",
+        "delivered",
+        "cancelled",
+      ],
+      default: "packing",
+    },
+    estimatedDeliveryDate: { type: Date },
+    actualDeliveryDate: { type: Date },
+    cancelledAt: { type: Date },
+    cancelledBy: { type: mongoose.Types.ObjectId, ref: "User" },
+    cancellationReason: { type: String },
+    refundStatus: {
+      type: String,
+      enum: ["pending", "processing", "succeeded", "failed", "canceled"],
+      default: undefined,
+      sparse: true,
+    },
+    refundId: { type: String },
+    refundAmount: { type: Number },
+    refundCreatedAt: { type: Date },
+    refundCompletedAt: { type: Date },
+    refundFailureReason: { type: String },
+    returnStatus: {
+      type: String,
+      enum: ["none", "requested", "approved", "rejected", "processing", "completed"],
+      default: "none",
+    },
+    returnRequestedAt: { type: Date },
+    returnReason: { type: String },
   },
-  { _id: false }
+  { _id: true }
 );
 
 const orderSchema = new mongoose.Schema(

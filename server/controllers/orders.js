@@ -10,7 +10,9 @@ export const createOrder = async (req, res) => {
 
     let orderItems = items;
     let finalAmount = amount;
-    if (!orderItems || !finalAmount) {
+    
+    // If items are provided, use them; otherwise get from cart
+    if (!orderItems || orderItems.length === 0) {
       const cart = await Cart.findOne({ userId });
       if (!cart || cart.items.length === 0) {
         return res.status(400).json({ message: "Cart is empty" });
@@ -24,6 +26,12 @@ export const createOrder = async (req, res) => {
         quantity: i.quantity,
       }));
       finalAmount = Math.round(totals.totalPrice * 100);
+    } else {
+      // Items are provided (selected items from checkout)
+      // Calculate total from provided items
+      finalAmount = amount || Math.round(
+        orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 100
+      );
     }
 
     // Validate stock availability before creating order

@@ -6,7 +6,16 @@ const deliveryTrackingSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "orders",
       required: true,
-      unique: true,
+      index: true,
+    },
+    orderItemId: {
+      type: String, // Index in order.items array or unique identifier for the item
+      required: true,
+    },
+    productId: {
+      type: mongoose.Types.ObjectId,
+      ref: "products",
+      required: true,
       index: true,
     },
     status: {
@@ -95,7 +104,8 @@ const deliveryTrackingSchema = new mongoose.Schema(
 );
 
 // Add index for efficient queries
-deliveryTrackingSchema.index({ orderId: 1, status: 1 });
+deliveryTrackingSchema.index({ orderId: 1, productId: 1, status: 1 });
+deliveryTrackingSchema.index({ orderId: 1, orderItemId: 1 }, { unique: true });
 
 const Delivery = mongoose.model("deliveries", deliveryTrackingSchema);
 
