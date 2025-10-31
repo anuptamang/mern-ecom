@@ -821,7 +821,7 @@ const ProductsDashboardPage = (props: Props) => {
           <Input.TextArea
             placeholder="Please provide a reason for rejecting this return request"
             value={rejectReason}
-            onChange={(e) => setRejectReason(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setRejectReason(e.target.value)}
             rows={4}
           />
         </Modal>
