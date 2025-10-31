@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, List, Tag, Button, Modal, Select, message, Empty, Spin, Typography, Space, Image, Divider } from 'antd';
+import { Card, List, Tag, Button, Modal, Select, message, Empty, Spin, Typography, Space, Image, Divider, Form, Input } from 'antd';
 import { 
   CheckCircleOutlined, 
   ClockCircleOutlined, 
@@ -14,6 +14,7 @@ import {
   getAgencyPersonsApi, 
   assignToDeliveryPersonApi,
   getDeliveryTrackingApi,
+  createDeliveryPersonApi,
 } from 'services/endPoints/delivery';
 import { DeliveryTracking } from 'components';
 import './DeliveryAgencyDashboard.scss';
@@ -30,6 +31,8 @@ interface IDelivery {
     deliveryAddress: any;
     status: string;
   };
+  orderItemId?: string;
+  productId?: any;
   status: string;
   assignedDeliveryPerson?: any;
   assignedDeliveryAgency: any;
@@ -52,9 +55,13 @@ const DeliveryAgencyDashboard = () => {
   const [deliveryPersons, setDeliveryPersons] = useState<any[]>([]);
   const [assigning, setAssigning] = useState(false);
   const [loadingPersons, setLoadingPersons] = useState(false);
+  const [createPersonModalVisible, setCreatePersonModalVisible] = useState(false);
+  const [creatingPerson, setCreatingPerson] = useState(false);
+  const [createPersonForm] = Form.useForm();
 
   useEffect(() => {
     loadDeliveries();
+    loadDeliveryPersons();
   }, []);
 
   const loadDeliveries = async () => {
@@ -88,7 +95,14 @@ const DeliveryAgencyDashboard = () => {
       setSelectedDelivery(delivery);
       setTrackingModalVisible(true);
       const { data } = await getDeliveryTrackingApi(delivery.orderId._id);
-      setDeliveryTracking(data.delivery);
+      // API now returns deliveries array (per-item tracking)
+      // Find the specific delivery for this item
+      const itemDelivery = data.deliveries?.find(
+        (d: any) => String(d._id) === String(delivery._id) ||
+                   (delivery.orderItemId && String(d.orderItemId) === String(delivery.orderItemId)) ||
+                   (delivery.productId && String(d.productId) === String(delivery.productId))
+      ) || data.deliveries?.[0] || data.delivery || delivery;
+      setDeliveryTracking(itemDelivery);
     } catch (error: any) {
       console.error('Failed to load delivery tracking:', error);
       message.error('Failed to load delivery tracking');
@@ -129,6 +143,22 @@ const DeliveryAgencyDashboard = () => {
     }
   };
 
+  const handleCreatePerson = async (values: any) => {
+    try {
+      setCreatingPerson(true);
+      await createDeliveryPersonApi(values.email, values.password, values.fullName, values.phone);
+      message.success('Delivery person created successfully');
+      setCreatePersonModalVisible(false);
+      createPersonForm.resetFields();
+      await loadDeliveryPersons();
+    } catch (error: any) {
+      console.error('Failed to create delivery person:', error);
+      message.error(error?.response?.data?.message || 'Failed to create delivery person');
+    } finally {
+      setCreatingPerson(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     const statusColors: Record<string, string> = {
       packing: 'default',
@@ -158,8 +188,15 @@ const DeliveryAgencyDashboard = () => {
   return (
     <div className="delivery-agency-dashboard">
       <Card>
-        <Title level={2}>Delivery Agency Dashboard</Title>
-        <Text type="secondary">Manage deliveries assigned to your agency</Text>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div>
+            <Title level={2} style={{ margin: 0 }}>Delivery Agency Dashboard</Title>
+            <Text type="secondary">Manage deliveries assigned to your agency</Text>
+          </div>
+          <Button type="primary" onClick={() => setCreatePersonModalVisible(true)}>
+            Add Deliverer
+          </Button>
+        </div>
 
         <Divider />
 
@@ -188,7 +225,7 @@ const DeliveryAgencyDashboard = () => {
                       >
                         View Tracking
                       </Button>
-                      {delivery.status === 'in_facility' || delivery.status === 'in_transit' ? (
+                      {(delivery.status === 'ready_to_ship' || delivery.status === 'picked_up' || delivery.status === 'in_facility' || delivery.status === 'in_transit') && (
                         <Button
                           type="primary"
                           icon={<UserAddOutlined />}
@@ -197,7 +234,7 @@ const DeliveryAgencyDashboard = () => {
                         >
                           {delivery.assignedDeliveryPerson ? 'Assigned' : 'Assign Person'}
                         </Button>
-                      ) : null}
+                      )}
                     </Space>
                   }
                 >
@@ -303,6 +340,60 @@ const DeliveryAgencyDashboard = () => {
             <Text type="secondary">No delivery persons available</Text>
           )}
         </Space>
+      </Modal>
+
+      {/* Create Delivery Person Modal */}
+      <Modal
+        title="Add Delivery Person"
+        open={createPersonModalVisible}
+        onOk={() => createPersonForm.submit()}
+        onCancel={() => {
+          setCreatePersonModalVisible(false);
+          createPersonForm.resetFields();
+        }}
+        okText="Create"
+        okButtonProps={{ loading: creatingPerson }}
+        width={500}
+      >
+        <Form
+          form={createPersonForm}
+          layout="vertical"
+          onFinish={handleCreatePerson}
+        >
+          <Form.Item
+            name="fullName"
+            label="Full Name"
+            rules={[{ required: true, message: 'Please enter full name' }]}
+          >
+            <Input placeholder="Enter full name" />
+          </Form.Item>
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { required: true, message: 'Please enter email' },
+              { type: 'email', message: 'Please enter a valid email' }
+            ]}
+          >
+            <Input placeholder="Enter email" />
+          </Form.Item>
+          <Form.Item
+            name="password"
+            label="Password"
+            rules={[
+              { required: true, message: 'Please enter password' },
+              { min: 6, message: 'Password must be at least 6 characters' }
+            ]}
+          >
+            <Input.Password placeholder="Enter password" />
+          </Form.Item>
+          <Form.Item
+            name="phone"
+            label="Phone (Optional)"
+          >
+            <Input placeholder="Enter phone number" />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

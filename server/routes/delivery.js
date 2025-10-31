@@ -15,6 +15,7 @@ import {
   getAgencyDeliveries,
   getPersonDeliveries,
   getAgencyPersons,
+  createDeliveryPerson,
 } from "../controllers/deliveryAssignment.js";
 import { Upload } from "../middlewares/upload.js";
 
@@ -32,6 +33,10 @@ router.get("/person/list", getPersonDeliveries);
 // Get delivery persons for an agency (must be before /:orderId)
 router.get("/agency/persons", getAgencyPersons); // For logged-in agency
 router.get("/agency/:agencyId/persons", getAgencyPersons);
+
+// Create delivery person for an agency
+router.post("/agency/persons", createDeliveryPerson); // For logged-in agency
+router.post("/agency/:agencyId/persons", createDeliveryPerson);
 
 // Get delivery tracking for an order
 router.get("/:orderId", getDeliveryTracking);

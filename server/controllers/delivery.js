@@ -133,9 +133,10 @@ export const updateDeliveryStatus = async (req, res) => {
 
     // Role-based authorization
     let isAuthorized = false;
-    const sellerStatuses = ["packing", "ready_to_ship", "picked_up"];
-    const deliveryAgencyStatuses = ["in_facility", "in_transit"];
-    const deliveryPersonStatuses = ["out_for_delivery", "delivered"];
+    const sellerStatuses = ["packing", "ready_to_ship"]; // Sellers can only mark as ready_to_ship
+    // Delivery agencies cannot update tracking status - they can only assign deliverers
+    const deliveryAgencyStatuses = []; // Delivery agencies cannot update tracking
+    const deliveryPersonStatuses = ["picked_up", "in_facility", "in_transit", "out_for_delivery", "delivered"]; // Deliverers handle from pickup onwards
 
     if (userRole === "admin") {
       isAuthorized = true;
@@ -219,6 +220,36 @@ export const updateDeliveryStatus = async (req, res) => {
     } else {
       // Backward compatibility: update overall order delivery status
       await Order.findByIdAndUpdate(orderId, { deliveryStatus: status });
+    }
+
+    // Notify delivery agency when seller marks item as ready_to_ship
+    if (status === "ready_to_ship" && delivery.assignedDeliveryAgency) {
+      try {
+        const { createNotification } = await import("./notifications.js");
+        const Product = (await import("../models/product.js")).default;
+        const product = await Product.findById(delivery.productId).populate("userID", "fullName");
+        
+        await createNotification({
+          userId: delivery.assignedDeliveryAgency,
+          type: "order",
+          title: "Item Ready to Ship",
+          message: `Item "${product?.title || "Product"}" from order #${orderId.toString().slice(-8)} is ready to ship. Please assign a delivery person.`,
+          relatedEntity: {
+            entityType: "order",
+            entityId: orderId,
+          },
+          actionUrl: `/user/delivery-agency`,
+          metadata: {
+            orderId: orderId.toString(),
+            deliveryId: delivery._id.toString(),
+            productId: delivery.productId.toString(),
+            productTitle: product?.title || "Product",
+          },
+        });
+      } catch (notifError) {
+        console.error("Error creating ready_to_ship notification:", notifError);
+        // Don't fail the request if notification creation fails
+      }
     }
 
     return res.json({ message: "Delivery status updated", delivery });

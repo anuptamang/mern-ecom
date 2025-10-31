@@ -91,3 +91,14 @@ export const getAgencyPersonsApi = async (agencyId?: string) => {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
+
+export const createDeliveryPersonApi = async (email: string, password: string, fullName: string, phone?: string) => {
+  const token = getToken() || "";
+  return axios.post(
+    `${DELIVERY_API}/agency/persons`,
+    { email, password, fullName, phone },
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+};

@@ -482,3 +482,66 @@ export const getAgencyPersons = async (req, res) => {
     return res.status(500).json({ message: "Failed to fetch delivery persons" });
   }
 };
+
+/**
+ * Create a delivery person for an agency
+ * Can be done by delivery agency or admin
+ */
+export const createDeliveryPerson = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const userRole = req.userRole;
+    const { email, password, fullName, phone } = req.body;
+
+    // Only admin or delivery agency can create delivery persons
+    if (userRole !== "admin" && userRole !== "delivery_agency") {
+      return res.status(403).json({ 
+        message: "Only admins or delivery agencies can create delivery persons." 
+      });
+    }
+
+    if (!email || !password || !fullName) {
+      return res.status(400).json({ 
+        message: "Email, password, and full name are required" 
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User with this email already exists" });
+    }
+
+    // Hash password
+    const bcrypt = (await import("bcryptjs")).default;
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Determine agency ID
+    const agencyId = userRole === "admin" ? req.params.agencyId || userId : userId;
+
+    // Create delivery person
+    const deliveryPerson = await User.create({
+      email,
+      password: hashedPassword,
+      fullName,
+      phone: phone || undefined,
+      role: "delivery_person",
+      deliveryAgencyId: agencyId,
+    });
+
+    return res.status(201).json({ 
+      message: "Delivery person created successfully",
+      deliveryPerson: {
+        _id: deliveryPerson._id,
+        email: deliveryPerson.email,
+        fullName: deliveryPerson.fullName,
+        phone: deliveryPerson.phone,
+        role: deliveryPerson.role,
+        deliveryAgencyId: deliveryPerson.deliveryAgencyId,
+      }
+    });
+  } catch (error) {
+    console.error("Error creating delivery person:", error);
+    return res.status(500).json({ message: "Failed to create delivery person" });
+  }
+};
