@@ -4,6 +4,7 @@ import {
   SettingOutlined,
   ShoppingCartOutlined,
   UserOutlined,
+  ShoppingOutlined,
 } from '@ant-design/icons';
 import { Menu, MenuProps } from 'antd';
 import { pageRoutes } from 'data/static/pageRoutes';
@@ -11,7 +12,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 /**
- * This is the logged in user side panel component, which displays user dashboard, profile, store, carts and settings links.
+ * This is the logged in user side panel component, which displays user dashboard, profile, store, carts, orders and settings links.
  * @component feature
  * @param props none
  * @returns User side panel component
@@ -74,6 +75,17 @@ export const UserSidePanel = () => {
           to={`/${pageRoutes.userCarts}`}
         >
           <ShoppingCartOutlined /> Carts
+        </Link>
+      ),
+    },
+    {
+      key: `/${pageRoutes.userOrders}`,
+      label: (
+        <Link
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+          to={`/${pageRoutes.userOrders}`}
+        >
+          <ShoppingOutlined /> Orders
         </Link>
       ),
     },
