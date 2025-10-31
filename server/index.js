@@ -13,6 +13,7 @@ import cartRoutes from "./routes/carts.js";
 import checkoutRoutes from "./routes/checkout.js";
 import orderRoutes from "./routes/orders.js";
 import notificationRoutes from "./routes/notifications.js";
+import wishlistRoutes from "./routes/wishlist.js";
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use("/carts", cartRoutes);
 app.use("/checkout", checkoutRoutes);
 app.use("/orders", orderRoutes);
 app.use("/notifications", notificationRoutes);
+app.use("/wishlist", wishlistRoutes);
 
 const PORT = process.env.PORT || 3010;
 

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Card, List, message, Modal, Tabs, Tag, Statistic, Row, Col, Space, Image, Popconfirm } from 'antd';
+import { Button, Card, List, message, Modal, Tabs, Tag, Statistic, Row, Col, Space, Image, Popconfirm, Spin, Empty } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { fetchMyProductsApi, deleteProductApi } from 'services/endPoints/products/productsEndpoints';
 import { getSellerOrdersApi } from 'services/endPoints/orders/ordersEndpoints';
 import { getSellerCartItemsApi } from 'services/endPoints/carts/cartsEndpoints';
 import { getUserStatsApi } from 'services/endPoints/user/userEndpoints';
+import { getSellerWishlistApi } from 'services/endPoints/wishlist';
 import { ProductForm } from 'components';
 import { getToken } from 'utils/localStorage';
 import { Link, useNavigate } from 'react-router-dom';
@@ -23,10 +24,12 @@ const ProductsDashboardPage = (props: Props) => {
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [cartItems, setCartItems] = useState<any[]>([]);
+  const [wishlistItems, setWishlistItems] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [orderLoading, setOrderLoading] = useState(false);
   const [cartLoading, setCartLoading] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
   const [statsLoading, setStatsLoading] = useState(false);
   const [productModalVisible, setProductModalVisible] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -42,6 +45,8 @@ const ProductsDashboardPage = (props: Props) => {
       loadOrders();
     } else if (activeTab === 'carts') {
       loadCartItems();
+    } else if (activeTab === 'wishlist') {
+      loadWishlist();
     }
   }, [activeTab]);
 
@@ -91,6 +96,20 @@ const ProductsDashboardPage = (props: Props) => {
       message.error(e?.response?.data?.message || 'Failed to load cart items');
     } finally {
       setCartLoading(false);
+    }
+  };
+
+  const loadWishlist = async () => {
+    const token = getToken();
+    if (!token) return;
+    try {
+      setWishlistLoading(true);
+      const { data } = await getSellerWishlistApi();
+      setWishlistItems(data.wishlist || []);
+    } catch (e: any) {
+      message.error(e?.response?.data?.message || 'Failed to load wishlist');
+    } finally {
+      setWishlistLoading(false);
     }
   };
 
@@ -415,6 +434,100 @@ const ProductsDashboardPage = (props: Props) => {
                   buyers' shopping carts.
                 </p>
               </div>
+            </Card>
+          </TabPane>
+          <TabPane tab="Wishlist" key="wishlist">
+            <Card>
+              <h3 className="mb-4">Products Added to Wishlist</h3>
+              {wishlistLoading ? (
+                <div className="text-center py-8">
+                  <Spin size="large" />
+                </div>
+              ) : wishlistItems.length === 0 ? (
+                <Empty description="No one has added your products to their wishlist yet" />
+              ) : (
+                <List
+                  dataSource={wishlistItems}
+                  renderItem={(item: any) => {
+                    const product = item.productId;
+                    const user = item.userId;
+                    const productId = typeof product === 'object' ? product._id : product;
+                    const productTitle = typeof product === 'object' ? product.title : 'Product';
+                    const productThumbnail = typeof product === 'object' ? product.thumbnail : null;
+                    const productPrice = typeof product === 'object' ? product.price : null;
+                    const userName = typeof user === 'object' ? user.fullName : 'Unknown User';
+                    const userEmail = typeof user === 'object' ? user.email : '';
+                    const userPhoto = typeof user === 'object' ? user.profilePhoto : null;
+
+                    return (
+                      <List.Item>
+                        <Card
+                          style={{ width: '100%' }}
+                          cover={
+                            productThumbnail ? (
+                              <Image
+                                src={productThumbnail}
+                                alt={productTitle}
+                                height={200}
+                                style={{ objectFit: 'cover' }}
+                                preview={false}
+                              />
+                            ) : (
+                              <div style={{ height: 200, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                No Image
+                              </div>
+                            )
+                          }
+                          actions={[
+                            <Link key="view" to={`/products/${productId}`}>
+                              <EyeOutlined /> View Product
+                            </Link>,
+                          ]}
+                        >
+                          <Card.Meta
+                            title={
+                              <div>
+                                <div style={{ marginBottom: 8 }}>{productTitle}</div>
+                                {productPrice && (
+                                  <div style={{ fontSize: 16, fontWeight: 600, color: '#1890ff' }}>
+                                    ${productPrice.toFixed(2)}
+                                  </div>
+                                )}
+                              </div>
+                            }
+                            description={
+                              <div>
+                                <div style={{ marginTop: 12, padding: 8, background: '#f5f5f5', borderRadius: 4 }}>
+                                  <div style={{ fontWeight: 600, marginBottom: 4 }}>Added by:</div>
+                                  <Space>
+                                    {userPhoto && (
+                                      <Image
+                                        src={userPhoto}
+                                        alt={userName}
+                                        width={32}
+                                        height={32}
+                                        style={{ borderRadius: '50%' }}
+                                        preview={false}
+                                      />
+                                    )}
+                                    <div>
+                                      <div>{userName}</div>
+                                      {userEmail && <div style={{ fontSize: 12, color: '#666' }}>{userEmail}</div>}
+                                    </div>
+                                  </Space>
+                                </div>
+                                <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
+                                  Added {dayjs(item.createdAt).format('MMM DD, YYYY')}
+                                </div>
+                              </div>
+                            }
+                          />
+                        </Card>
+                      </List.Item>
+                    );
+                  }}
+                />
+              )}
             </Card>
           </TabPane>
         </Tabs>

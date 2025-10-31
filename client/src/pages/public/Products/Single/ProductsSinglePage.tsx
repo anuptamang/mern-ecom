@@ -17,6 +17,7 @@ import {
   ProductRatings,
   ProductComments,
   RelatedProducts,
+  WishlistButton,
 } from 'components';
 import { EyeOutlined, LikeOutlined } from '@ant-design/icons';
 import './ProductsSinglePage.scss';
@@ -321,30 +322,46 @@ const ProductDetails = () => {
 
             <div className="product-actions">
               {!isSeller && result && (
-                <Button
-                  type="primary"
-                  size="large"
-                  disabled={(product.stock || 0) <= 0}
-                  onClick={() => {
-                    if ((product.stock || 0) <= 0) {
-                      message.error('Product is out of stock');
-                      return;
-                    }
-                    dispatch(addToCart({ productId: product._id }))
-                      .then(() => {
-                        message.success('Product added to cart');
-                        dispatch(fetchMyCart());
-                      })
-                      .catch((error: any) => {
-                        message.error(
-                          error?.message || 'Failed to add product to cart'
-                        );
-                      });
-                  }}
-                  className="add-to-cart-btn"
-                >
-                  Add to Cart
-                </Button>
+                <div className="action-buttons">
+                  {(product.stock || 0) <= 0 ? (
+                    <>
+                      <Button
+                        type="default"
+                        size="large"
+                        disabled
+                        className="add-to-cart-btn"
+                      >
+                        Out of Stock
+                      </Button>
+                      <WishlistButton
+                        productId={product._id}
+                        productTitle={product.title}
+                        size="large"
+                      />
+                    </>
+                  ) : (
+                    <Button
+                      type="primary"
+                      size="large"
+                      icon={<ShoppingCartOutlined />}
+                      onClick={() => {
+                        dispatch(addToCart({ productId: product._id }))
+                          .then(() => {
+                            message.success('Product added to cart');
+                            dispatch(fetchMyCart());
+                          })
+                          .catch((error: any) => {
+                            message.error(
+                              error?.message || 'Failed to add product to cart'
+                            );
+                          });
+                      }}
+                      className="add-to-cart-btn"
+                    >
+                      Add to Cart
+                    </Button>
+                  )}
+                </div>
               )}
               {isSeller && (
                 <div className="seller-notice">

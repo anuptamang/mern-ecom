@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { ProductImagePlaceholder } from 'components/ProductImageGallery/ProductImagePlaceholder';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { authSelector } from 'redux/slice';
+import { WishlistButton } from 'components/WishlistButton';
 import styles from 'assets/styles/Common.module.scss';
 import './HomePage.scss';
 
@@ -170,28 +171,36 @@ const HomePage = () => {
                           </Button>
                         </div>,
                         <div key="cart" className="product-card-actions">
-                          {!isSeller && result ? (
-                            <Button
-                              type="primary"
-                              size="small"
-                              disabled={(item.stock || 0) <= 0}
-                              onClick={(e) => handleAddToCart(item._id, item.stock || 0, item.title, e)}
-                            >
-                              Add to Cart
-                            </Button>
-                          ) : !result ? (
-                            <Button
-                              type="primary"
-                              size="small"
-                              disabled={(item.stock || 0) <= 0}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                message.warning('Please log in to add items to cart');
-                              }}
-                            >
-                              Add to Cart
-                            </Button>
-                          ) : null}
+                          {(item.stock || 0) <= 0 ? (
+                            !isSeller && result ? (
+                              <WishlistButton
+                                productId={item._id}
+                                productTitle={item.title}
+                                size="small"
+                              />
+                            ) : null
+                          ) : (
+                            !isSeller && result ? (
+                              <Button
+                                type="primary"
+                                size="small"
+                                onClick={(e) => handleAddToCart(item._id, item.stock || 0, item.title, e)}
+                              >
+                                Add to Cart
+                              </Button>
+                            ) : !result ? (
+                              <Button
+                                type="primary"
+                                size="small"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  message.warning('Please log in to add items to cart');
+                                }}
+                              >
+                                Add to Cart
+                              </Button>
+                            ) : null
+                          )}
                         </div>,
                       ]}
                       hoverable
