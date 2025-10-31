@@ -2,6 +2,7 @@ import * as dotenv from "dotenv";
 import mongoose from "mongoose";
 import Product from "../models/product.js";
 import User from "../models/user.js";
+import { createNotification } from "./notifications.js";
 dotenv.config();
 
 const PORT = process.env.PORT || 3010;
@@ -263,11 +264,44 @@ export const addCommentToProduct = async (req, res) => {
     if (!user) {
       userId = "ghost";
     }
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id).populate('userID', 'fullName email');
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    
     product.comments.push({ text: req.body.text, userId: userId });
     await product.save();
+
+    // Create notification for seller if product has a seller
+    if (product.userID && String(product.userID._id) !== String(userId)) {
+      try {
+        await createNotification({
+          userId: product.userID._id,
+          type: "comment",
+          title: "New Comment on Your Product",
+          message: `${user?.fullName || "Someone"} commented on "${product.title}"`,
+          relatedEntity: {
+            entityType: "product",
+            entityId: product._id,
+          },
+          actionUrl: `/products/${product._id}`,
+          metadata: {
+            productId: product._id,
+            productTitle: product.title,
+            commenterId: userId,
+            commenterName: user?.fullName || "Anonymous",
+            commentText: req.body.text.substring(0, 100), // First 100 chars
+          },
+        });
+      } catch (notifError) {
+        console.error("Error creating notification for comment:", notifError);
+        // Don't fail the request if notification creation fails
+      }
+    }
+
     res.status(201).json(product);
   } catch (error) {
+    console.error("Error adding comment:", error);
     res.status(404).json({ message: "Product not found" });
   }
 };
@@ -295,12 +329,54 @@ export const likeComment = async (req, res) => {
 
 export const replyComment = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id).populate('comments.userId', 'fullName email').populate('userID', 'fullName email');
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    
     const comment = product.comments.id(req.params.commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    const userId = req.userId;
+    const user = await User.findById(userId);
+
     comment.replies.push(req.body.text);
     await product.save();
+
+    // Create notification for the original commenter (if it's not the same user)
+    const commentUserId = comment.userId?._id || comment.userId;
+    if (commentUserId && String(commentUserId) !== String(userId)) {
+      try {
+        await createNotification({
+          userId: commentUserId,
+          type: "reply",
+          title: "Reply to Your Comment",
+          message: `${user?.fullName || "Someone"} replied to your comment on "${product.title}"`,
+          relatedEntity: {
+            entityType: "comment",
+            entityId: comment._id,
+          },
+          actionUrl: `/products/${product._id}`,
+          metadata: {
+            productId: product._id,
+            productTitle: product.title,
+            commentId: comment._id,
+            replierId: userId,
+            replierName: user?.fullName || "Anonymous",
+            replyText: req.body.text.substring(0, 100), // First 100 chars
+          },
+        });
+      } catch (notifError) {
+        console.error("Error creating notification for reply:", notifError);
+        // Don't fail the request if notification creation fails
+      }
+    }
+
     res.json(product);
   } catch (error) {
+    console.error("Error replying to comment:", error);
     res.status(404).json({ message: "Comment not found" });
   }
 };
@@ -377,15 +453,19 @@ export const addRating = async (req, res) => {
       return res.status(400).json({ message: "Rating must be between 1 and 5" });
     }
 
-    const product = await Product.findById(id);
+    const product = await Product.findById(id).populate('userID', 'fullName email');
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
+
+    const user = await User.findById(userId);
 
     // Check if user already rated this product
     const existingRatingIndex = product.ratings.findIndex(
       r => String(r.userId) === String(userId)
     );
+
+    const isNewRating = existingRatingIndex < 0;
 
     if (existingRatingIndex >= 0) {
       // Update existing rating
@@ -403,8 +483,39 @@ export const addRating = async (req, res) => {
     product.rating = totalRatings > 0 ? sumRatings / totalRatings : 0;
 
     await product.save();
+
+    // Create notification for seller if it's a new rating (not update) and product has a seller
+    if (isNewRating && product.userID && String(product.userID._id) !== String(userId)) {
+      try {
+        const notificationType = review ? "review" : "rating";
+        await createNotification({
+          userId: product.userID._id,
+          type: notificationType,
+          title: review ? "New Review on Your Product" : "New Rating on Your Product",
+          message: `${user?.fullName || "Someone"} ${review ? "reviewed" : "rated"} "${product.title}" with ${rating} star${rating !== 1 ? 's' : ''}`,
+          relatedEntity: {
+            entityType: "product",
+            entityId: product._id,
+          },
+          actionUrl: `/products/${product._id}`,
+          metadata: {
+            productId: product._id,
+            productTitle: product.title,
+            raterId: userId,
+            raterName: user?.fullName || "Anonymous",
+            rating: rating,
+            review: review ? review.substring(0, 100) : null, // First 100 chars
+          },
+        });
+      } catch (notifError) {
+        console.error("Error creating notification for rating:", notifError);
+        // Don't fail the request if notification creation fails
+      }
+    }
+
     res.status(200).json(product);
   } catch (error) {
+    console.error("Error adding rating:", error);
     res.status(500).json({ message: error.message });
   }
 };

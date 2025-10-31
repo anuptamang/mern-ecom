@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from 'redux/store';
 import { getNameInitials } from 'utils';
 import { useEffect } from 'react';
 import { fetchMyCart } from 'redux/slice/carts/cartsSlice';
+import { NotificationBell } from 'components/Notifications/NotificationBell';
 
 const { useToken } = theme;
 
@@ -68,6 +69,7 @@ export const UserPanel = (props: Props) => {
       <List style={{ marginLeft: '10px' }}>
         {auth?.tokenStatus === 'valid' ? (
           <li style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+            <NotificationBell />
             {!isSeller && (
               <Link to={`/${pageRoutes.userCarts}`}>
                 <Badge size="small" count={carts.totalCount || 0} color={token.colorPrimaryBg}>
