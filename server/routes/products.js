@@ -17,6 +17,7 @@ import {
   addRating,
   getRatings,
   getRelatedProducts,
+  getAllTags,
 } from "../controllers/products.js";
 import Auth from "../middlewares/auth.js";
 import { Upload, UploadProduct } from "../middlewares/upload.js";
@@ -24,6 +25,7 @@ import { Upload, UploadProduct } from "../middlewares/upload.js";
 const router = express.Router();
 
 router.get("/", getProducts);
+router.get("/tags", getAllTags);
 router.get("/me", Auth, getMyProducts);
 router.get("/:id/related", getRelatedProducts);
 router.get("/:id", getProduct);

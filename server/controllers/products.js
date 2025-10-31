@@ -381,3 +381,26 @@ export const getRatings = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Get all unique tags from all products
+export const getAllTags = async (req, res) => {
+  try {
+    const products = await Product.find({}, { tag: 1 }).lean();
+    const allTags = new Set();
+    
+    products.forEach(product => {
+      if (product.tag && Array.isArray(product.tag)) {
+        product.tag.forEach(tag => {
+          if (tag && typeof tag === 'string') {
+            allTags.add(tag.trim());
+          }
+        });
+      }
+    });
+    
+    const uniqueTags = Array.from(allTags).sort();
+    res.status(200).json({ tags: uniqueTags });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

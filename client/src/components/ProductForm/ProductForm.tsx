@@ -7,6 +7,7 @@ import htmlToDraft from 'html-to-draftjs';
 import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getToken } from 'utils/localStorage';
 import { PRODUCTS_API } from 'services/servicesConstants';
+import { fetchAllTagsApi } from 'services/endPoints/products/productsEndpoints';
 import axios from 'axios';
 import type { UploadFile } from 'antd';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
@@ -29,6 +30,20 @@ export const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess, on
   const [submitting, setSubmitting] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [tags, setTags] = useState<string[]>([]);
+  const [existingTags, setExistingTags] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Fetch existing tags
+    const loadTags = async () => {
+      try {
+        const { data } = await fetchAllTagsApi();
+        setExistingTags(data.tags || []);
+      } catch (error) {
+        console.error('Failed to load tags:', error);
+      }
+    };
+    loadTags();
+  }, []);
 
   useEffect(() => {
     if (product) {
@@ -250,9 +265,18 @@ export const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess, on
         >
           <Select
             mode="tags"
-            placeholder="Add tags"
+            placeholder="Select or add tags"
             onChange={(value) => setTags(value)}
-          />
+            filterOption={(input, option) =>
+              (option?.value as string)?.toLowerCase().includes(input.toLowerCase())
+            }
+          >
+            {existingTags.map((tag) => (
+              <Option key={tag} value={tag}>
+                {tag}
+              </Option>
+            ))}
+          </Select>
         </Form.Item>
 
         <Form.Item

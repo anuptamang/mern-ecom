@@ -72,3 +72,7 @@ export const deleteProductApi = async (id: string) => {
     { headers: { Authorization: `Bearer ${token}` } }
   );
 }
+
+export const fetchAllTagsApi = async () => {
+  return axios.get(`${PRODUCTS_API}/tags`);
+}
