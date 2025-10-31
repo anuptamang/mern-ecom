@@ -102,9 +102,22 @@ export const getSellerCartItems = async (req, res) => {
   try {
     const sellerId = req.userId;
     
-    // Get all product IDs owned by seller
-    const sellerProducts = await Product.find({ userID: sellerId }).select("_id");
+    // Get all product IDs owned by seller - handle both string and ObjectId userID
+    const sellerProducts = await Product.find({
+      $or: [
+        { userID: sellerId },
+        { userID: String(sellerId) },
+        { userID: new mongoose.Types.ObjectId(sellerId) }
+      ]
+    }).select("_id");
     const productIds = sellerProducts.map(p => p._id);
+    
+    if (productIds.length === 0) {
+      return res.json({ cartItems: [] });
+    }
+    
+    // Convert productIds to strings for comparison with cart items
+    const productIdStrings = productIds.map(id => String(id));
     
     // Find carts that contain any of seller's products
     const carts = await Cart.find({
@@ -115,7 +128,8 @@ export const getSellerCartItems = async (req, res) => {
     const cartItems = [];
     carts.forEach(cart => {
       cart.items.forEach(item => {
-        if (productIds.some(id => String(id) === String(item.productId))) {
+        const itemProductId = String(item.productId);
+        if (productIdStrings.includes(itemProductId)) {
           cartItems.push({
             ...item.toObject(),
             buyerName: cart.userId?.fullName || "Unknown",

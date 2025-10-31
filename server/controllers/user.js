@@ -209,27 +209,30 @@ export const getUserStats = async (req, res) => {
     if (isSeller) {
       // Seller stats: orders containing seller's products
       const productIds = userProducts.map(p => p._id);
-      const sellerOrders = await Order.find({
-        "items.productId": { $in: productIds }
-      });
-      const totalSales = sellerOrders.length;
-      const totalRevenue = sellerOrders.reduce((sum, order) => {
-        const sellerItems = order.items.filter(item => 
-          productIds.some(id => String(id) === String(item.productId))
-        );
-        return sum + sellerItems.reduce((itemSum, item) => itemSum + (item.price * item.quantity), 0);
-      }, 0);
+      const productIdStrings = productIds.map(id => String(id));
       
-      // Count items in carts
-      const Cart = (await import("../models/cart.js")).default;
-      const cartsWithSellerProducts = await Cart.find({
-        "items.productId": { $in: productIds }
-      });
-      const cartItemsCount = cartsWithSellerProducts.reduce((count, cart) => {
-        return count + cart.items.filter(item => 
-          productIds.some(id => String(id) === String(item.productId))
-        ).length;
-      }, 0);
+      if (productIds.length > 0) {
+        const sellerOrders = await Order.find({
+          "items.productId": { $in: productIds }
+        });
+        const totalSales = sellerOrders.length;
+        const totalRevenue = sellerOrders.reduce((sum, order) => {
+          const sellerItems = order.items.filter(item => 
+            productIdStrings.includes(String(item.productId))
+          );
+          return sum + sellerItems.reduce((itemSum, item) => itemSum + (item.price * item.quantity), 0);
+        }, 0);
+        
+        // Count items in carts
+        const Cart = (await import("../models/cart.js")).default;
+        const cartsWithSellerProducts = await Cart.find({
+          "items.productId": { $in: productIds }
+        });
+        const cartItemsCount = cartsWithSellerProducts.reduce((count, cart) => {
+          return count + cart.items.filter(item => 
+            productIdStrings.includes(String(item.productId))
+          ).length;
+        }, 0);
       
       return res.json({ 
         totalOrders, 

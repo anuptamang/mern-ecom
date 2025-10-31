@@ -320,7 +320,14 @@ export const viewCount = async (req, res) => {
 export const getMyProducts = async (req, res) => {
   try {
     const userId = req.userId;
-    const products = await Product.find({ userID: userId }).sort({ _id: -1 });
+    // Handle both string and ObjectId userID for backward compatibility
+    const products = await Product.find({
+      $or: [
+        { userID: userId },
+        { userID: String(userId) },
+        { userID: new mongoose.Types.ObjectId(userId) }
+      ]
+    }).sort({ _id: -1 });
     res.status(200).json({ data: products });
   } catch (error) {
     res.status(404).json({ message: error.message });

@@ -57,10 +57,21 @@ export const getSellerOrders = async (req, res) => {
   try {
     const sellerId = req.userId;
     const Product = (await import("../models/product.js")).default;
+    const mongoose = (await import("mongoose")).default;
     
-    // Get all product IDs owned by seller
-    const sellerProducts = await Product.find({ userID: sellerId }).select("_id");
+    // Get all product IDs owned by seller - handle both string and ObjectId userID
+    const sellerProducts = await Product.find({
+      $or: [
+        { userID: sellerId },
+        { userID: String(sellerId) },
+        { userID: new mongoose.Types.ObjectId(sellerId) }
+      ]
+    }).select("_id");
     const productIds = sellerProducts.map(p => p._id);
+    
+    if (productIds.length === 0) {
+      return res.json({ orders: [] });
+    }
     
     // Find orders that contain any of seller's products
     const orders = await Order.find({
