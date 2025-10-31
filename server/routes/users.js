@@ -3,6 +3,7 @@ import {
   createNewPassword,
   deleteUser,
   getUser,
+  getUserStats,
   getUsers,
   login,
   registration,
@@ -29,5 +30,6 @@ router.patch("/:id/cover-photo", Auth, Upload, uploadCoverPhoto);
 
 router.post("/check-user", validateUser);
 router.put("/change-password", createNewPassword);
+router.get("/stats", Auth, getUserStats);
 
 export default router;

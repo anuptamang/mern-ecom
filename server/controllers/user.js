@@ -6,6 +6,8 @@ import User from "../models/user.js";
 import * as dotenv from "dotenv";
 dotenv.config();
 const PORT = process.env.PORT || 3010;
+import Order from "../models/order.js";
+import Product from "../models/product.js";
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
@@ -189,5 +191,20 @@ export const createNewPassword = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
     console.log(error);
+  }
+};
+
+export const getUserStats = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const orders = await Order.find({ userId });
+    const totalOrders = orders.length;
+    const totalSpent = orders.reduce((sum, o) => sum + (o.amount / 100), 0);
+    const userProducts = await Product.find({ userID: userId });
+    const totalProducts = userProducts.length;
+    const totalSales = orders.filter(o => userProducts.some(p => String(p._id) === String(o.items?.[0]?.productId))).length;
+    return res.json({ totalOrders, totalSpent, totalProducts, totalSales });
+  } catch (e) {
+    return res.status(500).json({ message: "Failed to fetch stats" });
   }
 };

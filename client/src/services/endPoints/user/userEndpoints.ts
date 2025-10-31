@@ -9,4 +9,6 @@ export const updateUserApi = async (token: string, id: string, payload: any) => 
   return axios.patch(`${AUTH_API}/${id}`, payload, { headers: { Authorization: `Bearer ${token}` } });
 };
 
-
+export const getUserStatsApi = async (token: string) => {
+  return axios.get(`${AUTH_API}/stats`, { headers: { Authorization: `Bearer ${token}` } });
+};
