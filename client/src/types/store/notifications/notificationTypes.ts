@@ -7,9 +7,10 @@ export type NotificationType =
   | "order_cancelled"
   | "cart_update"
   | "product_update"
-  | "system";
+  | "system"
+  | "chat";
 
-export type EntityType = "product" | "order" | "comment" | "rating" | "user";
+export type EntityType = "product" | "order" | "comment" | "rating" | "user" | "chat";
 
 export interface IRelatedEntity {
   entityType: EntityType;

@@ -72,6 +72,7 @@ interface ChatBoxProps {
   productPrice?: number;
   productSlug?: string;
   sellerId?: string;
+  chatId?: string; // For opening existing chat
   onClose?: () => void;
 }
 
@@ -82,6 +83,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   productPrice,
   productSlug,
   sellerId,
+  chatId,
   onClose,
 }) => {
   const { result: user } = useAppSelector(authSelector);
@@ -94,13 +96,19 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatIdRef = useRef<string | null>(null);
 
-  // Auto-open if productId is provided
+  // Auto-open if productId or chatId is provided
   useEffect(() => {
-    if (productId && sellerId && user) {
+    if (chatId && user) {
+      // Load existing chat
+      loadChatMessages(chatId);
+      chatIdRef.current = chatId;
+      setIsOpen(true);
+      setIsMinimized(false);
+    } else if (productId && sellerId && user) {
       handleOpenChat();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productId, sellerId, user]);
+  }, [productId, sellerId, chatId, user]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -180,7 +188,15 @@ const ChatBox: React.FC<ChatBoxProps> = ({
 
     try {
       const response = await sendMessageApi(currentChatId, textToSend);
-      setChat(response.data.chat);
+      // Ensure we have the updated chat with new message
+      const updatedChat = response.data.chat;
+      setChat(updatedChat);
+      
+      // Reload chat messages to ensure persistence
+      setTimeout(() => {
+        loadChatMessages(currentChatId);
+      }, 100);
+      
       scrollToBottom();
     } catch (error: any) {
       console.error('Error sending message:', error);

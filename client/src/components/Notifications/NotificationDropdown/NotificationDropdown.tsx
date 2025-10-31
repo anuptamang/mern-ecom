@@ -53,6 +53,8 @@ export const NotificationDropdown = ({
         return <ShoppingCartOutlined style={{ color: "#722ed1" }} />;
       case "product_update":
         return <InfoCircleOutlined style={{ color: "#1890ff" }} />;
+      case "chat":
+        return <MessageOutlined style={{ color: "#1890ff" }} />;
       case "system":
       default:
         return <InfoCircleOutlined style={{ color: "#595959" }} />;
@@ -78,6 +80,10 @@ export const NotificationDropdown = ({
           break;
         case "order":
           navigateUrl = `/user/orders`;
+          break;
+        case "chat":
+          // For chat notifications, navigate to chat page with chatId
+          navigateUrl = `/user/chats?chatId=${entityId}`;
           break;
         case "comment":
         case "rating":

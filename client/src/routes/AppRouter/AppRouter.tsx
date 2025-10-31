@@ -35,6 +35,7 @@ const WishlistDashboard = lazy(() => import('pages/private/Wishlist/Dashboard'))
 const ReturnsDashboard = lazy(() => import('pages/private/Returns/Dashboard'));
 const DeliveryAgencyDashboard = lazy(() => import('pages/private/DeliveryAgency/Dashboard'));
 const DeliveryPersonDashboard = lazy(() => import('pages/private/DeliveryPerson/Dashboard'));
+const ChatsDashboard = lazy(() => import('pages/private/Chats/Dashboard'));
 
 const AppRouter = () => {
   const auth = useAuth();
@@ -82,6 +83,7 @@ const AppRouter = () => {
             <Route path={'checkout'} element={<UserCheckoutPage />} />
             <Route path={'wishlist'} element={<WishlistDashboard />} />
             <Route path={'returns'} element={<ReturnsDashboard />} />
+            <Route path={'chats'} element={<ChatsDashboard />} />
             <Route 
               path={'delivery-agency'} 
               element={

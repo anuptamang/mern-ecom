@@ -1,6 +1,7 @@
 import Chat from "../models/chat.js";
 import User from "../models/user.js";
 import Product from "../models/product.js";
+import { createNotification } from "./notifications.js";
 
 /**
  * Create a new chat or get existing chat between participants
@@ -212,12 +213,16 @@ export const sendMessage = async (req, res) => {
       return res.status(404).json({ message: "Chat not found" });
     }
 
-    // Create new message
+    // Get sender info for notification
+    const sender = await User.findById(userId);
+
+    // Create new message with timestamp
     const newMessage = {
       senderId: userId,
       senderRole: userRole,
       text: text.trim(),
       read: false,
+      timestamp: new Date(),
     };
 
     chat.messages.push(newMessage);
@@ -227,12 +232,14 @@ export const sendMessage = async (req, res) => {
       timestamp: new Date(),
     };
 
-    // Update unread count for other participants
+    // Update unread count and create notifications for other participants
+    const recipientIds = [];
     chat.participants.forEach((participant) => {
       if (String(participant.userId) !== String(userId)) {
         const currentUnread =
           chat.unreadCount.get(participant.userId.toString()) || 0;
         chat.unreadCount.set(participant.userId.toString(), currentUnread + 1);
+        recipientIds.push(participant.userId);
       }
     });
 
@@ -243,7 +250,51 @@ export const sendMessage = async (req, res) => {
 
     await chat.save();
 
+    // Create notifications for recipients
+    for (const recipientId of recipientIds) {
+      try {
+        const recipient = await User.findById(recipientId);
+        const otherParticipant = chat.participants.find(
+          (p) => String(p.userId) !== String(recipientId)
+        );
+
+        // Get product context for notification
+        let productTitle = "";
+        if (chat.productContext?.productTitle) {
+          productTitle = ` about "${chat.productContext.productTitle}"`;
+        }
+
+        await createNotification({
+          userId: recipientId,
+          type: "system",
+          title: "New Message",
+          message: `${
+            sender?.fullName || "Someone"
+          } sent you a message${productTitle}`,
+          relatedEntity: {
+            entityType: "chat",
+            entityId: chat._id,
+          },
+          actionUrl: `/user/chats?chatId=${chat._id}`,
+          metadata: {
+            chatId: chat._id.toString(),
+            senderId: userId.toString(),
+            senderName: sender?.fullName || "Unknown",
+            messageText: text.trim().substring(0, 100),
+            productContext: chat.productContext || null,
+          },
+        });
+      } catch (notifError) {
+        console.error("Error creating chat notification:", notifError);
+        // Don't fail the request if notification creation fails
+      }
+    }
+
     // Populate sender info for response
+    await chat.populate(
+      "participants.userId",
+      "fullName email profilePhoto role"
+    );
     await chat.populate("messages.senderId", "fullName email profilePhoto");
     const sentMessage = chat.messages[chat.messages.length - 1];
 

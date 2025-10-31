@@ -20,6 +20,7 @@ const notificationSchema = new mongoose.Schema(
         "cart_update",
         "product_update",
         "system",
+        "chat",
       ],
       required: true,
     },
@@ -35,7 +36,7 @@ const notificationSchema = new mongoose.Schema(
       type: {
         entityType: {
           type: String,
-          enum: ["product", "order", "comment", "rating", "user"],
+          enum: ["product", "order", "comment", "rating", "user", "chat"],
         },
         entityId: mongoose.Types.ObjectId,
       },

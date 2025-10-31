@@ -1,0 +1,10 @@
+.chats-dashboard {
+  .ant-list-item {
+    transition: background-color 0.2s;
+    
+    &:hover {
+      background-color: #f5f5f5;
+    }
+  }
+}
+

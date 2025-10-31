@@ -8,6 +8,7 @@ import {
   HeartOutlined,
   UndoOutlined,
   CarOutlined,
+  MessageOutlined,
 } from '@ant-design/icons';
 import { Menu, MenuProps } from 'antd';
 import { pageRoutes } from 'data/static/pageRoutes';
@@ -125,6 +126,17 @@ export const UserSidePanel = () => {
         </Link>
       ),
     }] : []),
+    {
+      key: `/${pageRoutes.userChats}`,
+      label: (
+        <Link
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+          to={`/${pageRoutes.userChats}`}
+        >
+          <MessageOutlined /> Messages
+        </Link>
+      ),
+    },
     ...(isDeliveryAgency ? [{
       key: `/${pageRoutes.deliveryAgencyDashboard}`,
       label: (

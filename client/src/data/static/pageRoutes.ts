@@ -23,6 +23,7 @@ interface IPageRoutes {
   userReturns?: string,
   deliveryAgencyDashboard?: string,
   deliveryPersonDashboard?: string,
+  userChats?: string,
 }
 
 export const pageRoutes: IPageRoutes = {
@@ -50,4 +51,5 @@ export const pageRoutes: IPageRoutes = {
   userReturns: 'user/returns',
   deliveryAgencyDashboard: 'user/delivery-agency',
   deliveryPersonDashboard: 'user/delivery-person',
+  userChats: 'user/chats',
 }
