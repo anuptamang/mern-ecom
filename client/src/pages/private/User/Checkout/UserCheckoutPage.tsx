@@ -3,19 +3,26 @@ import { InfoCircleOutlined } from '@ant-design/icons';
 import { Container } from 'components/UI';
 import { pageRoutes } from 'data/static/pageRoutes';
 import { usePageTitle } from 'hooks/usePageTitle';
-import { useState } from 'react';
-import { useAppSelector } from 'redux/store';
+import { useState, useEffect } from 'react';
+import { useAppSelector, useAppDispatch } from 'redux/store';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import { StripeCheckoutForm } from './StripeCheckoutForm';
+import { fetchMyCart } from 'redux/slice/carts/cartsSlice';
 
 const { Panel } = Collapse;
 
 const UserCheckoutPage = () => {
   const title = usePageTitle();
+  const dispatch = useAppDispatch();
   const carts = useAppSelector((s) => s.carts);
   const [paid, setPaid] = useState(false);
   const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || '');
+
+  useEffect(() => {
+    // Fetch cart when checkout page loads
+    dispatch(fetchMyCart());
+  }, [dispatch]);
 
   return (
     <>
@@ -31,7 +38,7 @@ const UserCheckoutPage = () => {
                 description={
                   <div>
                     <p className="mb-2">Use these Stripe test cards. Any future expiry date and any CVC (e.g., 123) will work.</p>
-                    <Collapse size="small" className="mb-2">
+                    <Collapse size="small" className="mb-2" defaultActiveKey={['1']}>
                       <Panel header="Test Card Information" key="1">
                         <div className="space-y-2">
                           <div>

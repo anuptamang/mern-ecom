@@ -21,10 +21,23 @@ export const StripeCheckoutForm = ({ onSuccess }: Props) => {
 
   useEffect(() => {
     const init = async () => {
-      const token = getToken() || '';
-      const amount = Math.round((carts.totalPrice || 0) * 100);
-      const { data } = await createPaymentIntentApi(token, { amount, currency: 'usd' });
-      setClientSecret(data.clientSecret);
+      if (!carts.totalPrice || carts.totalPrice <= 0) {
+        console.warn('Cart total is 0 or empty. Cannot create payment intent.');
+        return;
+      }
+      try {
+        const token = getToken() || '';
+        const amount = Math.round((carts.totalPrice || 0) * 100);
+        if (amount <= 0) {
+          console.warn('Amount is 0. Cannot create payment intent.');
+          return;
+        }
+        const { data } = await createPaymentIntentApi(token, { amount, currency: 'usd' });
+        setClientSecret(data.clientSecret);
+      } catch (error: any) {
+        console.error('Error creating payment intent:', error);
+        setError(error?.response?.data?.message || 'Failed to initialize payment');
+      }
     };
     init();
   }, [carts.totalPrice]);
