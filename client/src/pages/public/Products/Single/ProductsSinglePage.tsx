@@ -55,33 +55,73 @@ const ProductDetails = () => {
     if (!product || loading) return;
 
     const scrollToHash = () => {
-      const hash = location.hash.replace('#', '');
+      // Check both location.hash (React Router) and window.location.hash (browser)
+      const hashFromLocation = location.hash.replace('#', '');
+      const hashFromWindow = window.location.hash.replace('#', '');
+      const hash = hashFromWindow || hashFromLocation;
+      
       if (!hash) return;
+
+      console.log('Attempting to scroll to hash:', hash); // Debug log
 
       // Try multiple times with increasing delays to ensure element is rendered
       const tryScroll = (attempt = 0) => {
         const element = document.getElementById(hash);
         if (element) {
-          // Use requestAnimationFrame for smoother scrolling
-          requestAnimationFrame(() => {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            // Add offset after a short delay
-            setTimeout(() => {
-              window.scrollBy(0, -80);
-            }, 100);
-          });
-        } else if (attempt < 10) {
-          // Try again after a delay if element not found (max 10 attempts)
-          setTimeout(() => tryScroll(attempt + 1), 100 * (attempt + 1));
+          console.log('Element found, scrolling:', hash); // Debug log
+          // Scroll to element with smooth behavior
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Add offset after scroll animation starts
+          setTimeout(() => {
+            const rect = element.getBoundingClientRect();
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            window.scrollTo({
+              top: scrollTop + rect.top - 80,
+              behavior: 'smooth'
+            });
+          }, 50);
+        } else if (attempt < 15) {
+          // Try again after a delay if element not found (max 15 attempts)
+          console.log(`Attempt ${attempt + 1}: Element not found, retrying...`); // Debug log
+          setTimeout(() => tryScroll(attempt + 1), 150 * (attempt + 1));
+        } else {
+          console.warn('Element not found after all attempts:', hash); // Debug log
         }
       };
 
-      // Start trying after a short initial delay
-      setTimeout(() => tryScroll(), 100);
+      // Start trying after a short initial delay to ensure DOM is ready
+      setTimeout(() => tryScroll(), 200);
     };
 
     scrollToHash();
   }, [product, loading, location.hash]);
+
+  // Also listen for hash changes on window
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (!product || loading) return;
+      const hash = window.location.hash.replace('#', '');
+      if (hash) {
+        setTimeout(() => {
+          const element = document.getElementById(hash);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setTimeout(() => {
+              const rect = element.getBoundingClientRect();
+              const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+              window.scrollTo({
+                top: scrollTop + rect.top - 80,
+                behavior: 'smooth'
+              });
+            }, 50);
+          }
+        }, 200);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [product, loading]);
 
   useEffect(() => {
     if (!id) {

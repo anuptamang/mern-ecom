@@ -85,8 +85,21 @@ export const NotificationBell = () => {
           onClose={() => setDropdownVisible(false)}
           onNavigate={(url) => {
             setDropdownVisible(false);
-            navigate(url);
-            // Scrolling is handled by the ProductsSinglePage component via location.hash
+            
+            // Split URL and hash
+            const [path, hash] = url.split('#');
+            
+            // Navigate first
+            navigate(path);
+            
+            // Then set hash directly if present (React Router may not preserve it)
+            if (hash) {
+              setTimeout(() => {
+                window.location.hash = hash;
+                // Trigger a hashchange event
+                window.dispatchEvent(new HashChangeEvent('hashchange'));
+              }, 100);
+            }
           }}
         />
       )}
