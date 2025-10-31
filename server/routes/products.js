@@ -14,6 +14,8 @@ import {
   replyComment,
   viewCount,
   getMyProducts,
+  addRating,
+  getRatings,
 } from "../controllers/products.js";
 import Auth from "../middlewares/auth.js";
 import { Upload } from "../middlewares/upload.js";
@@ -33,5 +35,7 @@ router.post("/:id/comments", Auth, addCommentToProduct);
 router.patch("/:id/comments/:commentId/like", likeComment);
 router.patch("/:id/comments/:commentId/reply", replyComment);
 router.patch("/:id/viewcount", viewCount);
+router.get("/:id/ratings", getRatings);
+router.post("/:id/ratings", Auth, addRating);
 
 export default router;

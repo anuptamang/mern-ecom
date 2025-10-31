@@ -1,4 +1,4 @@
-import { Button, Card, Spin, message } from 'antd';
+import { Button, Card, Spin, message, Rate, Divider, Tag } from 'antd';
 import { Container } from 'components/UI';
 import { usePageTitle } from 'hooks/usePageTitle';
 import { ReactNode, useEffect, useState } from 'react';
@@ -8,6 +8,9 @@ import { useAppDispatch, useAppSelector } from 'redux/store';
 import { addToCart } from 'redux/slice/carts/cartsSlice';
 import { authSelector } from 'redux/slice';
 import { fetchProductByIdApi } from 'services/endPoints/products/productsEndpoints';
+import { ProductImageGallery, ProductRatings, ProductComments } from 'components';
+import { EyeOutlined, LikeOutlined } from '@ant-design/icons';
+import './ProductsSinglePage.scss';
 
 type Props = {};
 
@@ -85,23 +88,112 @@ const ProductDetails = () => {
   }
 
   return (
-    <Card cover={product.thumbnail ? <img alt={product.title} src={product.thumbnail} /> : null}>
-      <h2 className="text-xl font-semibold mb-2">{product.title}</h2>
-      <div className="mb-4">{product.body?.summary || product.description || ''}</div>
-      {product.price && (
-        <div className="text-2xl font-bold mb-4 text-blue-600">${product.price}</div>
-      )}
-      {!isSeller && result && (
-        <Button type="primary" onClick={() => dispatch(addToCart({ productId: product._id }))}>
-          Add to Cart
-        </Button>
-      )}
-      {isSeller && (
-        <div className="text-gray-500 italic">Sellers cannot purchase products</div>
-      )}
-      {!result && (
-        <div className="text-gray-500 italic">Please log in to add items to cart</div>
-      )}
-    </Card>
+    <div className="product-detail-page">
+      {/* Top Section: Image Gallery (Left) and Product Info (Right) */}
+      <div className="product-detail-top">
+        <div className="product-image-section">
+          <ProductImageGallery
+            thumbnail={product.thumbnail || ''}
+            images={product.images || []}
+          />
+        </div>
+
+        <div className="product-info-section">
+          <Card>
+            <div className="product-header">
+              <h1 className="product-title">{product.title}</h1>
+              <div className="product-meta">
+                {product.rating > 0 && (
+                  <div className="product-rating">
+                    <Rate disabled value={product.rating} allowHalf />
+                    <span className="rating-value">({product.rating.toFixed(1)})</span>
+                  </div>
+                )}
+                <div className="product-stats">
+                  {product.views > 0 && (
+                    <span className="stat-item">
+                      <EyeOutlined /> {product.views} views
+                    </span>
+                  )}
+                  {product.likes > 0 && (
+                    <span className="stat-item">
+                      <LikeOutlined /> {product.likes} likes
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <Divider />
+
+            <div className="product-price-section">
+              {product.price && (
+                <div className="product-price">
+                  <span className="currency">$</span>
+                  <span className="amount">{product.price.toFixed(2)}</span>
+                </div>
+              )}
+            </div>
+
+            <Divider />
+
+            <div className="product-description">
+              <h3>Description</h3>
+              <p>{product.body?.summary || product.body?.full || product.description || 'No description available.'}</p>
+            </div>
+
+            {product.categories && product.categories.length > 0 && (
+              <div className="product-categories">
+                <h3>Categories</h3>
+                <div className="category-tags">
+                  {product.categories.map((cat: string, index: number) => (
+                    <Tag key={index} color="blue">{cat}</Tag>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <Divider />
+
+            <div className="product-actions">
+              {!isSeller && result && (
+                <Button
+                  type="primary"
+                  size="large"
+                  onClick={() => dispatch(addToCart({ productId: product._id }))}
+                  className="add-to-cart-btn"
+                >
+                  Add to Cart
+                </Button>
+              )}
+              {isSeller && (
+                <div className="seller-notice">
+                  <p className="text-gray-500 italic">
+                    Sellers cannot purchase products
+                  </p>
+                </div>
+              )}
+              {!result && (
+                <div className="login-notice">
+                  <p className="text-gray-500 italic">
+                    Please log in to add items to cart
+                  </p>
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* Bottom Section: Ratings & Reviews */}
+      <div className="product-detail-bottom">
+        <ProductRatings productId={product._id} productRating={product.rating} />
+      </div>
+
+      {/* Comments Section */}
+      <div className="product-detail-bottom">
+        <ProductComments productId={product._id} />
+      </div>
+    </div>
   );
 };

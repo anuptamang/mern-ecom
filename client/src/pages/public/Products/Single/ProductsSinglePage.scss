@@ -1,0 +1,302 @@
+.product-detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 0;
+
+  .product-detail-top {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+
+    @media (max-width: 968px) {
+      grid-template-columns: 1fr;
+    }
+
+    .product-image-section {
+      width: 100%;
+    }
+
+    .product-info-section {
+      .product-header {
+        margin-bottom: 16px;
+
+        .product-title {
+          font-size: 28px;
+          font-weight: 600;
+          margin-bottom: 12px;
+          color: #333;
+        }
+
+        .product-meta {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+
+          .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            .rating-value {
+              font-size: 16px;
+              color: #666;
+            }
+          }
+
+          .product-stats {
+            display: flex;
+            gap: 16px;
+            color: #666;
+            font-size: 14px;
+
+            .stat-item {
+              display: flex;
+              align-items: center;
+              gap: 4px;
+            }
+          }
+        }
+      }
+
+      .product-price-section {
+        .product-price {
+          display: flex;
+          align-items: baseline;
+          gap: 4px;
+
+          .currency {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1890ff;
+          }
+
+          .amount {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1890ff;
+          }
+        }
+      }
+
+      .product-description {
+        margin-bottom: 16px;
+
+        h3 {
+          font-size: 18px;
+          font-weight: 600;
+          margin-bottom: 12px;
+          color: #333;
+        }
+
+        p {
+          line-height: 1.6;
+          color: #666;
+          white-space: pre-wrap;
+        }
+      }
+
+      .product-categories {
+        margin-bottom: 16px;
+
+        h3 {
+          font-size: 18px;
+          font-weight: 600;
+          margin-bottom: 12px;
+          color: #333;
+        }
+
+        .category-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+      }
+
+      .product-actions {
+        .add-to-cart-btn {
+          width: 100%;
+          height: 48px;
+          font-size: 16px;
+        }
+
+        .seller-notice,
+        .login-notice {
+          text-align: center;
+          padding: 16px;
+        }
+      }
+    }
+  }
+
+  .product-detail-bottom {
+    margin-top: 24px;
+  }
+}
+
+// Styles for ProductRatings component
+.product-ratings {
+  .rating-summary {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f0f0f0;
+
+    .rating-display {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      .rating-value {
+        font-size: 48px;
+        font-weight: 700;
+        color: #1890ff;
+      }
+
+      .rating-count {
+        font-size: 14px;
+        color: #666;
+      }
+    }
+  }
+
+  .add-rating-section {
+    margin-bottom: 24px;
+  }
+
+  .rating-form-card {
+    margin-bottom: 24px;
+
+    .rating-input {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+
+      .label {
+        font-weight: 500;
+      }
+    }
+
+    .review-input {
+      margin-bottom: 16px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+  }
+
+  .ratings-list {
+    .no-ratings {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+    .rating-item {
+      padding: 16px 0;
+      border-bottom: 1px solid #f0f0f0;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .rating-header {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 12px;
+
+        .rating-info {
+          flex: 1;
+
+          .user-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+          }
+
+          .rating-date {
+            font-size: 12px;
+            color: #999;
+          }
+        }
+      }
+
+      .rating-review {
+        color: #666;
+        line-height: 1.6;
+        margin-top: 8px;
+      }
+    }
+  }
+}
+
+// Styles for ProductComments component
+.product-comments {
+  .comment-form {
+    margin-bottom: 24px;
+
+    .submit-comment-btn {
+      margin-top: 12px;
+    }
+  }
+
+  .login-prompt {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    margin-bottom: 24px;
+    background: #f9f9f9;
+    border-radius: 4px;
+  }
+
+  .comments-list {
+    .no-comments {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+    .comment-item {
+      padding: 16px 0;
+      border-bottom: 1px solid #f0f0f0;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .comment-header {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 12px;
+
+        .comment-info {
+          flex: 1;
+
+          .user-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+          }
+
+          .comment-date {
+            font-size: 12px;
+            color: #999;
+          }
+        }
+      }
+
+      .comment-text {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 8px;
+        white-space: pre-wrap;
+      }
+
+      .comment-actions {
+        display: flex;
+        gap: 16px;
+      }
+    }
+  }
+}

@@ -30,3 +30,12 @@ export const Upload = multer({
     checkFileType(file, cb);
   },
 }).single("thumbnail");
+
+// For multiple image uploads (gallery)
+export const UploadMultiple = multer({
+  storage: storage,
+  limits: { fileSize: 20000000 }, // limit file size to 20MB
+  fileFilter: (req, file, cb) => {
+    checkFileType(file, cb);
+  },
+}).array("images", 10); // Allow up to 10 images

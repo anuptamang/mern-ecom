@@ -10,6 +10,17 @@ const productSchema = mongoose.Schema({
   categories: [{ type: String }],
   slug: { type: String },
   thumbnail: { type: String },
+  images: [{ type: String }], // Gallery images
+  price: { type: Number },
+  rating: { type: Number, default: 0 }, // Average rating
+  ratings: [
+    {
+      userId: { type: mongoose.Types.ObjectId, ref: "User" },
+      rating: { type: Number, required: true, min: 1, max: 5 },
+      review: { type: String },
+      createdAt: { type: Date, default: new Date() },
+    },
+  ],
   comments: [
     {
       text: { type: String, required: true },

@@ -12,7 +12,7 @@ export const UserProfileHeader = () => {
   const { result } = useAppSelector(authSelector);
   const dispatch = useAppDispatch();
   const [uploading, setUploading] = useState(false);
-  
+
   const onProfilePhotoChange = async (file: any) => {
     if (!result?._id) return;
     const token = getToken() || '';
@@ -26,7 +26,9 @@ export const UserProfileHeader = () => {
       await dispatch(fetchUserProfile({ id: result._id })).unwrap();
       message.success('Profile photo updated successfully');
     } catch (e: any) {
-      message.error(e?.response?.data?.message || 'Failed to upload profile photo');
+      message.error(
+        e?.response?.data?.message || 'Failed to upload profile photo'
+      );
     } finally {
       setUploading(false);
     }

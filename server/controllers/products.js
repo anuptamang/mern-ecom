@@ -43,8 +43,14 @@ export const createProduct = async (req, res) => {
     return res.json({ message: "Error: No File Selected!" });
   }
 
-  const { title, body, tag, categories, slug } = req.body;
+  const { title, body, tag, categories, slug, price } = req.body;
   const fullUrl = `http://localhost:${PORT}/uploads/${req.file.filename}`;
+  
+  // Handle multiple images from req.files if using UploadMultiple
+  let images = [];
+  if (req.files && req.files.length > 0) {
+    images = req.files.map(file => `http://localhost:${PORT}/uploads/${file.filename}`);
+  }
 
   const newProduct = new Product({
     userID: req.userId,
@@ -55,6 +61,8 @@ export const createProduct = async (req, res) => {
     categories,
     slug,
     thumbnail: fullUrl,
+    images,
+    price: price ? parseFloat(price) : undefined,
   });
 
   try {
@@ -153,7 +161,7 @@ export const addCommentToProduct = async (req, res) => {
 
 export const allComments = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id).populate("comments.userId", "fullName profilePhoto");
     res.status(201).json(product.comments);
   } catch (error) {
     res.status(404).json({ message: "Product not found" });
@@ -203,5 +211,62 @@ export const getMyProducts = async (req, res) => {
     res.status(200).json({ data: products });
   } catch (error) {
     res.status(404).json({ message: error.message });
+  }
+};
+
+export const addRating = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rating, review } = req.body;
+    const userId = req.userId;
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: "Rating must be between 1 and 5" });
+    }
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Check if user already rated this product
+    const existingRatingIndex = product.ratings.findIndex(
+      r => String(r.userId) === String(userId)
+    );
+
+    if (existingRatingIndex >= 0) {
+      // Update existing rating
+      product.ratings[existingRatingIndex].rating = rating;
+      product.ratings[existingRatingIndex].review = review || product.ratings[existingRatingIndex].review;
+      product.ratings[existingRatingIndex].createdAt = new Date();
+    } else {
+      // Add new rating
+      product.ratings.push({ userId, rating, review: review || "", createdAt: new Date() });
+    }
+
+    // Calculate average rating
+    const totalRatings = product.ratings.length;
+    const sumRatings = product.ratings.reduce((sum, r) => sum + r.rating, 0);
+    product.rating = totalRatings > 0 ? sumRatings / totalRatings : 0;
+
+    await product.save();
+    res.status(200).json(product);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getRatings = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findById(id).populate("ratings.userId", "fullName profilePhoto");
+    
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.status(200).json(product.ratings);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

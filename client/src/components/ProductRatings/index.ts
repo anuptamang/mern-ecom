@@ -1,0 +1,1 @@
+export { ProductRatings } from './ProductRatings';

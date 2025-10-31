@@ -13,11 +13,13 @@ More test cards: `https://stripe.com/docs/testing`.
 ## Environment
 
 Server `server/.env`:
+
 ```
 STRIPE_SECRET_KEY=sk_test_REMOVED_FOR_SECURITY_FOR_SECURITY
 ```
 
 Client `client/.env`:
+
 ```
 REACT_APP_BACKEND_API_URL=http://localhost:3010
 REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_test_REMOVED_FOR_SECURITY_FOR_SECURITY_FOR_SECURITY
@@ -39,6 +41,7 @@ Authorization header: `Authorization: Bearer <JWT_FROM_LOGIN>`
 ### 1) Create Payment Intent
 
 Request:
+
 ```
 POST /checkout/create-payment-intent
 Content-Type: application/json
@@ -49,7 +52,9 @@ Authorization: Bearer <token>
   "currency": "usd"
 }
 ```
+
 Response:
+
 ```
 {
   "clientSecret": "pi_12345_secret_67890"
@@ -61,6 +66,7 @@ If `amount` is omitted, the server computes it from the authenticated user's car
 ### 2) Create Order (after successful payment)
 
 Request:
+
 ```
 POST /orders
 Content-Type: application/json
@@ -72,7 +78,9 @@ Authorization: Bearer <token>
   "currency": "usd"
 }
 ```
+
 Response:
+
 ```
 {
   "order": {
@@ -97,6 +105,7 @@ Response:
 ```
 
 ### 3) List My Orders
+
 ```
 GET /orders/me
 Authorization: Bearer <token>
@@ -105,6 +114,7 @@ Authorization: Bearer <token>
 ## Sample Cart Items
 
 The backend expects product pricing under `product.body.price`. Ensure products are seeded like:
+
 ```
 {
   "title": "Wireless Mouse",

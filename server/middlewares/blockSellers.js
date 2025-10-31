@@ -5,4 +5,3 @@ export const blockSellers = (req, res, next) => {
   }
   next();
 };
-

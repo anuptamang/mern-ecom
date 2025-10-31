@@ -1,0 +1,1 @@
+export { ProductComments } from './ProductComments';

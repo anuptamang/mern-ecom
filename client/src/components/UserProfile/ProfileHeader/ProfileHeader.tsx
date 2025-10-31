@@ -12,7 +12,6 @@ export const ProfileHeader = ({
   profilePhotoUrl,
   fullName,
 }: TProfileHeader) => {
-
   const props: UploadProps = {
     name: 'thumbnail',
     accept: 'image/*',
