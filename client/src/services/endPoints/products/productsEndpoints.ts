@@ -19,3 +19,7 @@ export const fetchMyProductsApi = async () => {
   const token = getToken() || '';
   return axios.get(`${PRODUCTS_API}/me`, { headers: { Authorization: `Bearer ${token}` } });
 }
+
+export const fetchProductByIdApi = async (id: string) => {
+  return axios.get(`${PRODUCTS_API}/${id}`);
+}
