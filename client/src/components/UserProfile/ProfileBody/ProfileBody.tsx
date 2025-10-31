@@ -147,6 +147,28 @@ export const ProfileBody = ({
         >
           <Input />
         </Form.Item>
+        <Divider>Contact Information</Divider>
+        <Form.Item
+          name="phone"
+          label="Phone"
+        >
+          <Input placeholder="+1 234 567 8900" />
+        </Form.Item>
+        <Form.Item
+          name="secondaryPhone"
+          label="Secondary Phone"
+        >
+          <Input placeholder="+1 234 567 8900" />
+        </Form.Item>
+        <Form.Item
+          name="secondaryEmail"
+          label="Secondary Email"
+        >
+          <Input type="email" placeholder="secondary@example.com" />
+        </Form.Item>
+        <Divider>Addresses</Divider>
+        <AddressForm form={form} namePrefix="primaryAddress" label="Primary Address" />
+        <AddressForm form={form} namePrefix="secondaryAddress" label="Secondary Address" />
       </Form>
     </div>
   );

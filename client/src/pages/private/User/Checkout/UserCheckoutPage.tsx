@@ -1,14 +1,17 @@
-import { Button, Card, Result, Alert, Collapse } from 'antd';
+import { Button, Card, Result, Alert, Collapse, Divider } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Container } from 'components/UI';
 import { pageRoutes } from 'data/static/pageRoutes';
 import { usePageTitle } from 'hooks/usePageTitle';
 import { useState, useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from 'redux/store';
+import { authSelector } from 'redux/slice';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import { StripeCheckoutForm } from './StripeCheckoutForm';
 import { fetchMyCart } from 'redux/slice/carts/cartsSlice';
+import { AddressSelect } from 'components/AddressSelect';
+import { IAddress } from 'types/user/userType';
 
 const { Panel } = Collapse;
 
@@ -16,13 +19,28 @@ const UserCheckoutPage = () => {
   const title = usePageTitle();
   const dispatch = useAppDispatch();
   const carts = useAppSelector((s) => s.carts);
+  const { result: user } = useAppSelector(authSelector);
   const [paid, setPaid] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState<IAddress | null>(null);
+  const [selectedAddressType, setSelectedAddressType] = useState<'primary' | 'secondary'>('primary');
   const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || '');
 
   useEffect(() => {
     // Fetch cart when checkout page loads
     dispatch(fetchMyCart());
-  }, [dispatch]);
+    // Set default address
+    if (user) {
+      const defaultAddress = user.primaryAddress?.street ? user.primaryAddress : user.secondaryAddress;
+      const defaultType = user.primaryAddress?.street ? 'primary' : 'secondary';
+      setSelectedAddress(defaultAddress || null);
+      setSelectedAddressType(defaultType);
+    }
+  }, [dispatch, user]);
+
+  const handleAddressSelect = (address: IAddress | null, addressType: 'primary' | 'secondary') => {
+    setSelectedAddress(address);
+    setSelectedAddressType(addressType);
+  };
 
   return (
     <>

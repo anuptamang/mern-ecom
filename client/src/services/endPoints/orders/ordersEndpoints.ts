@@ -3,7 +3,7 @@ import { BACKEND_API } from "configs/api";
 
 export const createOrderApi = async (
   token: string,
-  payload: { paymentIntentId?: string; amount?: number; currency?: string; items?: any[] }
+  payload: { paymentIntentId?: string; amount?: number; currency?: string; items?: any[]; deliveryAddress?: any }
 ) => {
   return axios.post(`${BACKEND_API}/orders`, payload, { headers: { Authorization: `Bearer ${token}` } });
 };

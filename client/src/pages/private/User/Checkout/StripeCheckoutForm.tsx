@@ -7,11 +7,18 @@ import { createOrderApi } from 'services/endPoints/orders/ordersEndpoints';
 import { useAppSelector, useAppDispatch } from 'redux/store';
 import { fetchMyCart } from 'redux/slice/carts/cartsSlice';
 
+import { IAddress } from 'types/user/userType';
+
+interface IDeliveryAddress extends IAddress {
+  addressType?: 'primary' | 'secondary';
+}
+
 type Props = {
   onSuccess: () => void;
+  deliveryAddress?: IDeliveryAddress | null;
 };
 
-export const StripeCheckoutForm = ({ onSuccess }: Props) => {
+export const StripeCheckoutForm = ({ onSuccess, deliveryAddress }: Props) => {
   const stripe = useStripe();
   const elements = useElements();
   const dispatch = useAppDispatch();
@@ -60,6 +67,7 @@ export const StripeCheckoutForm = ({ onSuccess }: Props) => {
         paymentIntentId: paymentIntent?.id,
         amount: paymentIntent?.amount,
         currency: paymentIntent?.currency,
+        deliveryAddress: deliveryAddress || undefined,
       });
       // Refresh cart after successful order (cart is cleared on backend)
       await dispatch(fetchMyCart());

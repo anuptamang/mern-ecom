@@ -1,14 +1,16 @@
-import { Card, List, Tag, Spin, Empty, message, Button, Image } from 'antd';
+import { Card, List, Tag, Spin, Empty, message, Button, Image, Modal, Popconfirm, Input } from 'antd';
 import { Container } from 'components/UI';
 import { usePageTitle } from 'hooks/usePageTitle';
 import { useEffect, useState } from 'react';
 import { listMyOrdersApi } from 'services/endPoints/orders/ordersEndpoints';
+import { getDeliveryTrackingApi, cancelOrderApi } from 'services/endPoints/delivery';
 import { getToken } from 'utils/localStorage';
 import { useAppSelector, useAppDispatch } from 'redux/store';
 import { authSelector } from 'redux/slice';
-import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, EyeOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, EyeOutlined, StopOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
+import { DeliveryTracking } from 'components/DeliveryTracking';
 import './OrdersDashboard.scss';
 
 type TProps = {};
@@ -21,6 +23,12 @@ const OrdersDashboard = (props: TProps) => {
   const isSeller = result?.role === 'seller';
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [deliveryTracking, setDeliveryTracking] = useState<any>(null);
+  const [trackingModalVisible, setTrackingModalVisible] = useState(false);
+  const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
 
   useEffect(() => {
     if (isSeller) {
@@ -46,6 +54,36 @@ const OrdersDashboard = (props: TProps) => {
     load();
   }, [isSeller]);
 
+  const loadDeliveryTracking = async (orderId: string) => {
+    try {
+      const { data } = await getDeliveryTrackingApi(orderId);
+      setDeliveryTracking(data.delivery);
+      setSelectedOrder(orders.find((o) => o._id === orderId));
+      setTrackingModalVisible(true);
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || 'Failed to load delivery tracking');
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!cancellingOrderId) return;
+    try {
+      await cancelOrderApi(cancellingOrderId, cancelReason);
+      message.success('Order cancelled successfully. Refund will be processed.');
+      setCancelModalVisible(false);
+      setCancelReason('');
+      setCancellingOrderId(null);
+      // Reload orders
+      const token = getToken();
+      if (token) {
+        const { data } = await listMyOrdersApi(token);
+        setOrders(data.orders || []);
+      }
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || 'Failed to cancel order');
+    }
+  };
+
   const getStatusTag = (status: string) => {
     const statusConfig: Record<string, { color: string; icon: any; text: string }> = {
       paid: {
@@ -62,6 +100,16 @@ const OrdersDashboard = (props: TProps) => {
         color: 'error',
         icon: <CloseCircleOutlined />,
         text: 'Failed',
+      },
+      cancelled: {
+        color: 'error',
+        icon: <CloseCircleOutlined />,
+        text: 'Cancelled',
+      },
+      refunded: {
+        color: 'warning',
+        icon: <StopOutlined />,
+        text: 'Refunded',
       },
     };
 
@@ -218,6 +266,52 @@ const OrdersDashboard = (props: TProps) => {
             )}
           </Spin>
         </Card>
+
+        <Modal
+          title="Delivery Tracking"
+          open={trackingModalVisible}
+          onCancel={() => {
+            setTrackingModalVisible(false);
+            setDeliveryTracking(null);
+            setSelectedOrder(null);
+          }}
+          footer={[
+            <Button key="close" onClick={() => {
+              setTrackingModalVisible(false);
+              setDeliveryTracking(null);
+              setSelectedOrder(null);
+            }}>
+              Close
+            </Button>,
+          ]}
+          width={800}
+        >
+          {selectedOrder && (
+            <DeliveryTracking delivery={deliveryTracking} order={selectedOrder} />
+          )}
+        </Modal>
+
+        <Modal
+          title="Cancel Order"
+          open={cancelModalVisible}
+          onOk={handleCancelOrder}
+          onCancel={() => {
+            setCancelModalVisible(false);
+            setCancelReason('');
+            setCancellingOrderId(null);
+          }}
+          okText="Confirm Cancellation"
+          okButtonProps={{ danger: true }}
+        >
+          <p>Are you sure you want to cancel this order? A refund will be processed to your original payment method.</p>
+          <Input.TextArea
+            placeholder="Optional: Reason for cancellation"
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            rows={4}
+            style={{ marginTop: 16 }}
+          />
+        </Modal>
       </Container>
     </>
   );

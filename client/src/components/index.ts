@@ -14,5 +14,7 @@ export * from './UI';
 export * from './UserProfile';
 export * from './WishlistButton';
 export * from './AddressForm';
+export * from './AddressSelect';
+export * from './DeliveryTracking';
 export * from '../features/UserProfileDetails';
 export * from './Wrapper';

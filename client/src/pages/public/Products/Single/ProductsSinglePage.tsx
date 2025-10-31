@@ -243,6 +243,14 @@ const ProductDetails = () => {
               )}
             </div>
 
+            {product.estimatedDeliveryDays && (
+              <div className="product-delivery-info" style={{ marginTop: 16 }}>
+                <Tag color="blue">
+                  Estimated Delivery: {product.estimatedDeliveryDays} {product.estimatedDeliveryDays === 1 ? 'day' : 'days'}
+                </Tag>
+              </div>
+            )}
+
             <Divider />
 
             <div className="product-description">
