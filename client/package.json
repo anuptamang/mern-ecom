@@ -33,7 +33,9 @@
     "styled-components": "^5.3.6",
     "typescript": "^4.9.4",
     "web-vitals": "^2.1.4",
-    "yup": "^1.0.0"
+    "yup": "^1.0.0",
+    "@stripe/react-stripe-js": "^2.7.1",
+    "@stripe/stripe-js": "^3.5.0"
   },
   "scripts": {
     "start": "react-scripts start",
