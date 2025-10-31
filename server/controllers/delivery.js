@@ -129,13 +129,33 @@ export const updateDeliveryStatus = async (req, res) => {
     if (userRole === "admin") {
       isAuthorized = true;
     } else if (userRole === "seller" && sellerStatuses.includes(status)) {
-      // Check if user is seller of any product in the order
+      // Check if user is seller of the specific product being updated (per-item tracking)
       const Product = (await import("../models/product.js")).default;
-      const productIds = order.items.map((item) => item.productId);
-      const products = await Product.find({ _id: { $in: productIds } });
-      isAuthorized = products.some(
-        (p) => String(p.userID) === String(userId) || p.userID.toString() === userId.toString()
-      );
+      if (orderItemId || productId || delivery.productId) {
+        // Per-item tracking: verify seller owns the specific product
+        const targetProductId = productId || delivery.productId;
+        if (targetProductId) {
+          const product = await Product.findById(targetProductId);
+          isAuthorized = product && (
+            String(product.userID) === String(userId) || 
+            product.userID.toString() === userId.toString()
+          );
+        } else {
+          // Fallback: check if seller owns any product in the order (backward compatibility)
+          const productIds = order.items.map((item) => item.productId);
+          const products = await Product.find({ _id: { $in: productIds } });
+          isAuthorized = products.some(
+            (p) => String(p.userID) === String(userId) || p.userID.toString() === userId.toString()
+          );
+        }
+      } else {
+        // Backward compatibility: check if seller owns any product in the order
+        const productIds = order.items.map((item) => item.productId);
+        const products = await Product.find({ _id: { $in: productIds } });
+        isAuthorized = products.some(
+          (p) => String(p.userID) === String(userId) || p.userID.toString() === userId.toString()
+        );
+      }
     } else if (userRole === "delivery_agency" && deliveryAgencyStatuses.includes(status)) {
       // Check if delivery is assigned to this agency
       isAuthorized = String(delivery.assignedDeliveryAgency) === String(userId);
