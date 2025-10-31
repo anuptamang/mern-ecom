@@ -25,11 +25,14 @@ export const createDeliveryTracking = async (orderId, deliveryAddress) => {
       status: "packing",
       deliveryAddress,
       estimatedDeliveryDate,
+      buyerAcceptance: "pending",
       statusHistory: [
         {
           status: "packing",
           timestamp: new Date(),
           note: "Order placed, preparing for shipment",
+          updatedBy: null, // System created
+          updatedByRole: "system",
         },
       ],
     });
