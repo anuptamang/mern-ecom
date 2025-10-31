@@ -11,3 +11,7 @@ export const createOrderApi = async (
 export const listMyOrdersApi = async (token: string) => {
   return axios.get(`${BACKEND_API}/orders/me`, { headers: { Authorization: `Bearer ${token}` } });
 };
+
+export const getSellerOrdersApi = async (token: string) => {
+  return axios.get(`${BACKEND_API}/orders/seller`, { headers: { Authorization: `Bearer ${token}` } });
+};

@@ -96,3 +96,39 @@ export const clearCart = async (req, res) => {
     return res.status(500).json({ message: "Failed to clear cart" });
   }
 };
+
+// Get carts containing seller's products
+export const getSellerCartItems = async (req, res) => {
+  try {
+    const sellerId = req.userId;
+    
+    // Get all product IDs owned by seller
+    const sellerProducts = await Product.find({ userID: sellerId }).select("_id");
+    const productIds = sellerProducts.map(p => p._id);
+    
+    // Find carts that contain any of seller's products
+    const carts = await Cart.find({
+      "items.productId": { $in: productIds }
+    }).populate("userId", "fullName email");
+    
+    // Filter items to only show seller's products
+    const cartItems = [];
+    carts.forEach(cart => {
+      cart.items.forEach(item => {
+        if (productIds.some(id => String(id) === String(item.productId))) {
+          cartItems.push({
+            ...item.toObject(),
+            buyerName: cart.userId?.fullName || "Unknown",
+            buyerEmail: cart.userId?.email || "Unknown",
+            cartId: cart._id,
+          });
+        }
+      });
+    });
+    
+    return res.json({ cartItems });
+  } catch (error) {
+    console.error("Error fetching seller cart items:", error);
+    return res.status(500).json({ message: "Failed to fetch seller cart items" });
+  }
+};

@@ -54,7 +54,10 @@ function sampleProducts() {
     // Electronics
     {
       title: "Wireless Mouse",
-      body: { summary: "Ergonomic 2.4GHz wireless mouse with long battery life", price: 24.99 },
+      body: {
+        summary: "Ergonomic 2.4GHz wireless mouse with long battery life",
+        price: 24.99,
+      },
       categories: ["electronics"],
       tag: ["mouse", "wireless", "computer"],
       slug: "wireless-mouse",
@@ -64,7 +67,10 @@ function sampleProducts() {
     },
     {
       title: "Mechanical Keyboard",
-      body: { summary: "RGB backlit mechanical keyboard with blue switches", price: 79.99 },
+      body: {
+        summary: "RGB backlit mechanical keyboard with blue switches",
+        price: 79.99,
+      },
       categories: ["electronics"],
       tag: ["keyboard", "mechanical", "rgb"],
       slug: "mechanical-keyboard",
@@ -74,7 +80,10 @@ function sampleProducts() {
     },
     {
       title: "USB-C Hub",
-      body: { summary: "7-in-1 USB-C hub with HDMI, USB 3.0, and card reader", price: 39.99 },
+      body: {
+        summary: "7-in-1 USB-C hub with HDMI, USB 3.0, and card reader",
+        price: 39.99,
+      },
       categories: ["electronics", "accessories"],
       tag: ["usb-c", "hub", "adapter"],
       slug: "usb-c-hub",
@@ -84,7 +93,10 @@ function sampleProducts() {
     },
     {
       title: "Wireless Headphones",
-      body: { summary: "Noise-cancelling wireless headphones with 30-hour battery", price: 129.99 },
+      body: {
+        summary: "Noise-cancelling wireless headphones with 30-hour battery",
+        price: 129.99,
+      },
       categories: ["electronics"],
       tag: ["headphones", "wireless", "audio"],
       slug: "wireless-headphones",
@@ -94,7 +106,10 @@ function sampleProducts() {
     },
     {
       title: "USB Flash Drive 64GB",
-      body: { summary: "High-speed USB 3.0 flash drive with 64GB capacity", price: 12.99 },
+      body: {
+        summary: "High-speed USB 3.0 flash drive with 64GB capacity",
+        price: 12.99,
+      },
       categories: ["electronics"],
       tag: ["usb", "storage", "flash-drive"],
       slug: "usb-flash-drive-64gb",
@@ -104,7 +119,10 @@ function sampleProducts() {
     },
     {
       title: "Webcam HD 1080p",
-      body: { summary: "Full HD 1080p webcam with built-in microphone", price: 49.99 },
+      body: {
+        summary: "Full HD 1080p webcam with built-in microphone",
+        price: 49.99,
+      },
       categories: ["electronics"],
       tag: ["webcam", "camera", "video"],
       slug: "webcam-hd-1080p",
@@ -115,7 +133,10 @@ function sampleProducts() {
     // Accessories
     {
       title: "Laptop Stand",
-      body: { summary: "Adjustable aluminum laptop stand for better ergonomics", price: 29.99 },
+      body: {
+        summary: "Adjustable aluminum laptop stand for better ergonomics",
+        price: 29.99,
+      },
       categories: ["accessories"],
       tag: ["laptop", "stand", "ergonomic"],
       slug: "laptop-stand",
@@ -125,7 +146,10 @@ function sampleProducts() {
     },
     {
       title: "Phone Case",
-      body: { summary: "Protective phone case with shock absorption", price: 19.99 },
+      body: {
+        summary: "Protective phone case with shock absorption",
+        price: 19.99,
+      },
       categories: ["accessories"],
       tag: ["phone", "case", "protection"],
       slug: "phone-case",
@@ -135,7 +159,10 @@ function sampleProducts() {
     },
     {
       title: "Laptop Bag",
-      body: { summary: "Water-resistant laptop bag with padded compartment", price: 59.99 },
+      body: {
+        summary: "Water-resistant laptop bag with padded compartment",
+        price: 59.99,
+      },
       categories: ["accessories"],
       tag: ["laptop", "bag", "backpack"],
       slug: "laptop-bag",
@@ -146,7 +173,10 @@ function sampleProducts() {
     // Clothing
     {
       title: "Cotton T-Shirt",
-      body: { summary: "100% cotton comfortable t-shirt in various colors", price: 24.99 },
+      body: {
+        summary: "100% cotton comfortable t-shirt in various colors",
+        price: 24.99,
+      },
       categories: ["clothing"],
       tag: ["tshirt", "cotton", "apparel"],
       slug: "cotton-tshirt",
@@ -156,7 +186,10 @@ function sampleProducts() {
     },
     {
       title: "Denim Jeans",
-      body: { summary: "Classic fit denim jeans in multiple sizes", price: 49.99 },
+      body: {
+        summary: "Classic fit denim jeans in multiple sizes",
+        price: 49.99,
+      },
       categories: ["clothing"],
       tag: ["jeans", "denim", "apparel"],
       slug: "denim-jeans",
@@ -166,7 +199,10 @@ function sampleProducts() {
     },
     {
       title: "Running Shoes",
-      body: { summary: "Lightweight running shoes with cushioned sole", price: 79.99 },
+      body: {
+        summary: "Lightweight running shoes with cushioned sole",
+        price: 79.99,
+      },
       categories: ["clothing", "sports"],
       tag: ["shoes", "running", "sports"],
       slug: "running-shoes",
@@ -177,7 +213,10 @@ function sampleProducts() {
     // Books
     {
       title: "JavaScript Guide",
-      body: { summary: "Comprehensive guide to modern JavaScript programming", price: 34.99 },
+      body: {
+        summary: "Comprehensive guide to modern JavaScript programming",
+        price: 34.99,
+      },
       categories: ["books"],
       tag: ["javascript", "programming", "education"],
       slug: "javascript-guide",
@@ -187,7 +226,10 @@ function sampleProducts() {
     },
     {
       title: "Design Patterns Book",
-      body: { summary: "Essential design patterns for software development", price: 39.99 },
+      body: {
+        summary: "Essential design patterns for software development",
+        price: 39.99,
+      },
       categories: ["books"],
       tag: ["design", "patterns", "programming"],
       slug: "design-patterns-book",
@@ -198,7 +240,10 @@ function sampleProducts() {
     // Home & Kitchen
     {
       title: "Coffee Maker",
-      body: { summary: "Programmable coffee maker with 12-cup capacity", price: 89.99 },
+      body: {
+        summary: "Programmable coffee maker with 12-cup capacity",
+        price: 89.99,
+      },
       categories: ["home", "kitchen"],
       tag: ["coffee", "maker", "appliance"],
       slug: "coffee-maker",
@@ -208,7 +253,10 @@ function sampleProducts() {
     },
     {
       title: "Bluetooth Speaker",
-      body: { summary: "Portable Bluetooth speaker with 360-degree sound", price: 49.99 },
+      body: {
+        summary: "Portable Bluetooth speaker with 360-degree sound",
+        price: 49.99,
+      },
       categories: ["electronics", "home"],
       tag: ["speaker", "bluetooth", "audio"],
       slug: "bluetooth-speaker",
@@ -219,7 +267,10 @@ function sampleProducts() {
     // Some out of stock items
     {
       title: "Vintage Watch",
-      body: { summary: "Classic vintage watch with leather strap", price: 149.99 },
+      body: {
+        summary: "Classic vintage watch with leather strap",
+        price: 149.99,
+      },
       categories: ["accessories"],
       tag: ["watch", "vintage", "timepiece"],
       slug: "vintage-watch",
@@ -229,7 +280,10 @@ function sampleProducts() {
     },
     {
       title: "Limited Edition Headphones",
-      body: { summary: "Premium limited edition headphones with wood accents", price: 299.99 },
+      body: {
+        summary: "Premium limited edition headphones with wood accents",
+        price: 299.99,
+      },
       categories: ["electronics"],
       tag: ["headphones", "premium", "limited"],
       slug: "limited-edition-headphones",

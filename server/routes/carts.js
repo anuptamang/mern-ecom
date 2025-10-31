@@ -1,17 +1,20 @@
 import express from "express";
 import Auth from "../middlewares/auth.js";
 import { blockSellers } from "../middlewares/blockSellers.js";
-import { addItem, clearCart, getMyCart, removeItem, updateItem } from "../controllers/carts.js";
+import { addItem, clearCart, getMyCart, removeItem, updateItem, getSellerCartItems } from "../controllers/carts.js";
 
 const router = express.Router();
 
 router.use(Auth);
-router.use(blockSellers);
 
-router.get("/me", getMyCart);
-router.post("/items", addItem);
-router.patch("/items", updateItem);
-router.delete("/items/:productId", removeItem);
-router.delete("/clear", clearCart);
+// Buyer routes (block sellers)
+router.get("/me", blockSellers, getMyCart);
+router.post("/items", blockSellers, addItem);
+router.patch("/items", blockSellers, updateItem);
+router.delete("/items/:productId", blockSellers, removeItem);
+router.delete("/clear", blockSellers, clearCart);
+
+// Seller route (no blockSellers middleware)
+router.get("/seller", getSellerCartItems);
 
 export default router;

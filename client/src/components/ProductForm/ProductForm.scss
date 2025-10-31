@@ -1,0 +1,13 @@
+.product-editor-wrapper {
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  min-height: 400px;
+
+  .editor-wrapper {
+    .editor-content {
+      min-height: 300px;
+      padding: 12px;
+    }
+  }
+}
+

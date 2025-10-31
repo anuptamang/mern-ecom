@@ -20,3 +20,7 @@ export const removeCartItemApi = async (token: string, productId: string) => {
 export const clearCartApi = async (token: string) => {
   return axios.delete(`${CARTS_API}/clear`, { headers: { Authorization: `Bearer ${token}` } });
 };
+
+export const getSellerCartItemsApi = async (token: string) => {
+  return axios.get(`${CARTS_API}/seller`, { headers: { Authorization: `Bearer ${token}` } });
+};

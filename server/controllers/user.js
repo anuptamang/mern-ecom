@@ -197,13 +197,53 @@ export const createNewPassword = async (req, res) => {
 export const getUserStats = async (req, res) => {
   try {
     const userId = req.userId;
+    const user = await User.findById(userId);
+    const isSeller = user?.role === 'seller';
+    
     const orders = await Order.find({ userId });
     const totalOrders = orders.length;
     const totalSpent = orders.reduce((sum, o) => sum + (o.amount / 100), 0);
     const userProducts = await Product.find({ userID: userId });
     const totalProducts = userProducts.length;
-    const totalSales = orders.filter(o => userProducts.some(p => String(p._id) === String(o.items?.[0]?.productId))).length;
-    return res.json({ totalOrders, totalSpent, totalProducts, totalSales });
+    
+    if (isSeller) {
+      // Seller stats: orders containing seller's products
+      const productIds = userProducts.map(p => p._id);
+      const sellerOrders = await Order.find({
+        "items.productId": { $in: productIds }
+      });
+      const totalSales = sellerOrders.length;
+      const totalRevenue = sellerOrders.reduce((sum, order) => {
+        const sellerItems = order.items.filter(item => 
+          productIds.some(id => String(id) === String(item.productId))
+        );
+        return sum + sellerItems.reduce((itemSum, item) => itemSum + (item.price * item.quantity), 0);
+      }, 0);
+      
+      // Count items in carts
+      const Cart = (await import("../models/cart.js")).default;
+      const cartsWithSellerProducts = await Cart.find({
+        "items.productId": { $in: productIds }
+      });
+      const cartItemsCount = cartsWithSellerProducts.reduce((count, cart) => {
+        return count + cart.items.filter(item => 
+          productIds.some(id => String(id) === String(item.productId))
+        ).length;
+      }, 0);
+      
+      return res.json({ 
+        totalOrders, 
+        totalSpent, 
+        totalProducts, 
+        totalSales,
+        totalRevenue,
+        cartItemsCount
+      });
+    } else {
+      // Buyer stats
+      const totalSales = orders.filter(o => userProducts.some(p => String(p._id) === String(o.items?.[0]?.productId))).length;
+      return res.json({ totalOrders, totalSpent, totalProducts, totalSales });
+    }
   } catch (e) {
     return res.status(500).json({ message: "Failed to fetch stats" });
   }

@@ -8,7 +8,10 @@ import { useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { authSelector } from 'redux/slice';
-import { fetchProductByIdApi, fetchRelatedProductsApi } from 'services/endPoints/products/productsEndpoints';
+import {
+  fetchProductByIdApi,
+  fetchRelatedProductsApi,
+} from 'services/endPoints/products/productsEndpoints';
 import {
   ProductImageGallery,
   ProductRatings,
@@ -62,7 +65,7 @@ const ProductDetails = () => {
         if (isMounted) {
           setProduct(res.data);
           setLoading(false);
-          
+
           // Fetch related products
           setLoadingRelated(true);
           fetchRelatedProductsApi(id, 4)

@@ -19,7 +19,7 @@ import {
   getRelatedProducts,
 } from "../controllers/products.js";
 import Auth from "../middlewares/auth.js";
-import { Upload } from "../middlewares/upload.js";
+import { Upload, UploadProduct } from "../middlewares/upload.js";
 
 const router = express.Router();
 
@@ -27,8 +27,8 @@ router.get("/", getProducts);
 router.get("/me", Auth, getMyProducts);
 router.get("/:id/related", getRelatedProducts);
 router.get("/:id", getProduct);
-router.post("/", Auth, Upload, createProduct);
-router.patch("/:id", Auth, updateProduct);
+router.post("/", Auth, UploadProduct, createProduct);
+router.patch("/:id", Auth, UploadProduct, updateProduct);
 router.delete("/:id", Auth, deleteProduct);
 router.put("/:id/like", AddLikeToProduct);
 router.delete("/:id/like", RemoveLikeFromProduct);

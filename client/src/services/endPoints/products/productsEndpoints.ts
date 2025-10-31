@@ -64,3 +64,11 @@ export const likeProductCommentApi = async (productId: string, commentId: string
     { headers: { Authorization: `Bearer ${token}` } }
   );
 }
+
+export const deleteProductApi = async (id: string) => {
+  const token = getToken() || '';
+  return axios.delete(
+    `${PRODUCTS_API}/${id}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+}

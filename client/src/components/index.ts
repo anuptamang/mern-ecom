@@ -4,6 +4,7 @@ export * from './Footer';
 export * from './Header';
 export * from './Logo';
 export * from './Nav';
+export * from './ProductForm';
 export * from './ProductImageGallery';
 export * from './ProductRatings';
 export * from './ProductComments';
