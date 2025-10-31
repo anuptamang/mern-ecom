@@ -58,6 +58,8 @@ const ProductsDashboardPage = (props: Props) => {
       loadCartItems();
     } else if (activeTab === 'wishlist') {
       loadWishlist();
+    } else if (activeTab === 'returns') {
+      loadReturns();
     }
   }, [activeTab]);
 
