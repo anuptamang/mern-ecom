@@ -7,12 +7,22 @@ import { BrowserRouter } from 'react-router-dom';
 import store from 'redux/store';
 import { debounce, saveState } from 'utils';
 import reportWebVitals from './reportWebVitals';
+import { startTokenValidation } from 'configs/axios/axiosInterceptor';
+import { getToken } from 'utils/localStorage';
 
 import './index.css';
 import { theme } from 'assets/styles/antd/theme';
 
 import 'antd/dist/reset.css';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+
+// Initialize axios interceptors and token validation
+import 'configs/axios/axiosInterceptor';
+
+// Start token validation if user is logged in
+if (getToken()) {
+  startTokenValidation();
+}
 
 const App = lazy(() => import('components/App'));
 

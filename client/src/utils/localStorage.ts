@@ -30,3 +30,11 @@ export function getToken(): string | null {
     return null;
   }
 }
+
+export function removeToken(): void {
+  try {
+    localStorage.removeItem('user');
+  } catch (e) {
+    // Ignore errors
+  }
+}

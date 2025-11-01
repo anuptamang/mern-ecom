@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 import { fetchProducts } from 'redux/action/products';
 import { Link, useNavigate } from 'react-router-dom';
+import { pageRoutes } from 'data/static/pageRoutes';
 import { ProductImagePlaceholder } from 'components/ProductImageGallery/ProductImagePlaceholder';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { authSelector } from 'redux/slice';
@@ -59,6 +60,7 @@ const ProductsList = () => {
     
     if (!result) {
       message.warning('Please log in to add items to cart');
+      navigate(`/${pageRoutes.login}`);
       return;
     }
 

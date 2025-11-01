@@ -1,0 +1,134 @@
+import axios from 'axios';
+import store from 'redux/store';
+import { signOut } from 'redux/slice';
+import { getToken, removeToken } from 'utils/localStorage';
+import { message } from 'antd';
+
+// Set up axios interceptor for handling 401 responses and auto-logout
+let isLoggingOut = false;
+
+axios.interceptors.response.use(
+  (response) => {
+    // If response is successful, return it
+    return response;
+  },
+  async (error) => {
+    // Handle 401 Unauthorized responses
+    if (error?.response?.status === 401) {
+      const token = getToken();
+      
+      // Only logout if we have a token (meaning user was logged in)
+      if (token && !isLoggingOut) {
+        isLoggingOut = true;
+        
+        // Dispatch logout action
+        store.dispatch(signOut());
+        
+        // Clear token from localStorage
+        removeToken();
+        
+        // Show message to user
+        message.warning('Your session has expired. Please log in again.');
+        
+        // Redirect to login page after a short delay
+        setTimeout(() => {
+          window.location.href = '/login';
+          isLoggingOut = false;
+        }, 1000);
+      }
+      
+      // Reject the promise with error
+      return Promise.reject(error);
+    }
+    
+    // For other errors, just pass them through
+    return Promise.reject(error);
+  }
+);
+
+// Periodic token validation (every 5 minutes)
+let tokenValidationInterval: NodeJS.Timeout | null = null;
+
+export const startTokenValidation = () => {
+  // Clear any existing interval
+  if (tokenValidationInterval) {
+    clearInterval(tokenValidationInterval);
+  }
+  
+  // Set up periodic validation every 5 minutes
+  tokenValidationInterval = setInterval(async () => {
+    const token = getToken();
+    if (!token) {
+      // No token, clear interval
+      if (tokenValidationInterval) {
+        clearInterval(tokenValidationInterval);
+        tokenValidationInterval = null;
+      }
+      return;
+    }
+    
+    // Check if token is expired
+    try {
+      const { isTokenValid } = await import('utils/isTokenValid');
+      if (!isTokenValid(token)) {
+        // Token is expired, logout
+        if (!isLoggingOut) {
+          isLoggingOut = true;
+          store.dispatch(signOut());
+          removeToken();
+          message.warning('Your session has expired. Please log in again.');
+          setTimeout(() => {
+            window.location.href = '/login';
+            isLoggingOut = false;
+          }, 1000);
+        }
+        if (tokenValidationInterval) {
+          clearInterval(tokenValidationInterval);
+          tokenValidationInterval = null;
+        }
+        return;
+      }
+      
+      // Validate token with backend by making a lightweight request
+      const { AUTH_API } = await import('services/servicesConstants');
+      const currentUser = store.getState().auth.result;
+      
+      if (currentUser?._id) {
+        try {
+          // Try to fetch user profile - if this fails with 401, user doesn't exist or token is invalid
+          await axios.get(`${AUTH_API}/${currentUser._id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        } catch (error: any) {
+          // If 401 or 404, user doesn't exist or token is invalid - logout
+          if (error?.response?.status === 401 || error?.response?.status === 404) {
+            if (!isLoggingOut) {
+              isLoggingOut = true;
+              store.dispatch(signOut());
+              removeToken();
+              message.warning('Your account is no longer valid. Please log in again.');
+              setTimeout(() => {
+                window.location.href = '/login';
+                isLoggingOut = false;
+              }, 1000);
+            }
+            if (tokenValidationInterval) {
+              clearInterval(tokenValidationInterval);
+              tokenValidationInterval = null;
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error validating token:', error);
+    }
+  }, 5 * 60 * 1000); // Check every 5 minutes
+};
+
+export const stopTokenValidation = () => {
+  if (tokenValidationInterval) {
+    clearInterval(tokenValidationInterval);
+    tokenValidationInterval = null;
+  }
+};
+

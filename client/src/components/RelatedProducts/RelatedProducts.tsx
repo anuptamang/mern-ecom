@@ -1,6 +1,7 @@
 import { Card, List, Image, Button, Tag, Empty, Spin, Carousel } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { pageRoutes } from 'data/static/pageRoutes';
 import { ProductImagePlaceholder } from 'components/ProductImageGallery/ProductImagePlaceholder';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { useAppDispatch, useAppSelector } from 'redux/store';
@@ -25,6 +26,7 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
   const handleAddToCart = async (productId: string, title: string, stock: number) => {
     if (!result) {
       message.warning('Please log in to add items to cart');
+      navigate(`/${pageRoutes.login}`);
       return;
     }
 

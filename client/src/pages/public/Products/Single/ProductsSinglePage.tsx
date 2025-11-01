@@ -4,7 +4,8 @@ import { Container } from 'components/UI';
 import { usePageTitle } from 'hooks/usePageTitle';
 import { ReactNode, useEffect, useState } from 'react';
 import styles from 'assets/styles/Common.module.scss';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { pageRoutes } from 'data/static/pageRoutes';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { authSelector } from 'redux/slice';
@@ -43,6 +44,7 @@ export { ProductsSinglePage };
 const ProductDetails = () => {
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const [product, setProduct] = useState<any>(null);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -369,6 +371,11 @@ const ProductDetails = () => {
                       size="large"
                       icon={<ShoppingCartOutlined />}
                       onClick={() => {
+                        if (!result) {
+                          message.warning('Please log in to add items to cart');
+                          navigate(`/${pageRoutes.login}`);
+                          return;
+                        }
                         dispatch(addToCart({ productId: product._id }))
                           .then(() => {
                             message.success('Product added to cart');

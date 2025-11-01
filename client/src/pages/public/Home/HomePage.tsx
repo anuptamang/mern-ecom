@@ -6,6 +6,7 @@ import { productsSelector } from 'redux/slice';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 import { Button, Card, List, Image, message, Tag, Tabs, Spin } from 'antd';
 import { useNavigate } from 'react-router-dom';
+import { pageRoutes } from 'data/static/pageRoutes';
 import { ProductImagePlaceholder } from 'components/ProductImageGallery/ProductImagePlaceholder';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { authSelector } from 'redux/slice';
@@ -79,6 +80,7 @@ const HomePage = () => {
     
     if (!result) {
       message.warning('Please log in to add items to cart');
+      navigate(`/${pageRoutes.login}`);
       return;
     }
 
