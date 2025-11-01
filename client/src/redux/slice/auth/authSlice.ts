@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { changePassword, fetchUserProfile, login, register, updateUserProfileThunk, validateUser } from "redux/action/auth/authAction";
 import { IAuthSlice } from "types/store/auth/authSliceTypes";
-import { removeToken } from "utils/localStorage";
+import { removeToken, setToken } from "utils/localStorage";
 import { startTokenValidation, stopTokenValidation } from "configs/axios/axiosInterceptor";
 
 const initialState: IAuthSlice = {
@@ -49,6 +49,10 @@ export const authSlice = createSlice({
       state.token = action.payload.token;
       state.tokenStatus = 'valid';
       state.status.success = true;
+      // Save token to localStorage explicitly
+      if (action.payload.token) {
+        setToken(action.payload.token);
+      }
       // Start token validation after successful login
       startTokenValidation();
     });
@@ -70,6 +74,10 @@ export const authSlice = createSlice({
       state.token = action.payload.token;
       state.tokenStatus = 'valid';
       state.status.success = true;
+      // Save token to localStorage explicitly
+      if (action.payload.token) {
+        setToken(action.payload.token);
+      }
       // Start token validation after successful registration
       startTokenValidation();
     });

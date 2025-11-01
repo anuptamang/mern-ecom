@@ -13,24 +13,28 @@ export const login = createAsyncThunk<IAuthSlice, ILogin, { rejectValue: TError 
     const response = await loginApi(payload);
     return response.data;
   } catch (error: unknown | any) {
-    return thunkApi.rejectWithValue(
-      error.data
-    );
+    // Handle axios error response structure
+    const errorData = error?.data || error?.response?.data;
+    const errorMessage = errorData?.message || error?.message || 'Login failed. Please check your credentials.';
+    return thunkApi.rejectWithValue({
+      message: errorMessage
+    });
   }
 });
 
 export const register = createAsyncThunk<IAuthSlice, IRegister, { rejectValue: TError }>("auth/register", async (payload, thunkApi) => {
   try {
     const response = await registerApi(payload);
-
-    return response.data
-
+    return response.data;
   } catch (error: unknown | any) {
-    return thunkApi.rejectWithValue(
-      error.data
-    );
+    // Handle axios error response structure
+    const errorData = error?.data || error?.response?.data;
+    const errorMessage = errorData?.message || error?.message || 'Registration failed. Please try again.';
+    return thunkApi.rejectWithValue({
+      message: errorMessage
+    });
   }
-})
+});
 
 
 export const validateUser = createAsyncThunk<IAuthSlice, ILogin, { rejectValue: TError }>("auth/validate-user", async (payload, thunkApi) => {
@@ -38,10 +42,12 @@ export const validateUser = createAsyncThunk<IAuthSlice, ILogin, { rejectValue: 
     const response = await checkUserApi(payload);
     return response.data;
   } catch (error: unknown | any) {
-
-    return thunkApi.rejectWithValue(
-      error.data
-    );
+    // Handle axios error response structure
+    const errorData = error?.data || error?.response?.data;
+    const errorMessage = errorData?.message || error?.message || 'Validation failed. Please try again.';
+    return thunkApi.rejectWithValue({
+      message: errorMessage
+    });
   }
 });
 
@@ -50,10 +56,12 @@ export const changePassword = createAsyncThunk<IAuthSlice, ILogin, { rejectValue
     const response = await forgotPasswordApi(payload);
     return response.data;
   } catch (error: unknown | any) {
-
-    return thunkApi.rejectWithValue(
-      error.data
-    );
+    // Handle axios error response structure
+    const errorData = error?.data || error?.response?.data;
+    const errorMessage = errorData?.message || error?.message || 'Password change failed. Please try again.';
+    return thunkApi.rejectWithValue({
+      message: errorMessage
+    });
   }
 });
 

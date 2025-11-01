@@ -7,8 +7,6 @@ import { BrowserRouter } from 'react-router-dom';
 import store from 'redux/store';
 import { debounce, saveState } from 'utils';
 import reportWebVitals from './reportWebVitals';
-import { startTokenValidation } from 'configs/axios/axiosInterceptor';
-import { getToken } from 'utils/localStorage';
 
 import './index.css';
 import { theme } from 'assets/styles/antd/theme';
