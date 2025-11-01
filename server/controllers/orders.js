@@ -2,6 +2,8 @@ import Order from "../models/order.js";
 import Cart from "../models/cart.js";
 import Product from "../models/product.js";
 import { createDeliveryTracking } from "./delivery.js";
+import { createNotification } from "./notifications.js";
+import User from "../models/user.js";
 
 export const createOrder = async (req, res) => {
   try {
@@ -87,6 +89,89 @@ export const createOrder = async (req, res) => {
 
     // Clear cart on order creation
     await Cart.findOneAndUpdate({ userId }, { items: [] });
+
+    // Notify sellers about their products being purchased
+    try {
+      // Get buyer info for notifications
+      const buyer = await User.findById(userId).select("fullName email");
+      
+      // Group items by seller (product owner)
+      const sellerItemsMap = new Map();
+      
+      for (const item of orderItems) {
+        const product = await Product.findById(item.productId).populate("userID", "fullName email _id");
+        if (product?.userID) {
+          const sellerId = product.userID._id?.toString() || product.userID.toString();
+          
+          if (!sellerItemsMap.has(sellerId)) {
+            sellerItemsMap.set(sellerId, {
+              sellerId,
+              seller: product.userID,
+              items: [],
+            });
+          }
+          
+          sellerItemsMap.get(sellerId).items.push({
+            productId: item.productId,
+            title: item.title || product.title,
+            quantity: item.quantity,
+            price: item.price,
+          });
+        }
+      }
+      
+      // Send notifications to each seller
+      for (const [sellerId, sellerData] of sellerItemsMap) {
+        const { seller, items } = sellerData;
+        
+        // Calculate total for this seller's items
+        const sellerTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        
+        // Build notification message
+        const itemCount = items.length;
+        const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+        const itemsList = items.map(item => `${item.title} (x${item.quantity})`).join(", ");
+        
+        let notificationMessage;
+        if (itemCount === 1) {
+          notificationMessage = `${buyer?.fullName || "A customer"} purchased ${items[0].title} (x${items[0].quantity}) from you for $${(sellerTotal / 100).toFixed(2)}.`;
+        } else {
+          notificationMessage = `${buyer?.fullName || "A customer"} purchased ${totalQuantity} item(s) from you for $${(sellerTotal / 100).toFixed(2)}. Items: ${itemsList}.`;
+        }
+        
+        try {
+          await createNotification({
+            userId: sellerId,
+            type: "order",
+            title: "New Order Received",
+            message: notificationMessage,
+            relatedEntity: {
+              entityType: "order",
+              entityId: order._id,
+            },
+            actionUrl: `/user/products?orderId=${order._id}`,
+            metadata: {
+              orderId: order._id.toString(),
+              buyerId: userId.toString(),
+              buyerName: buyer?.fullName || "Unknown",
+              items: items.map(item => ({
+                productId: item.productId.toString(),
+                title: item.title,
+                quantity: item.quantity,
+                price: item.price,
+              })),
+              totalAmount: sellerTotal,
+            },
+          });
+        } catch (notifError) {
+          console.error(`Error creating notification for seller ${sellerId}:`, notifError);
+          // Don't fail order creation if notification fails
+        }
+      }
+    } catch (notificationError) {
+      console.error("Error creating seller notifications:", notificationError);
+      // Don't fail order creation if notifications fail
+    }
 
     // Populate order with delivery info
     const populatedOrder = await Order.findById(order._id).populate("userId", "fullName email");

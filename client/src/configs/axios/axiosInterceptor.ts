@@ -15,6 +15,15 @@ axios.interceptors.response.use(
   async (error) => {
     // Handle 401 Unauthorized responses
     if (error?.response?.status === 401) {
+      // Don't auto-logout for auth endpoints (login/register) - let them handle the error
+      const requestUrl = error?.config?.url || '';
+      const isAuthEndpoint = requestUrl.includes('/user/login') || requestUrl.includes('/user/register') || requestUrl.includes('/user/check-user');
+      
+      if (isAuthEndpoint) {
+        // For auth endpoints, just reject the promise - let the login/register handlers deal with it
+        return Promise.reject(error);
+      }
+      
       const token = getToken();
       
       // Only logout if we have a token (meaning user was logged in)
