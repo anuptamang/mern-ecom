@@ -377,14 +377,19 @@ const ProductDetails = () => {
                           return;
                         }
                         dispatch(addToCart({ productId: product._id }))
+                          .unwrap()
                           .then(() => {
                             message.success('Product added to cart');
                             dispatch(fetchMyCart());
                           })
                           .catch((error: any) => {
-                            message.error(
-                              error?.message || 'Failed to add product to cart'
-                            );
+                            // Don't show error if user is being redirected (interceptor handles it)
+                            // The axios interceptor will show a warning and redirect
+                            if (error?.response?.status !== 401) {
+                              message.error(
+                                error?.message || 'Failed to add product to cart'
+                              );
+                            }
                           });
                       }}
                       className="add-to-cart-btn"

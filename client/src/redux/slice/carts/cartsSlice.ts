@@ -9,10 +9,15 @@ export const fetchMyCart = createAsyncThunk('carts/fetchMyCart', async () => {
   return res.data;
 });
 
-export const addToCart = createAsyncThunk('carts/addToCart', async (payload: { productId: string; quantity?: number }) => {
-  const token = getToken();
-  const res = await addCartItemApi(token || '', payload);
-  return res.data;
+export const addToCart = createAsyncThunk('carts/addToCart', async (payload: { productId: string; quantity?: number }, { rejectWithValue }) => {
+  try {
+    const token = getToken();
+    const res = await addCartItemApi(token || '', payload);
+    return res.data;
+  } catch (error: any) {
+    // Return the error message from the backend
+    return rejectWithValue(error?.response?.data?.message || error?.message || 'Failed to add item to cart');
+  }
 });
 
 export const updateCartItem = createAsyncThunk(

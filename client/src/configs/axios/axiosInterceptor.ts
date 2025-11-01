@@ -30,11 +30,17 @@ axios.interceptors.response.use(
         // Show message to user
         message.warning('Your session has expired. Please log in again.');
         
-        // Redirect to login page after a short delay
+        // Redirect to login page immediately
+        window.location.href = '/login';
+        
+        // Reset flag after redirect
         setTimeout(() => {
-          window.location.href = '/login';
           isLoggingOut = false;
         }, 1000);
+      } else if (!token) {
+        // No token, just redirect to login
+        message.warning('Please log in to continue.');
+        window.location.href = '/login';
       }
       
       // Reject the promise with error
@@ -131,4 +137,3 @@ export const stopTokenValidation = () => {
     tokenValidationInterval = null;
   }
 };
-

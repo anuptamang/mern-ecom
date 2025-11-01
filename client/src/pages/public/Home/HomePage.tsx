@@ -94,12 +94,19 @@ const HomePage = () => {
       return;
     }
 
-    dispatch(addToCart({ productId })).then(() => {
-      message.success(`${title} added to cart`);
-      dispatch(fetchMyCart());
-    }).catch((error: any) => {
-      message.error(error?.message || 'Failed to add product to cart');
-    });
+    dispatch(addToCart({ productId }))
+      .unwrap()
+      .then(() => {
+        message.success(`${title} added to cart`);
+        dispatch(fetchMyCart());
+      })
+      .catch((error: any) => {
+        // Don't show error if user is being redirected (interceptor handles it)
+        // The axios interceptor will show a warning and redirect
+        if (error?.response?.status !== 401) {
+          message.error(error?.message || 'Failed to add product to cart');
+        }
+      });
   };
 
   const productsToShow = selectedCategory
