@@ -264,19 +264,19 @@ const DeliveryAgencyDashboard = () => {
                           type="primary"
                           icon={<UserAddOutlined />}
                           onClick={() => handleAssignPerson(delivery, 'warehouse')}
-                          disabled={!!delivery.assignedDeliveryPerson}
+                          disabled={!!(delivery.assignedDeliveryPerson && delivery.assignedDeliveryPerson?.delivererType === 'warehouse')}
                         >
-                          {delivery.assignedDeliveryPerson ? 'Warehouse Assigned' : 'Assign Warehouse Deliverer'}
+                          {delivery.assignedDeliveryPerson?.delivererType === 'warehouse' ? 'Warehouse Assigned' : 'Assign Warehouse Deliverer'}
                         </Button>
                       )}
-                      {delivery.status === 'in_facility' && (
+                      {(delivery.status === 'in_facility' || delivery.status === 'in_transit') && (
                         <Button
                           type="primary"
                           icon={<UserAddOutlined />}
                           onClick={() => handleAssignPerson(delivery, 'customer')}
-                          disabled={!!delivery.assignedDeliveryPerson}
+                          disabled={!!(delivery.assignedDeliveryPerson && delivery.assignedDeliveryPerson?.delivererType === 'customer')}
                         >
-                          {delivery.assignedDeliveryPerson ? 'Customer Assigned' : 'Assign Customer Deliverer'}
+                          {delivery.assignedDeliveryPerson?.delivererType === 'customer' ? 'Customer Assigned' : 'Assign Customer Deliverer'}
                         </Button>
                       )}
                     </Space>

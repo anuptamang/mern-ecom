@@ -152,13 +152,25 @@ export const assignToDeliveryPerson = async (req, res) => {
             message: `Warehouse deliverer can only be assigned when status is 'ready_to_ship'. Current status is '${currentStatus}' for item ${freshDelivery.orderItemId || freshDelivery.productId}` 
           });
         }
+        // If there's already a customer deliverer assigned, they shouldn't be able to assign warehouse deliverer
+        if (freshDelivery.assignedDeliveryPerson) {
+          // Check if the assigned person is a customer deliverer
+          const assignedPerson = await User.findById(freshDelivery.assignedDeliveryPerson);
+          if (assignedPerson?.delivererType === "customer") {
+            return res.status(400).json({ 
+              message: "Cannot assign warehouse deliverer when a customer deliverer is already assigned. Please reassign only when status allows." 
+            });
+          }
+        }
       } else if (deliveryPerson.delivererType === "customer") {
-        // Customer deliverer can only be assigned when status is in_facility
-        if (currentStatus !== "in_facility") {
+        // Customer deliverer can only be assigned when status is in_facility or in_transit
+        if (currentStatus !== "in_facility" && currentStatus !== "in_transit") {
           return res.status(400).json({ 
-            message: `Customer deliverer can only be assigned when status is 'in_facility'. Current status is '${currentStatus}' for item ${freshDelivery.orderItemId || freshDelivery.productId}. Please assign a warehouse deliverer first to move status to 'in_facility'.` 
+            message: `Customer deliverer can only be assigned when status is 'in_facility' or 'in_transit'. Current status is '${currentStatus}' for item ${freshDelivery.orderItemId || freshDelivery.productId}. Please assign a warehouse deliverer first to move status to 'in_facility'.` 
           });
         }
+        // When assigning customer deliverer, clear previous warehouse deliverer assignment
+        // This ensures we transition from warehouse to customer deliverer
       } else {
         return res.status(400).json({ 
           message: "Delivery person must have a valid deliverer type (warehouse or customer)" 
@@ -185,14 +197,27 @@ export const assignToDeliveryPerson = async (req, res) => {
       const delivery = await Delivery.findById(deliveryDoc._id);
       if (!delivery) continue;
       
-      delivery.assignedDeliveryPerson = deliveryPersonId;
-      if (!delivery.assignedAt) {
-        delivery.assignedAt = new Date();
+      // When assigning customer deliverer, clear warehouse deliverer assignment
+      // When assigning warehouse deliverer, ensure no customer deliverer is assigned
+      const previousAssignedPerson = delivery.assignedDeliveryPerson;
+      
+      // Check if we're switching from warehouse to customer deliverer
+      if (deliveryPerson.delivererType === "customer" && previousAssignedPerson) {
+        const previousPerson = await User.findById(previousAssignedPerson);
+        if (previousPerson?.delivererType === "warehouse") {
+          // Clear previous warehouse deliverer assignment
+          // This allows transition from warehouse to customer deliverer
+        }
       }
+      
+      delivery.assignedDeliveryPerson = deliveryPersonId;
+      delivery.assignedAt = new Date(); // Always update assignedAt when reassigning
       delivery.statusHistory.push({
         status: delivery.status,
         timestamp: new Date(),
-        note: `Assigned to delivery person: ${deliveryPerson.fullName || deliveryPerson.email}`,
+        note: deliveryPerson.delivererType === "warehouse" 
+          ? `Assigned to warehouse deliverer: ${deliveryPerson.fullName || deliveryPerson.email}`
+          : `Assigned to customer deliverer: ${deliveryPerson.fullName || deliveryPerson.email}`,
         updatedBy: userId,
         updatedByRole: userRole,
       });
@@ -530,7 +555,7 @@ export const getAgencyDeliveries = async (req, res) => {
       assignedDeliveryAgency: userId,
     })
       .populate("orderId")
-      .populate("assignedDeliveryPerson", "fullName email phone")
+      .populate("assignedDeliveryPerson", "fullName email phone delivererType")
       .sort({ createdAt: -1 });
 
     return res.json({ deliveries, count: deliveries.length });

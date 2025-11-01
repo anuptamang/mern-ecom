@@ -194,17 +194,27 @@ export const updateDeliveryStatus = async (req, res) => {
           }
         } else if (deliverer?.delivererType === "customer") {
           // Customer deliverer can only update: in_transit -> out_for_delivery -> delivered
+          // But they can only update to in_transit if they're assigned and status is in_facility
+          // They can only update to out_for_delivery if status is in_transit
+          // They can only update to delivered if status is out_for_delivery
           const customerStatuses = ["in_transit", "out_for_delivery", "delivered"];
           isAuthorized = customerStatuses.includes(status);
           
-          // Customer deliverer can only update if current status is in_facility or in_transit or out_for_delivery
-          if (!["in_facility", "in_transit"].includes(delivery.status) && status === "in_transit") {
+          // Ensure customer deliverer is assigned to this delivery
+          if (String(delivery.assignedDeliveryPerson) !== String(userId)) {
             isAuthorized = false;
           }
-          if (delivery.status !== "in_transit" && status === "out_for_delivery") {
+          
+          // Customer deliverer can only update to in_transit if current status is in_facility
+          if (status === "in_transit" && delivery.status !== "in_facility") {
             isAuthorized = false;
           }
-          if (delivery.status !== "out_for_delivery" && status === "delivered") {
+          // Customer deliverer can only update to out_for_delivery if current status is in_transit
+          if (status === "out_for_delivery" && delivery.status !== "in_transit") {
+            isAuthorized = false;
+          }
+          // Customer deliverer can only update to delivered if current status is out_for_delivery
+          if (status === "delivered" && delivery.status !== "out_for_delivery") {
             isAuthorized = false;
           }
         } else {

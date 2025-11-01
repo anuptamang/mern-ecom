@@ -97,12 +97,16 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
           { value: 'in_facility', label: 'In Delivery Facility' },
         ];
       } else if (delivererType === 'customer') {
-        // Customer deliverer can only update: in_transit -> out_for_delivery -> delivered
-        return [
-          { value: 'in_transit', label: 'In Transit' },
-          { value: 'out_for_delivery', label: 'Out for Delivery' },
-          { value: 'delivered', label: 'Delivered' },
-        ];
+        // Customer deliverer can only update: in_transit (if current is in_facility) -> out_for_delivery -> delivered
+        const allowedStatuses = [];
+        if (currentStatus === 'in_facility') {
+          allowedStatuses.push({ value: 'in_transit', label: 'In Transit' });
+        } else if (currentStatus === 'in_transit') {
+          allowedStatuses.push({ value: 'out_for_delivery', label: 'Out for Delivery' });
+        } else if (currentStatus === 'out_for_delivery') {
+          allowedStatuses.push({ value: 'delivered', label: 'Delivered' });
+        }
+        return allowedStatuses;
       }
       // Fallback for deliverers without type (shouldn't happen)
       return [];
