@@ -70,8 +70,11 @@ export const startTokenValidation = () => {
     clearInterval(tokenValidationInterval);
   }
   
-  // Set up periodic validation every 5 minutes
-  tokenValidationInterval = setInterval(async () => {
+  // Don't start validation immediately - wait 30 seconds after login to avoid immediate logout
+  // This gives time for the token to be properly set and the user to be fully authenticated
+  setTimeout(() => {
+    // Set up periodic validation every 5 minutes
+    tokenValidationInterval = setInterval(async () => {
     const token = getToken();
     if (!token) {
       // No token, clear interval
@@ -137,7 +140,8 @@ export const startTokenValidation = () => {
     } catch (error) {
       console.error('Error validating token:', error);
     }
-  }, 5 * 60 * 1000); // Check every 5 minutes
+    }, 5 * 60 * 1000); // Check every 5 minutes
+  }, 30 * 1000); // Wait 30 seconds before starting validation
 };
 
 export const stopTokenValidation = () => {

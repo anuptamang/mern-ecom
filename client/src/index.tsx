@@ -19,10 +19,8 @@ import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 // Initialize axios interceptors and token validation
 import 'configs/axios/axiosInterceptor';
 
-// Start token validation if user is logged in
-if (getToken()) {
-  startTokenValidation();
-}
+// Don't start token validation on app load - it will be started after successful login/register
+// Starting it here can cause immediate logout if token is expired or invalid
 
 const App = lazy(() => import('components/App'));
 

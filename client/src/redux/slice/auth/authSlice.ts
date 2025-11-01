@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { changePassword, fetchUserProfile, login, register, updateUserProfileThunk, validateUser } from "redux/action/auth/authAction";
 import { IAuthSlice } from "types/store/auth/authSliceTypes";
 import { removeToken } from "utils/localStorage";
-import { stopTokenValidation } from "configs/axios/axiosInterceptor";
+import { startTokenValidation, stopTokenValidation } from "configs/axios/axiosInterceptor";
 
 const initialState: IAuthSlice = {
   result: {
@@ -49,6 +49,8 @@ export const authSlice = createSlice({
       state.token = action.payload.token;
       state.tokenStatus = 'valid';
       state.status.success = true;
+      // Start token validation after successful login
+      startTokenValidation();
     });
     builder.addCase(login.rejected, (state, action) => {
       state.status.loading = false;
@@ -69,9 +71,7 @@ export const authSlice = createSlice({
       state.tokenStatus = 'valid';
       state.status.success = true;
       // Start token validation after successful registration
-      import('configs/axios/axiosInterceptor').then(({ startTokenValidation }) => {
-        startTokenValidation();
-      });
+      startTokenValidation();
     });
     builder.addCase(register.rejected, (state, action) => {
       state.status.loading = false;
