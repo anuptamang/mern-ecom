@@ -54,11 +54,58 @@ Populate a test user and sample products:
 
 Default user: `test@example.com` / `password123`
 
+## Reset Database and Restart Dev Server
+
+Stop dev server, reset database with seed data, and restart:
+
+```
+npm run reset-and-restart
+```
+
+Or manually:
+
+```bash
+# Stop dev server
+npm run dev:stop
+
+# Reset and seed database
+cd server && npm run reset && cd ..
+
+# Start dev server
+npm run dev
+```
+
 ## Features implemented
 
 - Products list and single product view
 - Cart: add/update/remove/clear with persisted backend cart per user
 - Checkout: Payment Intent creation (Stripe) and order creation
 - Orders: create on checkout and list per user
+- Multi-stage delivery tracking
+- Return/refund workflow
+- Assignment management (reassign/reject with history tracking)
+- Workload management dashboard
+- Interactive documentation viewer with search
+- Role-based access control (13+ user roles)
+- Profile management with completion tracking
+- Password management (change/reset)
+- Real-time notifications
+- User-to-user chat
+
+## Documentation
+
+Access interactive documentation at `/documentation` or visit:
+
+- http://localhost:3000/documentation
+
+The documentation page features:
+
+- ✅ Sidebar navigation for all documentation files
+- ✅ Search functionality across all markdown files
+- ✅ Syntax-highlighted code blocks
+- ✅ Table of contents for each document
+- ✅ Markdown rendering with GitHub-flavored markdown support
+
+All documentation is read from `.md` files in the project root. See [DOCUMENTATION.md](./DOCUMENTATION.md) for the complete guide.
 
 Note: Product pricing reads from `product.body?.price`. Ensure your seed or create product includes a price field there.

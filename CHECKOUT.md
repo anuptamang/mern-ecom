@@ -8,6 +8,12 @@ Use these in the Stripe Elements card form on the checkout page. Any future expi
 - 3D Secure required: 4000 0027 6000 3184
 - Declined (insufficient funds): 4000 0000 0000 9995
 
+For Payouts:
+
+Bank accounts:
+Use routing number 110000000
+Use account number 000123456789
+
 More test cards: `https://stripe.com/docs/testing`.
 
 ## Environment
