@@ -136,10 +136,10 @@ export const assignToDeliveryPerson = async (req, res) => {
     
     // Warehouse operators can only assign customer deliverers and only when status is in_transit
     if (userRole === "warehouse_operator") {
-      // Verify delivery person is a customer deliverer
-      if (deliveryPerson.delivererType !== "customer") {
+      // Verify delivery person is a customer_delivery deliverer
+      if (deliveryPerson.delivererType !== "customer_delivery") {
         return res.status(400).json({ 
-          message: "Warehouse operators can only assign customer deliverers." 
+          message: "Warehouse operators can only assign customer_delivery deliverers for regular order deliveries." 
         });
       }
       
@@ -182,7 +182,7 @@ export const assignToDeliveryPerson = async (req, res) => {
             });
           }
         }
-      } else if (deliveryPerson.delivererType === "customer") {
+      } else if (deliveryPerson.delivererType === "customer_delivery" || deliveryPerson.delivererType === "customer_return") {
         // Customer deliverer can be assigned when status is in_facility or in_transit
         // If assigned by warehouse operator, status must be in_transit
         if (userRole === "warehouse_operator") {
@@ -203,7 +203,7 @@ export const assignToDeliveryPerson = async (req, res) => {
         // This ensures we transition from warehouse to customer deliverer
       } else {
         return res.status(400).json({ 
-          message: "Delivery person must have a valid deliverer type (warehouse or customer)" 
+          message: "Delivery person must have a valid deliverer type (warehouse, customer_delivery, or customer_return)" 
         });
       }
     }
@@ -232,7 +232,7 @@ export const assignToDeliveryPerson = async (req, res) => {
       const previousAssignedPerson = delivery.assignedDeliveryPerson;
       
       // Check if we're switching from warehouse to customer deliverer
-      if (deliveryPerson.delivererType === "customer" && previousAssignedPerson) {
+      if ((deliveryPerson.delivererType === "customer_delivery" || deliveryPerson.delivererType === "customer_return") && previousAssignedPerson) {
         const previousPerson = await User.findById(previousAssignedPerson);
         if (previousPerson?.delivererType === "warehouse") {
           // Clear previous warehouse deliverer assignment
@@ -240,17 +240,46 @@ export const assignToDeliveryPerson = async (req, res) => {
         }
       }
       
+      // Check if this is a reassignment (different deliverer) or first assignment
+      const previousAssignedPersonId = delivery.assignedDeliveryPerson;
+      const isReassignment = previousAssignedPersonId && String(previousAssignedPersonId) !== String(deliveryPersonId);
+      
       delivery.assignedDeliveryPerson = deliveryPersonId;
       delivery.assignedAt = new Date(); // Always update assignedAt when reassigning
-      delivery.statusHistory.push({
-        status: delivery.status,
-        timestamp: new Date(),
-        note: deliveryPerson.delivererType === "warehouse" 
-          ? `Assigned to warehouse deliverer: ${deliveryPerson.fullName || deliveryPerson.email}`
-          : `Assigned to customer deliverer: ${deliveryPerson.fullName || deliveryPerson.email}`,
-        updatedBy: userId,
-        updatedByRole: userRole,
-      });
+      
+      // Only add status history entry if status actually changed OR this is first assignment
+      // If status hasn't changed and it's just a reassignment, don't duplicate the status entry
+      // Instead, add a note-only entry or update the existing entry
+      const assignmentNote = deliveryPerson.delivererType === "warehouse" 
+        ? `Assigned to warehouse deliverer: ${deliveryPerson.fullName || deliveryPerson.email}`
+        : deliveryPerson.delivererType === "customer_delivery"
+        ? `Assigned to customer delivery deliverer: ${deliveryPerson.fullName || deliveryPerson.email}`
+        : `Assigned to customer return deliverer: ${deliveryPerson.fullName || deliveryPerson.email}`;
+      
+      // Check if last status history entry has the same status and is recent (within 60 seconds)
+      // If so, combine them to avoid duplicate entries
+      const lastHistoryEntry = delivery.statusHistory[delivery.statusHistory.length - 1];
+      const statusUnchanged = lastHistoryEntry && lastHistoryEntry.status === delivery.status;
+      const isRecentEntry = lastHistoryEntry && (new Date() - new Date(lastHistoryEntry.timestamp)) < 60000; // Within 60 seconds
+      
+      if (statusUnchanged && isRecentEntry && !isReassignment) {
+        // Status hasn't changed and last entry is recent - append assignment info to existing entry
+        if (lastHistoryEntry.note && !lastHistoryEntry.note.includes(assignmentNote)) {
+          lastHistoryEntry.note = `${lastHistoryEntry.note}. ${assignmentNote}`;
+        } else if (!lastHistoryEntry.note) {
+          lastHistoryEntry.note = assignmentNote;
+        }
+      } else {
+        // Status changed OR entry is old OR reassignment - add new status history entry
+        delivery.statusHistory.push({
+          status: delivery.status,
+          timestamp: new Date(),
+          note: assignmentNote,
+          updatedBy: userId,
+          updatedByRole: userRole,
+        });
+      }
+      
       await delivery.save();
 
       // Notify deliverer and seller about assignment
@@ -369,12 +398,12 @@ export const markAsDelivered = async (req, res) => {
       });
     }
 
-    // Verify deliverer is customer type
+    // Verify deliverer is customer_delivery type (for regular order deliveries)
     const User = (await import("../models/user.js")).default;
     const deliverer = await User.findById(userId);
-    if (deliverer?.delivererType !== "customer") {
+    if (deliverer?.delivererType !== "customer_delivery") {
       return res.status(403).json({ 
-        message: "Only customer deliverers can mark deliveries as delivered" 
+        message: "Only customer delivery deliverers can mark regular order deliveries as delivered" 
       });
     }
 
@@ -486,6 +515,99 @@ export const acceptDelivery = async (req, res) => {
     });
 
     await delivery.save();
+
+    // Check if item has been returned/refunded - if not, create payout notification for finance
+    try {
+      const Return = (await import("../models/return.js")).default;
+      const Product = (await import("../models/product.js")).default;
+      const { createNotification } = await import("./notifications.js");
+      const Payout = (await import("../models/payout.js")).default;
+
+      // Find order item
+      const orderItem = order.items.find(
+        (item) =>
+          (orderItemId && String(item._id) === String(orderItemId)) ||
+          (productId && String(item.productId) === String(productId))
+      );
+
+      if (orderItem) {
+        // Check if item has been returned or refunded
+        const returnRequest = await Return.findOne({
+          orderId: orderId,
+          returnStatus: { $nin: ["cancelled"] },
+          "items.productId": orderItem.productId,
+        });
+
+        const hasReturn = returnRequest && returnRequest.returnStatus !== "cancelled";
+        const isRefunded = orderItem.refundStatus === "succeeded" || orderItem.returnStatus === "completed";
+
+        // If not returned/refunded, create payout notification
+        if (!hasReturn && !isRefunded) {
+          // Get product and seller info
+          const product = await Product.findById(orderItem.productId).populate("userID");
+          const seller = product?.userID;
+
+          if (seller && seller.role === "seller") {
+            // Check if payout already exists for this delivery
+            const existingPayout = await Payout.findOne({
+              orderId: orderId,
+              orderItemId: orderItemId || orderItem._id.toString(),
+              productId: orderItem.productId,
+              deliveryId: delivery._id,
+            });
+
+            if (!existingPayout) {
+              // Calculate payout amount (seller's portion after platform fee, if any)
+              // For now, use the full item price * quantity (platform fee can be added later)
+              const payoutAmount = Math.round(orderItem.price * orderItem.quantity); // Amount in cents
+
+              // Create payout record
+              const payout = await Payout.create({
+                orderId: orderId,
+                orderItemId: orderItemId || orderItem._id.toString(),
+                productId: orderItem.productId,
+                sellerId: seller._id,
+                deliveryId: delivery._id,
+                payoutAmount: payoutAmount,
+                currency: order.currency || "usd",
+                status: "pending",
+                bankPayout: seller.bankPayout || null,
+              });
+
+              // Notify all finance users
+              const User = (await import("../models/user.js")).default;
+              const financeUsers = await User.find({ role: "finance" }).select("_id");
+
+              for (const financeUser of financeUsers) {
+                await createNotification({
+                  userId: financeUser._id,
+                  type: "order",
+                  title: "Pending Payout to Seller",
+                  message: `Payout pending for order #${orderId.toString().slice(-8)} item "${product?.title || "Product"}" (${seller.fullName || seller.email}). Amount: $${(payoutAmount / 100).toFixed(2)}`,
+                  relatedEntity: {
+                    entityType: "order",
+                    entityId: orderId,
+                  },
+                  actionUrl: `/user/finance?payoutId=${payout._id}`,
+                  metadata: {
+                    orderId: orderId.toString(),
+                    payoutId: payout._id.toString(),
+                    sellerId: seller._id.toString(),
+                    productId: orderItem.productId.toString(),
+                    productTitle: product?.title || "Product",
+                    payoutAmount: payoutAmount,
+                    sellerName: seller.fullName || seller.email,
+                  },
+                });
+              }
+            }
+          }
+        }
+      }
+    } catch (payoutError) {
+      // Log error but don't fail the delivery acceptance
+      console.error("Error creating payout notification:", payoutError);
+    }
 
     return res.json({ message: "Delivery accepted successfully", delivery });
   } catch (error) {
@@ -622,6 +744,209 @@ export const getPersonDeliveries = async (req, res) => {
 };
 
 /**
+ * Get deliveries for warehouse operator
+ * Warehouse operators see deliveries with status in_facility or in_transit
+ */
+export const getWarehouseOperatorDeliveries = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const userRole = req.userRole;
+
+    if (userRole !== "warehouse_operator" && userRole !== "admin") {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    // Warehouse operators see deliveries they've handled: in_facility, in_transit, out_for_delivery, delivered
+    // Include both assigned and unassigned for visibility of all facility operations
+    const deliveries = await Delivery.find({
+      $or: [
+        { status: { $in: ["in_facility", "in_transit", "out_for_delivery"] } },
+        { assignedWarehouseOperator: userId, status: "delivered" },
+      ],
+    })
+      .populate("orderId")
+      .populate("assignedDeliveryAgency", "fullName email")
+      .populate("assignedDeliveryPerson", "fullName email phone delivererType")
+      .sort({ createdAt: -1 });
+
+    return res.json({ deliveries, count: deliveries.length });
+  } catch (error) {
+    console.error("Error fetching warehouse operator deliveries:", error);
+    return res.status(500).json({ message: "Failed to fetch warehouse operator deliveries" });
+  }
+};
+
+/**
+ * Get warehouse operators list
+ * Can be accessed by delivery agency or admin
+ */
+export const getWarehouseOperators = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const userRole = req.userRole;
+
+    if (userRole !== "delivery_agency" && userRole !== "admin") {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    // Get all warehouse operators
+    const warehouseOperators = await User.find({
+      role: "warehouse_operator",
+    }).select("fullName email phone");
+
+    return res.json({ warehouseOperators, count: warehouseOperators.length });
+  } catch (error) {
+    console.error("Error fetching warehouse operators:", error);
+    return res.status(500).json({ message: "Failed to fetch warehouse operators" });
+  }
+};
+
+/**
+ * Assign warehouse operator to a delivery
+ * Can be done by delivery agency when status is in_facility
+ */
+export const assignWarehouseOperator = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { warehouseOperatorId, orderItemId, productId } = req.body;
+    const userId = req.userId;
+    const userRole = req.userRole;
+
+    if (userRole !== "delivery_agency" && userRole !== "admin") {
+      return res.status(403).json({
+        message: "Only delivery agencies or admins can assign warehouse operators."
+      });
+    }
+
+    // Find delivery tracking for specific item or all items
+    let deliveries;
+    if (orderItemId || productId) {
+      const query = { orderId };
+      if (orderItemId) query.orderItemId = orderItemId;
+      if (productId) query.productId = productId;
+      deliveries = [await Delivery.findOne(query)];
+      if (!deliveries[0]) {
+        return res.status(404).json({ message: "Delivery tracking for this item not found" });
+      }
+    } else {
+      deliveries = await Delivery.find({ orderId });
+      if (!deliveries || deliveries.length === 0) {
+        return res.status(404).json({ message: "Delivery tracking not found for this order" });
+      }
+    }
+
+    // If delivery agency is assigning, verify they own these deliveries
+    if (userRole === "delivery_agency") {
+      for (const delivery of deliveries) {
+        if (String(delivery.assignedDeliveryAgency) !== String(userId)) {
+          return res.status(403).json({
+            message: "Unauthorized. You can only assign warehouse operators to deliveries assigned to your agency."
+          });
+        }
+      }
+    }
+
+    // Verify warehouse operator exists and has correct role
+    const warehouseOperator = await User.findById(warehouseOperatorId);
+    if (!warehouseOperator || warehouseOperator.role !== "warehouse_operator") {
+      return res.status(404).json({ message: "Warehouse operator not found" });
+    }
+
+    // Verify all deliveries have status in_facility
+    for (const delivery of deliveries) {
+      const freshDelivery = await Delivery.findById(delivery._id);
+      if (!freshDelivery) {
+        return res.status(404).json({
+          message: `Delivery tracking not found for item ${delivery.orderItemId || delivery.productId}`
+        });
+      }
+      
+      if (freshDelivery.status !== "in_facility") {
+        return res.status(400).json({
+          message: `Warehouse operator can only be assigned when status is 'in_facility'. Current status is '${freshDelivery.status}' for item ${freshDelivery.orderItemId || freshDelivery.productId}`
+        });
+      }
+    }
+
+    // Assign warehouse operator and send notifications
+    const { createNotification } = await import("./notifications.js");
+    const Product = (await import("../models/product.js")).default;
+    const Order = (await import("../models/order.js")).default;
+    
+    for (const deliveryDoc of deliveries) {
+      const delivery = await Delivery.findById(deliveryDoc._id);
+      if (!delivery) continue;
+
+      delivery.assignedWarehouseOperator = warehouseOperatorId;
+      
+      // Check if last status history entry has the same status and is recent (within 60 seconds)
+      // If so, combine them to avoid duplicate entries
+      const assignmentNote = `Assigned to warehouse operator: ${warehouseOperator.fullName || warehouseOperator.email}`;
+      const lastHistoryEntry = delivery.statusHistory[delivery.statusHistory.length - 1];
+      const statusUnchanged = lastHistoryEntry && lastHistoryEntry.status === delivery.status;
+      const isRecentEntry = lastHistoryEntry && (new Date() - new Date(lastHistoryEntry.timestamp)) < 60000; // Within 60 seconds
+      
+      if (statusUnchanged && isRecentEntry) {
+        // Status hasn't changed and last entry is recent - append assignment info to existing entry
+        if (lastHistoryEntry.note && !lastHistoryEntry.note.includes(assignmentNote)) {
+          lastHistoryEntry.note = `${lastHistoryEntry.note}. ${assignmentNote}`;
+        } else if (!lastHistoryEntry.note) {
+          lastHistoryEntry.note = assignmentNote;
+        }
+      } else {
+        // Status changed OR entry is old - add new status history entry
+        delivery.statusHistory.push({
+          status: delivery.status,
+          timestamp: new Date(),
+          note: assignmentNote,
+          updatedBy: userId,
+          updatedByRole: userRole,
+        });
+      }
+      
+      await delivery.save();
+
+      // Notify warehouse operator
+      try {
+        const product = await Product.findById(delivery.productId);
+        const order = await Order.findById(delivery.orderId);
+        
+        await createNotification({
+          userId: warehouseOperatorId,
+          type: "order",
+          title: "Package Assigned for Processing",
+          message: `Package for order #${orderId.toString().slice(-8)} item "${product?.title || "Product"}" has been assigned to you for processing.`,
+          relatedEntity: {
+            entityType: "order",
+            entityId: orderId,
+          },
+          actionUrl: `/user/warehouse-operator?orderId=${orderId}&orderItemId=${delivery.orderItemId?.toString() || ''}&productId=${delivery.productId?.toString() || ''}`,
+          metadata: {
+            orderId: orderId.toString(),
+            deliveryId: delivery._id.toString(),
+            productId: delivery.productId?.toString() || '',
+            orderItemId: delivery.orderItemId?.toString() || '',
+            productTitle: product?.title || "Product",
+            status: delivery.status,
+          },
+        });
+      } catch (notifError) {
+        console.error("Error creating warehouse operator notification:", notifError);
+      }
+    }
+
+    return res.json({
+      message: `Warehouse operator assigned successfully`,
+      deliveries: deliveries.length === 1 ? deliveries[0] : deliveries,
+      count: deliveries.length,
+    });
+  } catch (error) {
+    console.error("Error assigning warehouse operator:", error);
+    return res.status(500).json({ message: "Failed to assign warehouse operator" });
+  }
+};
+
+/**
  * Get delivery persons for an agency
  * Also allows warehouse operators to get customer deliverers from any agency
  */
@@ -639,10 +964,11 @@ export const getAgencyPersons = async (req, res) => {
     let query = {};
     
     if (userRole === "warehouse_operator") {
-      // Warehouse operators can only see customer deliverers from any agency
+      // Warehouse operators can see customer_delivery deliverers from any agency
+      // They assign customer_delivery deliverers for regular order deliveries
       query = {
         role: "delivery_person",
-        delivererType: "customer",
+        delivererType: "customer_delivery",
       };
     } else {
       // Delivery agencies and admins see all deliverers from their agency
@@ -685,9 +1011,9 @@ export const createDeliveryPerson = async (req, res) => {
       });
     }
 
-    if (!delivererType || !["warehouse", "customer"].includes(delivererType)) {
+    if (!delivererType || !["warehouse", "customer_delivery", "customer_return"].includes(delivererType)) {
       return res.status(400).json({ 
-        message: "Deliverer type is required and must be 'warehouse' or 'customer'" 
+        message: "Deliverer type is required and must be 'warehouse', 'customer_delivery', or 'customer_return'" 
       });
     }
 
@@ -730,5 +1056,457 @@ export const createDeliveryPerson = async (req, res) => {
   } catch (error) {
     console.error("Error creating delivery person:", error);
     return res.status(500).json({ message: "Failed to create delivery person" });
+  }
+};
+
+/**
+ * Reassign delivery agency
+ * Can be done by admin or previous agency (for reassignment)
+ */
+export const reassignDeliveryAgency = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { newAgencyId, orderItemId, productId, reason } = req.body;
+    const userId = req.userId;
+    const userRole = req.userRole;
+
+    // Only admin can reassign delivery agency
+    if (userRole !== "admin") {
+      return res.status(403).json({ message: "Only admins can reassign delivery agency" });
+    }
+
+    // Verify new delivery agency exists
+    const newAgency = await User.findById(newAgencyId);
+    if (!newAgency || newAgency.role !== "delivery_agency") {
+      return res.status(404).json({ message: "Delivery agency not found" });
+    }
+
+    // Find delivery tracking
+    let delivery;
+    if (orderItemId || productId) {
+      const query = { orderId };
+      if (orderItemId) query.orderItemId = orderItemId;
+      if (productId) query.productId = productId;
+      delivery = await Delivery.findOne(query);
+      if (!delivery) {
+        return res.status(404).json({ message: "Delivery tracking not found" });
+      }
+    } else {
+      delivery = await Delivery.findOne({ orderId });
+      if (!delivery) {
+        return res.status(404).json({ message: "Delivery tracking not found" });
+      }
+    }
+
+    // Store previous assignment in history
+    if (delivery.assignedDeliveryAgency) {
+      const previousAgency = await User.findById(delivery.assignedDeliveryAgency);
+      delivery.previousAssignments.push({
+        assignmentType: "agency",
+        assignedTo: delivery.assignedDeliveryAgency,
+        assignedAt: delivery.assignedAt || delivery.createdAt,
+        reassignedAt: new Date(),
+        reassignedBy: userId,
+        reassignmentReason: reason || "Reassigned by admin",
+      });
+    }
+
+    // Reassign
+    const oldAgencyId = delivery.assignedDeliveryAgency;
+    delivery.assignedDeliveryAgency = newAgencyId;
+    delivery.assignedAt = new Date();
+    delivery.assignmentRejected = false; // Clear any previous rejection
+
+    delivery.statusHistory.push({
+      status: delivery.status,
+      timestamp: new Date(),
+      note: `Delivery agency reassigned from ${oldAgencyId ? 'previous agency' : 'none'} to ${newAgency.fullName || newAgency.email}${reason ? `. Reason: ${reason}` : ''}`,
+      updatedBy: userId,
+      updatedByRole: userRole,
+    });
+
+    await delivery.save();
+
+    // Notify new agency
+    const { createNotification } = await import("./notifications.js");
+    try {
+      await createNotification({
+        userId: newAgencyId,
+        type: "delivery",
+        title: "Delivery Assigned",
+        message: `A delivery for order #${orderId.toString().slice(-8)} has been assigned to your agency.`,
+        relatedEntity: {
+          entityType: "delivery",
+          entityId: delivery._id,
+        },
+        actionUrl: `/user/delivery-agency?orderId=${orderId}&orderItemId=${delivery.orderItemId || ''}&productId=${delivery.productId}`,
+      });
+
+      // Notify old agency if existed
+      if (oldAgencyId) {
+        await createNotification({
+          userId: oldAgencyId,
+          type: "delivery",
+          title: "Delivery Reassigned",
+          message: `Delivery for order #${orderId.toString().slice(-8)} has been reassigned to another agency.`,
+          relatedEntity: {
+            entityType: "delivery",
+            entityId: delivery._id,
+          },
+          actionUrl: `/user/delivery-agency?orderId=${orderId}`,
+        });
+      }
+    } catch (notifError) {
+      console.error("Error creating notifications:", notifError);
+    }
+
+    return res.json({ message: "Delivery agency reassigned successfully", delivery });
+  } catch (error) {
+    console.error("Error reassigning delivery agency:", error);
+    return res.status(500).json({ message: "Failed to reassign delivery agency" });
+  }
+};
+
+/**
+ * Reassign delivery person
+ * Can be done by delivery agency, warehouse operator, or admin
+ */
+export const reassignDeliveryPerson = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { newPersonId, orderItemId, productId, reason } = req.body;
+    const userId = req.userId;
+    const userRole = req.userRole;
+
+    // Only admin, delivery agency, or warehouse operator can reassign
+    if (userRole !== "admin" && userRole !== "delivery_agency" && userRole !== "warehouse_operator") {
+      return res.status(403).json({ message: "Unauthorized to reassign delivery person" });
+    }
+
+    // Verify new delivery person exists
+    const newPerson = await User.findById(newPersonId);
+    if (!newPerson || newPerson.role !== "delivery_person") {
+      return res.status(404).json({ message: "Delivery person not found" });
+    }
+
+    // Find delivery tracking
+    let delivery;
+    if (orderItemId || productId) {
+      const query = { orderId };
+      if (orderItemId) query.orderItemId = orderItemId;
+      if (productId) query.productId = productId;
+      delivery = await Delivery.findOne(query);
+      if (!delivery) {
+        return res.status(404).json({ message: "Delivery tracking not found" });
+      }
+    } else {
+      delivery = await Delivery.findOne({ orderId });
+      if (!delivery) {
+        return res.status(404).json({ message: "Delivery tracking not found" });
+      }
+    }
+
+    // Verify authorization
+    if (userRole === "delivery_agency" && String(delivery.assignedDeliveryAgency) !== String(userId)) {
+      return res.status(403).json({ message: "Unauthorized. You can only reassign deliveries assigned to your agency." });
+    }
+
+    // Verify deliverer type matches expected type for current status
+    if (delivery.status === "ready_to_ship" && newPerson.delivererType !== "warehouse") {
+      return res.status(400).json({ message: "Only warehouse deliverers can be assigned at ready_to_ship status" });
+    }
+    if ((delivery.status === "in_transit" || delivery.status === "out_for_delivery") && newPerson.delivererType !== "customer_delivery") {
+      return res.status(400).json({ message: "Only customer delivery deliverers can be assigned at in_transit/out_for_delivery status" });
+    }
+
+    // Store previous assignment in history
+    if (delivery.assignedDeliveryPerson) {
+      const previousPerson = await User.findById(delivery.assignedDeliveryPerson);
+      delivery.previousAssignments.push({
+        assignmentType: "deliverer",
+        assignedTo: delivery.assignedDeliveryPerson,
+        assignedAt: delivery.assignedAt || delivery.createdAt,
+        reassignedAt: new Date(),
+        reassignedBy: userId,
+        reassignmentReason: reason || "Reassigned",
+      });
+    }
+
+    // Reassign
+    const oldPersonId = delivery.assignedDeliveryPerson;
+    delivery.assignedDeliveryPerson = newPersonId;
+    delivery.assignedAt = new Date();
+    delivery.assignmentRejected = false;
+
+    delivery.statusHistory.push({
+      status: delivery.status,
+      timestamp: new Date(),
+      note: `Delivery person reassigned from ${oldPersonId ? 'previous person' : 'none'} to ${newPerson.fullName || newPerson.email} (${newPerson.delivererType})${reason ? `. Reason: ${reason}` : ''}`,
+      updatedBy: userId,
+      updatedByRole: userRole,
+    });
+
+    await delivery.save();
+
+    // Notify new person
+    const { createNotification } = await import("./notifications.js");
+    try {
+      await createNotification({
+        userId: newPersonId,
+        type: "delivery",
+        title: "Delivery Assigned",
+        message: `A delivery for order #${orderId.toString().slice(-8)} has been assigned to you.`,
+        relatedEntity: {
+          entityType: "delivery",
+          entityId: delivery._id,
+        },
+        actionUrl: `/user/delivery-person?orderId=${orderId}&orderItemId=${delivery.orderItemId || ''}&productId=${delivery.productId}`,
+      });
+
+      // Notify old person if existed
+      if (oldPersonId) {
+        await createNotification({
+          userId: oldPersonId,
+          type: "delivery",
+          title: "Delivery Reassigned",
+          message: `Delivery for order #${orderId.toString().slice(-8)} has been reassigned to another person.`,
+          relatedEntity: {
+            entityType: "delivery",
+            entityId: delivery._id,
+          },
+        });
+      }
+    } catch (notifError) {
+      console.error("Error creating notifications:", notifError);
+    }
+
+    return res.json({ message: "Delivery person reassigned successfully", delivery });
+  } catch (error) {
+    console.error("Error reassigning delivery person:", error);
+    return res.status(500).json({ message: "Failed to reassign delivery person" });
+  }
+};
+
+/**
+ * Reassign warehouse operator
+ * Can be done by delivery agency or admin
+ */
+export const reassignWarehouseOperator = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { newOperatorId, orderItemId, productId, reason } = req.body;
+    const userId = req.userId;
+    const userRole = req.userRole;
+
+    // Only admin or delivery agency can reassign warehouse operator
+    if (userRole !== "admin" && userRole !== "delivery_agency") {
+      return res.status(403).json({ message: "Unauthorized to reassign warehouse operator" });
+    }
+
+    // Verify new warehouse operator exists
+    const newOperator = await User.findById(newOperatorId);
+    if (!newOperator || newOperator.role !== "warehouse_operator") {
+      return res.status(404).json({ message: "Warehouse operator not found" });
+    }
+
+    // Find delivery tracking
+    let delivery;
+    if (orderItemId || productId) {
+      const query = { orderId };
+      if (orderItemId) query.orderItemId = orderItemId;
+      if (productId) query.productId = productId;
+      delivery = await Delivery.findOne(query);
+      if (!delivery) {
+        return res.status(404).json({ message: "Delivery tracking not found" });
+      }
+    } else {
+      delivery = await Delivery.findOne({ orderId });
+      if (!delivery) {
+        return res.status(404).json({ message: "Delivery tracking not found" });
+      }
+    }
+
+    // Verify authorization
+    if (userRole === "delivery_agency" && String(delivery.assignedDeliveryAgency) !== String(userId)) {
+      return res.status(403).json({ message: "Unauthorized. You can only reassign deliveries assigned to your agency." });
+    }
+
+    // Store previous assignment in history
+    if (delivery.assignedWarehouseOperator) {
+      delivery.previousAssignments.push({
+        assignmentType: "warehouse_operator",
+        assignedTo: delivery.assignedWarehouseOperator,
+        assignedAt: delivery.assignedAt || delivery.createdAt,
+        reassignedAt: new Date(),
+        reassignedBy: userId,
+        reassignmentReason: reason || "Reassigned",
+      });
+    }
+
+    // Reassign
+    const oldOperatorId = delivery.assignedWarehouseOperator;
+    delivery.assignedWarehouseOperator = newOperatorId;
+    delivery.assignmentRejected = false;
+
+    delivery.statusHistory.push({
+      status: delivery.status,
+      timestamp: new Date(),
+      note: `Warehouse operator reassigned from ${oldOperatorId ? 'previous operator' : 'none'} to ${newOperator.fullName || newOperator.email}${reason ? `. Reason: ${reason}` : ''}`,
+      updatedBy: userId,
+      updatedByRole: userRole,
+    });
+
+    await delivery.save();
+
+    // Notify new operator
+    const { createNotification } = await import("./notifications.js");
+    try {
+      await createNotification({
+        userId: newOperatorId,
+        type: "delivery",
+        title: "Package Assigned",
+        message: `A package for order #${orderId.toString().slice(-8)} has been assigned to you.`,
+        relatedEntity: {
+          entityType: "delivery",
+          entityId: delivery._id,
+        },
+        actionUrl: `/user/warehouse-operator?orderId=${orderId}&orderItemId=${delivery.orderItemId || ''}&productId=${delivery.productId}`,
+      });
+
+      // Notify old operator if existed
+      if (oldOperatorId) {
+        await createNotification({
+          userId: oldOperatorId,
+          type: "delivery",
+          title: "Package Reassigned",
+          message: `Package for order #${orderId.toString().slice(-8)} has been reassigned to another operator.`,
+          relatedEntity: {
+            entityType: "delivery",
+            entityId: delivery._id,
+          },
+        });
+      }
+    } catch (notifError) {
+      console.error("Error creating notifications:", notifError);
+    }
+
+    return res.json({ message: "Warehouse operator reassigned successfully", delivery });
+  } catch (error) {
+    console.error("Error reassigning warehouse operator:", error);
+    return res.status(500).json({ message: "Failed to reassign warehouse operator" });
+  }
+};
+
+/**
+ * Reject delivery assignment
+ * Can be done by assigned user (delivery agency, deliverer, or warehouse operator)
+ */
+export const rejectDeliveryAssignment = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { orderItemId, productId, rejectionReason, assignmentType } = req.body;
+    const userId = req.userId;
+    const userRole = req.userRole;
+
+    if (!rejectionReason || rejectionReason.trim().length === 0) {
+      return res.status(400).json({ message: "Rejection reason is required" });
+    }
+
+    // Find delivery tracking
+    let delivery;
+    if (orderItemId || productId) {
+      const query = { orderId };
+      if (orderItemId) query.orderItemId = orderItemId;
+      if (productId) query.productId = productId;
+      delivery = await Delivery.findOne(query);
+      if (!delivery) {
+        return res.status(404).json({ message: "Delivery tracking not found" });
+      }
+    } else {
+      delivery = await Delivery.findOne({ orderId });
+      if (!delivery) {
+        return res.status(404).json({ message: "Delivery tracking not found" });
+      }
+    }
+
+    // Verify user is assigned to this delivery based on assignment type
+    let isAssigned = false;
+    if (assignmentType === "agency" || userRole === "delivery_agency") {
+      isAssigned = String(delivery.assignedDeliveryAgency) === String(userId);
+    } else if (assignmentType === "deliverer" || userRole === "delivery_person") {
+      isAssigned = String(delivery.assignedDeliveryPerson) === String(userId);
+    } else if (assignmentType === "warehouse_operator" || userRole === "warehouse_operator") {
+      isAssigned = String(delivery.assignedWarehouseOperator) === String(userId);
+    }
+
+    if (!isAssigned) {
+      return res.status(403).json({ message: "Unauthorized. You can only reject assignments made to you." });
+    }
+
+    // Mark as rejected
+    delivery.assignmentRejected = true;
+    delivery.assignmentRejectedAt = new Date();
+    delivery.assignmentRejectedBy = userId;
+    delivery.assignmentRejectionReason = rejectionReason;
+
+    // Clear assignment based on type
+    if (assignmentType === "agency" || userRole === "delivery_agency") {
+      delivery.assignedDeliveryAgency = null;
+    } else if (assignmentType === "deliverer" || userRole === "delivery_person") {
+      delivery.assignedDeliveryPerson = null;
+    } else if (assignmentType === "warehouse_operator" || userRole === "warehouse_operator") {
+      delivery.assignedWarehouseOperator = null;
+    }
+
+    delivery.statusHistory.push({
+      status: delivery.status,
+      timestamp: new Date(),
+      note: `Assignment rejected by ${userRole}. Reason: ${rejectionReason}`,
+      updatedBy: userId,
+      updatedByRole: userRole,
+    });
+
+    await delivery.save();
+
+    // Notify agency/admin
+    const { createNotification } = await import("./notifications.js");
+    try {
+      if (delivery.assignedDeliveryAgency && String(delivery.assignedDeliveryAgency) !== String(userId)) {
+        await createNotification({
+          userId: delivery.assignedDeliveryAgency,
+          type: "delivery",
+          title: "Assignment Rejected",
+          message: `Delivery assignment for order #${orderId.toString().slice(-8)} has been rejected. Reason: ${rejectionReason}`,
+          relatedEntity: {
+            entityType: "delivery",
+            entityId: delivery._id,
+          },
+          actionUrl: `/user/delivery-agency?orderId=${orderId}&orderItemId=${delivery.orderItemId || ''}&productId=${delivery.productId}`,
+        });
+      }
+
+      // Notify admin
+      const adminUsers = await User.find({ role: "admin" });
+      for (const admin of adminUsers) {
+        await createNotification({
+          userId: admin._id,
+          type: "delivery",
+          title: "Assignment Rejected",
+          message: `Delivery assignment for order #${orderId.toString().slice(-8)} has been rejected. Reason: ${rejectionReason}`,
+          relatedEntity: {
+            entityType: "delivery",
+            entityId: delivery._id,
+          },
+          actionUrl: `/user/admin`,
+        });
+      }
+    } catch (notifError) {
+      console.error("Error creating notifications:", notifError);
+    }
+
+    return res.json({ message: "Assignment rejected successfully", delivery });
+  } catch (error) {
+    console.error("Error rejecting delivery assignment:", error);
+    return res.status(500).json({ message: "Failed to reject assignment" });
   }
 };

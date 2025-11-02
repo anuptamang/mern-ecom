@@ -60,9 +60,41 @@ const deliveryTrackingSchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
+    assignedWarehouseOperator: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     assignedAt: {
       type: Date,
     },
+    // Assignment rejection tracking
+    assignmentRejected: {
+      type: Boolean,
+      default: false,
+    },
+    assignmentRejectedAt: {
+      type: Date,
+    },
+    assignmentRejectedBy: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    assignmentRejectionReason: {
+      type: String,
+    },
+    // Track previous assignments for reassignment history
+    previousAssignments: [
+      {
+        assignmentType: { type: String, enum: ["agency", "deliverer", "warehouse_operator"] },
+        assignedTo: { type: mongoose.Types.ObjectId, ref: "User" },
+        assignedAt: { type: Date },
+        reassignedAt: { type: Date },
+        reassignedBy: { type: mongoose.Types.ObjectId, ref: "User" },
+        reassignmentReason: { type: String },
+      },
+    ],
     deliveryAddress: {
       street: { type: String },
       city: { type: String },
