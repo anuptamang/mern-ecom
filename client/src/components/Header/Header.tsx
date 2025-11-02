@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import { Col, Row } from 'antd';
 import { Logo, Nav } from 'components';
 import { Container, HeaderLayout } from 'components/UI';
 import { UserPanel } from 'features/UserPanel/UserPanel';
+import styles from './Header.module.scss';
 
 /**
  * Component - Header
@@ -11,11 +13,31 @@ import { UserPanel } from 'features/UserPanel/UserPanel';
  */
 
 export const Header = (): JSX.Element => {
+  const [isSticky, setIsSticky] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      setIsSticky(scrollTop > 10);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <>
-      <HeaderLayout style={{ paddingInline: 0, height: 'auto' }}>
+      <HeaderLayout 
+        className={`${styles.header} ${isSticky ? styles.sticky : ''}`}
+        style={{ 
+          paddingInline: 0,
+          position: 'fixed',
+          top: 0,
+          zIndex: 1000,
+        }}
+      >
         <Container>
-          <Row>
+          <Row align="middle">
             <Col xs={10} md={6}>
               <Logo />
             </Col>
