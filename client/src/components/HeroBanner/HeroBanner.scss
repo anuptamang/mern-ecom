@@ -1,0 +1,341 @@
+.hero-banner {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: -64px;
+  margin-bottom: 32px;
+  padding: 0;
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: none;
+
+  @media (max-width: 768px) {
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: -64px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 480px) {
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: -64px;
+    margin-bottom: 20px;
+  }
+
+  .hero-swiper {
+    width: 100%;
+    
+    .swiper-wrapper {
+      display: flex;
+      align-items: stretch;
+    }
+
+    .swiper-slide {
+      height: auto;
+      display: flex;
+      align-items: stretch;
+    }
+
+    .swiper-button-next,
+    .swiper-button-prev {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.2);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      &::after {
+        font-size: 10px;
+        font-weight: bold;
+      }
+
+      @media (max-width: 768px) {
+        width: 40px;
+        height: 40px;
+
+        &::after {
+          font-size: 9px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        width: 36px;
+        height: 36px;
+
+        &::after {
+          font-size: 8px;
+        }
+      }
+    }
+
+    .swiper-pagination {
+      bottom: 20px;
+
+      .swiper-pagination-bullet {
+        width: 12px;
+        height: 12px;
+        background: rgba(255, 255, 255, 0.5);
+        opacity: 1;
+
+        &.swiper-pagination-bullet-active {
+          background: #fff;
+          width: 24px;
+          border-radius: 6px;
+        }
+      }
+    }
+  }
+
+  .banner-slide {
+    width: 100%;
+    min-height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 60px 40px;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%);
+
+    @media (max-width: 768px) {
+      min-height: 500px;
+      padding: 50px 30px;
+    }
+
+    @media (max-width: 480px) {
+      min-height: 400px;
+      padding: 40px 20px;
+    }
+
+    .banner-content {
+      max-width: 800px;
+      z-index: 2;
+    }
+
+    .banner-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.9;
+      animation: pulse 2s ease-in-out infinite;
+
+      @media (max-width: 768px) {
+        font-size: 48px;
+        margin-bottom: 16px;
+      }
+
+      @media (max-width: 480px) {
+        font-size: 36px;
+        margin-bottom: 12px;
+      }
+    }
+
+    .banner-discount {
+      margin-bottom: 16px;
+
+      .discount-text {
+        font-size: 48px;
+        font-weight: 900;
+        color: inherit;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        display: inline-block;
+        padding: 8px 24px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        backdrop-filter: blur(10px);
+
+        @media (max-width: 768px) {
+          font-size: 36px;
+          padding: 6px 18px;
+        }
+
+        @media (max-width: 480px) {
+          font-size: 28px;
+          padding: 4px 12px;
+        }
+      }
+    }
+
+    .banner-voucher {
+      margin-bottom: 16px;
+      position: relative;
+
+      .voucher-code {
+        font-size: 32px;
+        font-weight: 700;
+        color: inherit;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        display: inline-block;
+        padding: 8px 24px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        backdrop-filter: blur(10px);
+        font-family: 'Courier New', monospace;
+        letter-spacing: 4px;
+        transition: all 0.3s ease;
+
+        &.copied {
+          background: rgba(82, 196, 26, 0.3);
+          transform: scale(1.05);
+        }
+
+        @media (max-width: 768px) {
+          font-size: 24px;
+          padding: 6px 18px;
+          letter-spacing: 2px;
+        }
+
+        @media (max-width: 480px) {
+          font-size: 20px;
+          padding: 4px 12px;
+          letter-spacing: 1px;
+        }
+      }
+
+      .copied-indicator {
+        display: block;
+        margin-top: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        color: inherit;
+        animation: fadeIn 0.3s ease;
+
+        @media (max-width: 480px) {
+          font-size: 14px;
+          margin-top: 6px;
+        }
+      }
+    }
+
+    .banner-title {
+      font-size: 56px;
+      font-weight: 800;
+      color: inherit;
+      margin-bottom: 16px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+
+      @media (max-width: 768px) {
+        font-size: 40px;
+        margin-bottom: 12px;
+      }
+
+      @media (max-width: 480px) {
+        font-size: 28px;
+        margin-bottom: 8px;
+      }
+    }
+
+    .banner-subtitle {
+      font-size: 40px;
+      font-weight: 700;
+      color: inherit;
+      margin-bottom: 16px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+
+      @media (max-width: 768px) {
+        font-size: 28px;
+        margin-bottom: 12px;
+      }
+
+      @media (max-width: 480px) {
+        font-size: 20px;
+        margin-bottom: 8px;
+      }
+    }
+
+    .banner-description {
+      font-size: 18px;
+      color: inherit;
+      opacity: 0.95;
+      display: block;
+      margin-bottom: 16px;
+      line-height: 1.6;
+
+      @media (max-width: 768px) {
+        font-size: 16px;
+        margin-bottom: 12px;
+      }
+
+      @media (max-width: 480px) {
+        font-size: 14px;
+        margin-bottom: 8px;
+      }
+    }
+
+    .banner-button {
+      font-size: 18px;
+      font-weight: 600;
+      padding: 12px 32px;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+      }
+
+      @media (max-width: 768px) {
+        font-size: 16px;
+        padding: 10px 24px;
+      }
+
+      @media (max-width: 480px) {
+        font-size: 14px;
+        padding: 8px 20px;
+      }
+    }
+
+    .coming-soon-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: pulse 2s ease-in-out infinite;
+
+      @media (max-width: 480px) {
+        top: 10px;
+        right: 10px;
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
