@@ -205,7 +205,8 @@ const DeliveryPersonDashboard = () => {
 
   const delivererType = user?.delivererType;
   const isWarehouseDeliverer = delivererType === 'warehouse';
-  const isCustomerDeliverer = delivererType === 'customer';
+  const isCustomerDeliverer = delivererType === 'customer_delivery' || delivererType === 'customer_return';
+  const isCustomerDeliveryDeliverer = delivererType === 'customer_delivery';
 
   return (
     <div className="delivery-person-dashboard">
@@ -214,8 +215,8 @@ const DeliveryPersonDashboard = () => {
         <Text type="secondary">
           Manage deliveries assigned to you
           {delivererType && (
-            <Tag color={isWarehouseDeliverer ? 'blue' : 'green'} style={{ marginLeft: 8 }}>
-              {isWarehouseDeliverer ? 'Warehouse Deliverer' : 'Customer Deliverer'}
+            <Tag color={isWarehouseDeliverer ? 'blue' : delivererType === 'customer_delivery' ? 'green' : 'orange'} style={{ marginLeft: 8 }}>
+              {isWarehouseDeliverer ? 'Warehouse Deliverer' : delivererType === 'customer_delivery' ? 'Customer Delivery Deliverer' : 'Customer Return Deliverer'}
             </Tag>
           )}
         </Text>
@@ -247,7 +248,7 @@ const DeliveryPersonDashboard = () => {
                     >
                       View Tracking
                     </Button>
-                    {isCustomerDeliverer && delivery.status === 'out_for_delivery' && (
+                    {isCustomerDeliveryDeliverer && delivery.status === 'out_for_delivery' && (
                       <Button
                         type="primary"
                         icon={<CheckOutlined />}

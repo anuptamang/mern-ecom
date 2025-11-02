@@ -79,11 +79,104 @@ export const getAgencyPersonsApi = async (agencyId?: string) => {
   });
 };
 
-export const createDeliveryPersonApi = async (email: string, password: string, fullName: string, delivererType: 'warehouse' | 'customer', phone?: string) => {
+export const getWarehouseOperatorsApi = async () => {
+  const token = getToken() || "";
+  return axios.get(`${DELIVERY_API}/warehouse-operators`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};
+
+export const assignWarehouseOperatorApi = async (
+  orderId: string,
+  warehouseOperatorId: string,
+  orderItemId?: string,
+  productId?: string
+) => {
+  const token = getToken() || "";
+  return axios.post(
+    `${DELIVERY_API}/${orderId}/assign-warehouse-operator`,
+    { warehouseOperatorId, orderItemId, productId },
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+};
+
+export const createDeliveryPersonApi = async (email: string, password: string, fullName: string, delivererType: 'warehouse' | 'customer_delivery' | 'customer_return', phone?: string) => {
   const token = getToken() || "";
   return axios.post(
     `${DELIVERY_API}/agency/persons`,
     { email, password, fullName, phone, delivererType },
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+};
+
+// Reassign endpoints
+export const reassignDeliveryAgencyApi = async (
+  orderId: string,
+  newAgencyId: string,
+  orderItemId?: string,
+  productId?: string,
+  reason?: string
+) => {
+  const token = getToken() || "";
+  return axios.post(
+    `${DELIVERY_API}/${orderId}/reassign-agency`,
+    { newAgencyId, orderItemId, productId, reason },
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+};
+
+export const reassignDeliveryPersonApi = async (
+  orderId: string,
+  newPersonId: string,
+  orderItemId?: string,
+  productId?: string,
+  reason?: string
+) => {
+  const token = getToken() || "";
+  return axios.post(
+    `${DELIVERY_API}/${orderId}/reassign-person`,
+    { newPersonId, orderItemId, productId, reason },
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+};
+
+export const reassignWarehouseOperatorApi = async (
+  orderId: string,
+  newOperatorId: string,
+  orderItemId?: string,
+  productId?: string,
+  reason?: string
+) => {
+  const token = getToken() || "";
+  return axios.post(
+    `${DELIVERY_API}/${orderId}/reassign-warehouse-operator`,
+    { newOperatorId, orderItemId, productId, reason },
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+};
+
+// Reject assignment endpoint
+export const rejectDeliveryAssignmentApi = async (
+  orderId: string,
+  rejectionReason: string,
+  assignmentType: 'agency' | 'deliverer' | 'warehouse_operator',
+  orderItemId?: string,
+  productId?: string
+) => {
+  const token = getToken() || "";
+  return axios.post(
+    `${DELIVERY_API}/${orderId}/reject-assignment`,
+    { rejectionReason, assignmentType, orderItemId, productId },
     {
       headers: { Authorization: `Bearer ${token}` },
     }

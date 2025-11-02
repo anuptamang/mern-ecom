@@ -86,6 +86,8 @@ const WarehouseOperatorDashboard = () => {
     try {
       setSelectedDelivery(delivery);
       setTrackingModalVisible(true);
+      setDeliveryTracking(null); // Reset tracking data
+      
       const { data } = await getDeliveryTrackingApi(delivery.orderId._id);
       // API now returns deliveries array (per-item tracking)
       // Find the specific delivery for this item
@@ -94,10 +96,14 @@ const WarehouseOperatorDashboard = () => {
                    (delivery.orderItemId && String(d.orderItemId) === String(delivery.orderItemId)) ||
                    (delivery.productId && String(d.productId) === String(delivery.productId))
       ) || data.deliveries?.[0] || data.delivery || delivery;
-      setDeliveryTracking(itemDelivery);
+      
+      setDeliveryTracking(itemDelivery || delivery);
     } catch (error: any) {
       console.error('Failed to load delivery tracking:', error);
-      message.error('Failed to load delivery tracking');
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to load delivery tracking';
+      message.error(errorMessage);
+      // Still show the delivery info even if tracking fails
+      setDeliveryTracking(delivery);
     }
   };
 
