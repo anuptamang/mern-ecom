@@ -1,5 +1,5 @@
 import { Container } from 'components/UI';
-import { AuthModal } from 'components/AuthModal';
+import { AuthModal, HeroBanner } from 'components';
 import { usePageTitle } from 'hooks/usePageTitle';
 import { ReactNode, useEffect, useState } from 'react';
 import { fetchProducts } from 'redux/action/products';
@@ -12,8 +12,10 @@ import { ProductImagePlaceholder } from 'components/ProductImageGallery/ProductI
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { authSelector } from 'redux/slice';
 import { WishlistButton } from 'components/WishlistButton';
+import { ROLES, canSeeHeroBanner, LABELS } from '../../../constants';
 import styles from 'assets/styles/Common.module.scss';
 import './HomePage.scss';
+import { FireOutlined } from '@ant-design/icons';
 import { 
   CarOutlined, 
   TeamOutlined, 
@@ -33,10 +35,11 @@ const HomePage = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { productList, status } = useAppSelector(productsSelector);
-  const { result } = useAppSelector(authSelector);
+  const { result, token } = useAppSelector(authSelector);
   const userRole = result?.role;
-  const isSeller = result?.role === 'seller';
-  const isBuyer = result?.role === 'user';
+  const isSeller = result?.role === ROLES.SELLER;
+  const isBuyer = result?.role === ROLES.BUYER;
+  const isPublic = !result?._id || !token || result?._id === '';
   const isDeliveryUser = userRole === 'delivery_agency' || 
                          userRole === 'delivery_person' || 
                          userRole === 'warehouse_operator' ||
@@ -49,6 +52,7 @@ const HomePage = () => {
                          userRole === 'admin';
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categoryProducts, setCategoryProducts] = useState<Record<string, any[]>>({});
+  const [displayedProductsCount, setDisplayedProductsCount] = useState<number>(12);
 
   // Get unique categories from products
   const allProducts = productList?.data || [];
@@ -160,9 +164,31 @@ const HomePage = () => {
     }
   };
 
+  // Filter flash sale products (products with "flash-sale" tag or category)
+  const flashSaleProducts = allProducts.filter((product: any) => {
+    const tags = product.tag || [];
+    const categories = product.categories || [];
+    return tags.includes('flash-sale') || 
+           tags.includes('flash_sale') ||
+           tags.includes('Flash Sale') ||
+           categories.includes('flash-sale') ||
+           categories.includes('flash_sale');
+  }).slice(0, 6); // Only show first 6 products
+
   const productsToShow = selectedCategory
     ? categoryProducts[selectedCategory] || []
     : allProducts;
+
+  // For categories section, limit initial display to 12 items
+  const displayedProducts = selectedCategory
+    ? productsToShow.slice(0, displayedProductsCount)
+    : productsToShow.slice(0, displayedProductsCount);
+  
+  const hasMoreProducts = productsToShow.length > displayedProductsCount;
+
+  const handleLoadMore = () => {
+    setDisplayedProductsCount(prev => prev + 12);
+  };
 
   // Role-specific homepage content
   const getRoleSpecificContent = () => {
@@ -338,132 +364,257 @@ const HomePage = () => {
   return (
     <>
       {title}
+      {/* Hero Banner Swiper - Full width, right after header - Show for public users and logged in buyers/sellers */}
+      {canSeeHeroBanner(userRole) && <HeroBanner />}
+      
       <Container className={styles.pageContainer}>
         <div className="homepage">
-          <h1>Shop by Category</h1>
-          
-          {categories.length > 0 && (
-            <Tabs
-              activeKey={selectedCategory || 'All'}
-              onChange={handleCategoryChange}
-              className="category-tabs"
-              items={[
-                { key: 'All', label: 'All Products' },
-                ...categories.map((cat) => ({
-                  key: cat,
-                  label: cat.charAt(0).toUpperCase() + cat.slice(1),
-                })),
-              ]}
-            />
+          {/* Flash Sale Section */}
+          {flashSaleProducts.length > 0 && (
+            <div className="flash-sale-section">
+              <div className="flash-sale-header">
+                <h2>🔥 Flash Sale</h2>
+                <Button
+                  type="link"
+                  className="shop-all-link"
+                  onClick={() => navigate('/products?tag=flash-sale')}
+                >
+                  Shop All Products →
+                </Button>
+              </div>
+              <div className="flash-sale-products">
+                {flashSaleProducts.map((item: any) => (
+                  <Card
+                    key={item._id}
+                    className="product-card"
+                    onClick={(e) => handleCardClick(item._id, e)}
+                    cover={
+                      item.thumbnail ? (
+                        <div className="product-image-wrapper">
+                          <Image
+                            alt={item.title}
+                            src={item.thumbnail}
+                            preview={false}
+                            className="product-image"
+                          />
+                        </div>
+                      ) : (
+                        <div className="product-image-wrapper">
+                          <ProductImagePlaceholder title={item.title || 'Product'} />
+                        </div>
+                      )
+                    }
+                    actions={[
+                      <div key="view" className="product-card-actions">
+                        <Button
+                          type="link"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/products/${item._id}`);
+                          }}
+                        >
+                          View
+                        </Button>
+                      </div>,
+                      <div key="cart" className="product-card-actions">
+                        {(item.stock || 0) <= 0 ? (
+                          !isSeller && result ? (
+                            <WishlistButton
+                              productId={item._id}
+                              productTitle={item.title}
+                              size="small"
+                            />
+                          ) : null
+                        ) : (
+                          !isSeller && result ? (
+                            <Button
+                              type="primary"
+                              size="small"
+                              onClick={(e) => handleAddToCart(item._id, item.stock || 0, item.title, e)}
+                            >
+                              Add to Cart
+                            </Button>
+                          ) : !result ? (
+                            <Button
+                              type="primary"
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPendingProductId(item._id);
+                                setPendingProductTitle(item.title);
+                                setAuthModalVisible(true);
+                              }}
+                            >
+                              Add to Cart
+                            </Button>
+                          ) : null
+                        )}
+                      </div>,
+                    ]}
+                    hoverable
+                  >
+                    <Card.Meta
+                      title={item.title}
+                      description={
+                        <div className="product-meta">
+                          {item.body?.summary || item.description || LABELS.COMMON.NO_DESCRIPTION}
+                          {item.price && (
+                            <div className="product-price">${item.price.toFixed(2)}</div>
+                          )}
+                          <div className="product-stock">
+                            {item.stock !== undefined ? (
+                              <span className={item.stock > 0 ? 'stock-available' : 'stock-out'}>
+                                {item.stock > 0 ? `${LABELS.COMMON.IN_STOCK} (${item.stock})` : LABELS.COMMON.OUT_OF_STOCK}
+                              </span>
+                            ) : (
+                              <span className="stock-unknown">{LABELS.COMMON.STOCK_UNAVAILABLE}</span>
+                            )}
+                          </div>
+                        </div>
+                      }
+                    />
+                  </Card>
+                ))}
+              </div>
+            </div>
           )}
 
-          <Spin spinning={status.loading}>
-            {productsToShow.length === 0 ? (
-              <Card>
-                <div className="text-center py-8">
-                  <p>No products found in this category.</p>
-                </div>
-              </Card>
-            ) : (
-              <List
-                grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4, xl: 4 }}
-                dataSource={productsToShow}
-                renderItem={(item: any) => (
-                  <List.Item>
-                    <Card
-                      className="product-card"
-                      onClick={(e) => handleCardClick(item._id, e)}
-                      cover={
-                        item.thumbnail ? (
-                          <div className="product-image-wrapper">
-                            <Image
-                              alt={item.title}
-                              src={item.thumbnail}
-                              preview={false}
-                              className="product-image"
-                            />
-                          </div>
-                        ) : (
-                          <div className="product-image-wrapper">
-                            <ProductImagePlaceholder title={item.title || 'Product'} />
-                          </div>
-                        )
-                      }
-                      actions={[
-                        <div key="view" className="product-card-actions">
-                          <Button
-                            type="link"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/products/${item._id}`);
-                            }}
-                          >
-                            View
-                          </Button>
-                        </div>,
-                        <div key="cart" className="product-card-actions">
-                          {(item.stock || 0) <= 0 ? (
-                            !isSeller && result ? (
-                              <WishlistButton
-                                productId={item._id}
-                                productTitle={item.title}
-                                size="small"
-                              />
-                            ) : null
-                          ) : (
-                            !isSeller && result ? (
-                              <Button
-                                type="primary"
-                                size="small"
-                                onClick={(e) => handleAddToCart(item._id, item.stock || 0, item.title, e)}
-                              >
-                                Add to Cart
-                              </Button>
-                            ) : !result ? (
-                              <Button
-                                type="primary"
-                                size="small"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setPendingProductId(item._id);
-                                  setPendingProductTitle(item.title);
-                                  setAuthModalVisible(true);
-                                }}
-                              >
-                                Add to Cart
-                              </Button>
-                            ) : null
-                          )}
-                        </div>,
-                      ]}
-                      hoverable
-                    >
-                      <Card.Meta
-                        title={item.title}
-                        description={
-                          <div className="product-meta">
-                            {item.body?.summary || item.description || 'No description available.'}
-                            {item.price && (
-                              <div className="product-price">${item.price.toFixed(2)}</div>
-                            )}
-                            <div className="product-stock">
-                              {item.stock !== undefined ? (
-                                <span className={item.stock > 0 ? 'stock-available' : 'stock-out'}>
-                                  {item.stock > 0 ? `In Stock (${item.stock})` : 'Out of Stock'}
-                                </span>
-                              ) : (
-                                <span className="stock-unknown">Stock information unavailable</span>
-                              )}
-                            </div>
-                          </div>
-                        }
-                      />
-                    </Card>
-                  </List.Item>
-                )}
+          {/* Categories Section */}
+          <div className="categories-section">
+            <h1>Shop by Category</h1>
+            
+            {categories.length > 0 && (
+              <Tabs
+                activeKey={selectedCategory || 'All'}
+                onChange={(key) => {
+                  setSelectedCategory(key === 'All' ? null : key);
+                  setDisplayedProductsCount(12); // Reset to 12 when changing category
+                }}
+                className="category-tabs"
+                items={[
+                  { key: 'All', label: LABELS.COMMON.ALL_PRODUCTS },
+                  ...categories.map((cat) => ({
+                    key: cat,
+                    label: cat.charAt(0).toUpperCase() + cat.slice(1),
+                  })),
+                ]}
               />
             )}
-          </Spin>
+
+            <Spin spinning={status.loading}>
+              {displayedProducts.length === 0 ? (
+                <Card>
+                  <div className="text-center py-8">
+                    <p>No products found in this category.</p>
+                  </div>
+                </Card>
+              ) : (
+                <>
+                  <div className="products-grid">
+                    {displayedProducts.map((item: any) => (
+                      <Card
+                        key={item._id}
+                        className="product-card"
+                        onClick={(e) => handleCardClick(item._id, e)}
+                        cover={
+                          item.thumbnail ? (
+                            <div className="product-image-wrapper">
+                              <Image
+                                alt={item.title}
+                                src={item.thumbnail}
+                                preview={false}
+                                className="product-image"
+                              />
+                            </div>
+                          ) : (
+                            <div className="product-image-wrapper">
+                              <ProductImagePlaceholder title={item.title || 'Product'} />
+                            </div>
+                          )
+                        }
+                        actions={[
+                          <div key="view" className="product-card-actions">
+                            <Button
+                              type="link"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/products/${item._id}`);
+                              }}
+                            >
+                              View
+                            </Button>
+                          </div>,
+                          <div key="cart" className="product-card-actions">
+                            {(item.stock || 0) <= 0 ? (
+                              !isSeller && result ? (
+                                <WishlistButton
+                                  productId={item._id}
+                                  productTitle={item.title}
+                                  size="small"
+                                />
+                              ) : null
+                            ) : (
+                              !isSeller && result ? (
+                                <Button
+                                  type="primary"
+                                  size="small"
+                                  onClick={(e) => handleAddToCart(item._id, item.stock || 0, item.title, e)}
+                                >
+                                  Add to Cart
+                                </Button>
+                              ) : !result ? (
+                                <Button
+                                  type="primary"
+                                  size="small"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setPendingProductId(item._id);
+                                    setPendingProductTitle(item.title);
+                                    setAuthModalVisible(true);
+                                  }}
+                                >
+                                  Add to Cart
+                                </Button>
+                              ) : null
+                            )}
+                          </div>,
+                        ]}
+                        hoverable
+                      >
+                        <Card.Meta
+                          title={item.title}
+                          description={
+                            <div className="product-meta">
+                              {item.body?.summary || item.description || LABELS.COMMON.NO_DESCRIPTION}
+                              {item.price && (
+                                <div className="product-price">${item.price.toFixed(2)}</div>
+                              )}
+                              <div className="product-stock">
+                                {item.stock !== undefined ? (
+                                  <span className={item.stock > 0 ? 'stock-available' : 'stock-out'}>
+                                    {item.stock > 0 ? `${LABELS.COMMON.IN_STOCK} (${item.stock})` : LABELS.COMMON.OUT_OF_STOCK}
+                                  </span>
+                                ) : (
+                                  <span className="stock-unknown">{LABELS.COMMON.STOCK_UNAVAILABLE}</span>
+                                )}
+                              </div>
+                            </div>
+                          }
+                        />
+                      </Card>
+                    ))}
+                  </div>
+                  {hasMoreProducts && (
+                    <div className="load-more-container">
+                      <Button type="primary" size="large" onClick={handleLoadMore}>
+                        Load More
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </Spin>
+          </div>
         </div>
       </Container>
       <AuthModal
