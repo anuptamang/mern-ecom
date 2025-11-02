@@ -22,3 +22,5 @@ export * from './AuthModal';
 export * from '../features/UserProfileDetails';
 export * from './Wrapper';
 export { default as WorkloadDashboard } from './WorkloadDashboard/WorkloadDashboard';
+export { default as HeroBanner } from './HeroBanner/HeroBanner';
+export { BannerManagement } from './BannerManagement';
