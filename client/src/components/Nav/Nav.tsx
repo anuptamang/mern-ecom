@@ -5,6 +5,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppSelector } from 'redux/store';
 import { authSelector } from 'redux/slice';
 import { pageRoutes } from 'data/static/pageRoutes';
+import { isDeliveryRole } from '../../constants';
+import styles from './Nav.module.scss';
 
 /**
  * This is the main navigation component for the app.
@@ -33,17 +35,7 @@ const Nav = (): JSX.Element => {
   // Products link should only be visible to buyers, sellers, and unauthenticated users
   const menuItems: MenuProps['items'] = useMemo(() => {
     // Ensure we always have menu items, even if userRole is undefined
-    const currentUserRole = userRole;
-    const isDeliveryUser = currentUserRole === 'delivery_agency' || 
-                          currentUserRole === 'delivery_person' || 
-                          currentUserRole === 'warehouse_operator' ||
-                          currentUserRole === 'support' ||
-                          currentUserRole === 'support_user' ||
-                          currentUserRole === 'verification_team' ||
-                          currentUserRole === 'return_inspector' ||
-                          currentUserRole === 'return_deliverer' ||
-                          currentUserRole === 'finance' ||
-                          currentUserRole === 'admin';
+    const isDeliveryUser = isDeliveryRole(userRole);
 
     // Show Products link only for buyers, sellers, or unauthenticated users
     const filteredNavData = navData.filter((item) => {
@@ -60,34 +52,43 @@ const Nav = (): JSX.Element => {
     }));
 
     // Ensure we always return at least the basic navigation items
-    return items.length > 0 ? items : navData.map((item) => ({
-      key: item.key,
-      label: item.label,
-    }));
+    return items.length > 0
+      ? items
+      : navData.map((item) => ({
+          key: item.key,
+          label: item.label,
+        }));
   }, [userRole]);
 
   // Fallback to all nav items if menuItems is somehow empty
-  const finalMenuItems = menuItems && menuItems.length > 0 
-    ? menuItems 
+  const finalMenuItems =
+    menuItems && menuItems.length > 0
+      ? menuItems
+      : navData.map((item) => ({
+          key: item.key,
+          label: item.label,
+        }));
+
+  // Ensure we always have menu items
+  const displayItems = finalMenuItems && finalMenuItems.length > 0 
+    ? finalMenuItems 
     : navData.map((item) => ({
         key: item.key,
         label: item.label,
       }));
 
   return (
-    <>
-      {finalMenuItems && finalMenuItems.length > 0 && (
-        <Menu
-          theme="dark"
-          mode="horizontal"
-          items={finalMenuItems}
-          onClick={onClick}
-          selectedKeys={[current]}
-          style={{ justifyContent: 'flex-end' }}
-          overflowedIndicator={null}
-        />
-      )}
-    </>
+    <div className={styles.nav}>
+      <Menu
+        theme="dark"
+        mode="horizontal"
+        items={displayItems}
+        onClick={onClick}
+        selectedKeys={[current]}
+        style={{ justifyContent: 'flex-end', minWidth: '200px' }}
+        overflowedIndicator={null}
+      />
+    </div>
   );
 };
 
