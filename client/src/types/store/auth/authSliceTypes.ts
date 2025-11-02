@@ -18,4 +18,7 @@ export interface IAuthSlice {
   token?: string;
   tokenStatus?: "valid" | "expired" | "not set";
   status: IStatus;
+  // Profile completion data (from login response)
+  profileCompletion?: number;
+  profileCompleted?: boolean;
 }

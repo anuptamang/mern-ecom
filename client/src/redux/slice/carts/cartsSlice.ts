@@ -12,7 +12,13 @@ export const fetchMyCart = createAsyncThunk('carts/fetchMyCart', async () => {
 export const addToCart = createAsyncThunk('carts/addToCart', async (payload: { productId: string; quantity?: number }, { rejectWithValue }) => {
   try {
     const token = getToken();
-    const res = await addCartItemApi(token || '', payload);
+    
+    // Don't make API call if no token - let the component handle auth modal
+    if (!token) {
+      return rejectWithValue('Please log in to add items to cart');
+    }
+    
+    const res = await addCartItemApi(token, payload);
     return res.data;
   } catch (error: any) {
     // Return the error message from the backend

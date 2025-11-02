@@ -22,7 +22,7 @@ export interface IUser {
   // For delivery persons - reference to their delivery agency
   deliveryAgencyId?: string;
   // For delivery persons - type of deliverer
-  delivererType?: 'warehouse' | 'customer';
+  delivererType?: 'warehouse' | 'customer_delivery' | 'customer_return';
   // Contact information
   secondaryEmail?: string;
   phone?: string;
@@ -30,4 +30,18 @@ export interface IUser {
   // Addresses
   primaryAddress?: IAddress;
   secondaryAddress?: IAddress;
+  // Bank payout information (for sellers)
+  bankPayout?: {
+    accountHolderName?: string;
+    accountNumber?: string;
+    bankName?: string;
+    routingNumber?: string;
+    swiftCode?: string;
+    iban?: string;
+    accountType?: 'checking' | 'savings';
+  };
+  // Profile completion tracking
+  profileCompleted?: boolean;
+  profileCompletion?: number;
+  profileCompletedAt?: Date | string;
 }

@@ -12,7 +12,22 @@ const LoginPage = () => {
   const title = usePageTitle();
 
   if (auth?.tokenStatus === 'valid') {
-    // Redirect them to the /login page, but save the current location they were
+    // Check profile completion - redirect to profile if incomplete
+    const profileCompleted = auth?.result?.profileCompleted;
+    const profileCompletion = auth?.result?.profileCompletion;
+    
+    if (!profileCompleted && profileCompletion !== undefined && profileCompletion < 100) {
+      // Redirect to profile page to complete profile
+      return (
+        <Navigate
+          to={`/${pageRoutes.user}/profile`}
+          state={{ from: location, incompleteProfile: true }}
+          replace
+        />
+      );
+    }
+    
+    // Redirect them to the dashboard, but save the current location they were
     // trying to go to when they were redirected. This allows us to send them
     // along to that page after they login, which is a nicer user experience
     // than dropping them off on the home page.

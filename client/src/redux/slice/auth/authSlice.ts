@@ -45,13 +45,20 @@ export const authSlice = createSlice({
     })
     builder.addCase(login.fulfilled, (state, action) => {
       state.status.loading = false;
-      state.result = action.payload.result;
-      state.token = action.payload.token;
+      // Update result with profile completion data if available
+      const payload = action.payload as IAuthSlice & { profileCompletion?: number; profileCompleted?: boolean };
+      const result = payload.result ? {
+        ...payload.result,
+        ...(payload.profileCompletion !== undefined && { profileCompletion: payload.profileCompletion }),
+        ...(payload.profileCompleted !== undefined && { profileCompleted: payload.profileCompleted }),
+      } : payload.result;
+      state.result = result;
+      state.token = payload.token;
       state.tokenStatus = 'valid';
       state.status.success = true;
       // Save token to localStorage explicitly
-      if (action.payload.token) {
-        setToken(action.payload.token);
+      if (payload.token) {
+        setToken(payload.token);
       }
       // Start token validation after successful login
       startTokenValidation();
