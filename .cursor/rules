@@ -1,29 +1,369 @@
-# Cursor Rules for E-commerce Project
+# Cursor Rules for E-commerce Project - Fail-Proof Guidelines
 
-## Code Quality & Error Handling
+## CRITICAL: Build Safety Rules
 
-### Shell Scripts & Pre-commit Hooks
-- Always use error checking for directory changes: `cd directory || exit 1` instead of just `cd directory`
-- This prevents silent failures when directories don't exist or cd fails
-- Apply this pattern to all shell scripts, especially in pre-commit hooks
+### 1. Import Management (Prevents Build Failures)
 
-### TypeScript/JavaScript
-- Remove unused imports and variables
-- Add proper error handling for async operations
-- Use proper type definitions for all props and state
+- **ALWAYS** verify all imported components/utilities are actually used before importing
+- **NEVER** import from non-existent files - always check file structure matches imports
+- **REQUIRED** for lazy-loaded routes: Each dashboard component MUST have an `index.ts` file exporting the default component
+  - Pattern: `export { default } from './ComponentName';`
+- **ALWAYS** import all Ant Design components used in JSX (e.g., `Modal`, `Button`, `Card`, `List`, `Tag`, etc.)
+- **BEFORE** adding imports, check if the component is already available in parent imports or barrel exports
+- **REMOVE** unused imports immediately - they cause build warnings and potential errors
 
-### React Best Practices
-- Always include all dependencies in useEffect dependency arrays or disable the rule with a comment
-- Remove unused variables and imports
-- Ensure all imported components are actually used
+### 2. Component Structure (Prevents Module Resolution Errors)
 
-## Project Structure
-- Follow the existing folder structure: `client/src/` for frontend, `server/` for backend
-- Keep API endpoints organized by feature in `services/endPoints/`
-- Use TypeScript interfaces for all data structures
+- **REQUIRED**: All dashboard pages must follow this structure:
+  ```
+  pages/private/[Feature]/Dashboard/
+    - ComponentName.tsx
+    - ComponentName.scss
+    - index.ts (MUST export default)
+  ```
+- **REQUIRED**: All reusable components must have an `index.ts` barrel export
+- **ALWAYS** use named exports for utilities, default exports for components used in lazy loading
 
-## Git & Commits
-- Run pre-commit hooks before committing (linting, type checking)
-- Fix all linting errors before committing
-- Use meaningful commit messages
+### 3. TypeScript Type Safety
 
+- **ALWAYS** define interfaces/types for all component props
+- **REQUIRED**: Use `interface` for object shapes, `type` for unions/intersections
+- **NEVER** use `any` without explicit reason - use `unknown` or proper types
+- **ALWAYS** type function return values explicitly
+- **REQUIRED**: Type all API response data structures in `types/` directory
+
+## React Patterns (Prevents Runtime Errors)
+
+### 4. React Hooks - useEffect Dependencies
+
+- **MANDATORY**: Include ALL dependencies in useEffect dependency arrays
+- **ONLY** exception: Use `// eslint-disable-next-line react-hooks/exhaustive-deps` with EXPLICIT comment explaining why
+- **PATTERN**: If a function is used in useEffect, either:
+  - Include it in dependencies if it changes
+  - Move it inside useEffect
+  - Wrap it with useCallback if defined outside
+- **EXAMPLE**:
+  ```typescript
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // fetchData is stable and doesn't need to be in dependencies
+  }, [id]);
+  ```
+
+### 5. State Management Patterns
+
+- **ALWAYS** use Redux `useAppSelector` and `useAppDispatch` from `redux/store`
+- **ALWAYS** handle loading and error states in async operations
+- **PATTERN** for async operations:
+
+  ```typescript
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  try {
+    setLoading(true);
+    setError(null);
+    // operation
+  } catch (err: any) {
+    setError(err?.response?.data?.message || "Operation failed");
+    message.error(error);
+  } finally {
+    setLoading(false);
+  }
+  ```
+
+### 6. Error Handling (Prevents Silent Failures)
+
+- **ALWAYS** wrap async operations in try-catch blocks
+- **ALWAYS** provide user feedback via `message.error()` from Ant Design
+- **ALWAYS** handle API errors gracefully:
+  ```typescript
+  catch (error: any) {
+    const errorMessage = error?.response?.data?.message || error?.message || 'An error occurred';
+    message.error(errorMessage);
+    console.error('Operation failed:', error);
+  }
+  ```
+- **NEVER** leave catch blocks empty or just console.log
+
+### 7. Navigation & URL Parameters
+
+- **ALWAYS** use `useSearchParams` from `react-router-dom` for URL query parameters
+- **PATTERN** for notification deep-linking:
+
+  ```typescript
+  useEffect(() => {
+    const orderId = searchParams.get("orderId");
+    const orderItemId = searchParams.get("orderItemId");
+    const productId = searchParams.get("productId");
+
+    if (orderId && data.length > 0) {
+      // Handle navigation
+    }
+  }, [searchParams, data]);
+  ```
+
+## API & Data Fetching Patterns
+
+### 8. API Endpoint Structure
+
+- **REQUIRED**: All API endpoints must be in `services/endPoints/[feature]/`
+- **REQUIRED**: All API functions must use `getToken()` from `utils/localStorage`
+- **PATTERN**:
+  ```typescript
+  export const functionNameApi = async (params) => {
+    const token = getToken() || "";
+    return (
+      axios.get /
+      post /
+      patch /
+      delete (url,
+      data,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+    );
+  };
+  ```
+- **ALWAYS** handle 401 errors via axios interceptor (already set up)
+- **NEVER** duplicate authentication logic - use interceptor
+
+### 9. Redux Thunk Patterns
+
+- **ALWAYS** use `createAsyncThunk` for async actions
+- **ALWAYS** handle `pending`, `fulfilled`, and `rejected` states
+- **PATTERN**:
+  ```typescript
+  export const actionName = createAsyncThunk(
+    "slice/actionName",
+    async (params, { rejectWithValue }) => {
+      try {
+        const response = await apiFunction(params);
+        return response.data;
+      } catch (error: any) {
+        return rejectWithValue(
+          error?.response?.data?.message || error?.message || "Failed"
+        );
+      }
+    }
+  );
+  ```
+
+## Code Quality & Maintainability
+
+### 10. File Organization
+
+- **REQUIRED** folder structure:
+  - `components/` - Reusable UI components
+  - `pages/` - Route components (public/private)
+  - `features/` - Feature-specific components
+  - `services/endPoints/` - API endpoints by feature
+  - `types/` - TypeScript type definitions by feature
+  - `hooks/` - Custom React hooks
+  - `utils/` - Utility functions
+  - `redux/slice/` - Redux slices by feature
+- **ALWAYS** use barrel exports (`index.ts`) for clean imports
+
+### 11. Naming Conventions
+
+- **Components**: PascalCase (`ProductCard.tsx`)
+- **Hooks**: camelCase with `use` prefix (`useAuth.ts`)
+- **Utilities**: camelCase (`localStorage.ts`)
+- **Types**: PascalCase interfaces (`IProduct`, `IUser`)
+- **API functions**: camelCase with `Api` suffix (`getProductsApi`)
+
+### 12. Component Props & State
+
+- **ALWAYS** use TypeScript interfaces for props
+- **ALWAYS** destructure props at component signature
+- **PATTERN**:
+
+  ```typescript
+  interface ComponentProps {
+    required: string;
+    optional?: number;
+    callback?: () => void;
+  }
+
+  const Component: React.FC<ComponentProps> = ({
+    required,
+    optional,
+    callback,
+  }) => {
+    // component logic
+  };
+  ```
+
+## Ant Design Patterns
+
+### 13. Ant Design Component Usage
+
+- **ALWAYS** import Ant Design components from `antd` directly
+- **ALWAYS** use `message` from `antd` for user notifications
+- **PATTERN** for modals:
+
+  ```typescript
+  import { Modal } from "antd";
+
+  <Modal
+    title="Title"
+    open={visible}
+    onOk={handleOk}
+    onCancel={() => setVisible(false)}
+    confirmLoading={loading}
+  >
+    {/* content */}
+  </Modal>;
+  ```
+
+### 14. Form Handling
+
+- **ALWAYS** use Ant Design Form when dealing with user input
+- **ALWAYS** validate forms before submission
+- **PATTERN**:
+
+  ```typescript
+  const [form] = Form.useForm();
+
+  const onFinish = async (values) => {
+    try {
+      // handle submission
+    } catch (error) {
+      message.error("Submission failed");
+    }
+  };
+  ```
+
+## Shell Scripts & Pre-commit
+
+### 15. Shell Script Safety
+
+- **MANDATORY**: Always use error checking for directory changes
+  - ✅ `cd directory || exit 1`
+  - ❌ `cd directory`
+- **ALWAYS** check command success before proceeding
+- **APPLY** to all shell scripts, especially pre-commit hooks
+
+### 16. Pre-commit Validation
+
+- **MANDATORY**: Pre-commit must:
+  1. Run linting with auto-fix
+  2. Verify no linting errors remain
+  3. Build the application successfully
+- **NEVER** skip pre-commit validation - it catches build-breaking issues early
+
+## Testing & Browser Compatibility
+
+### 17. Browser Testing Considerations
+
+- **ALWAYS** handle async operations with proper loading states
+- **ALWAYS** provide user feedback for all actions (success/error)
+- **ALWAYS** handle edge cases:
+  - Empty data arrays
+  - Null/undefined values
+  - Network failures
+  - Invalid user input
+- **PATTERN** for conditional rendering:
+  ```typescript
+  {
+    data && data.length > 0 ? (
+      <List dataSource={data} />
+    ) : (
+      <Empty description="No data available" />
+    );
+  }
+  ```
+
+### 18. Performance Considerations
+
+- **USE** `React.lazy()` for route-based code splitting
+- **USE** `useMemo` for expensive computations
+- **USE** `useCallback` for stable function references
+- **AVOID** unnecessary re-renders by proper dependency management
+
+## Authentication & Security
+
+### 19. Authentication Patterns
+
+- **ALWAYS** use `useAuth` hook for accessing auth state
+- **ALWAYS** check authentication status before protected operations
+- **ALWAYS** redirect unauthenticated users appropriately
+- **NEVER** store sensitive data in localStorage except tokens
+- **PATTERN**:
+
+  ```typescript
+  const auth = useAuth();
+
+  if (auth?.tokenStatus !== "valid") {
+    return <Navigate to="/login" />;
+  }
+  ```
+
+## Error Prevention Checklist
+
+### Before Committing, Verify:
+
+- [ ] All imports are used or removed
+- [ ] All components have proper TypeScript types
+- [ ] All useEffect hooks have correct dependencies or explicit disable comment
+- [ ] All async operations have try-catch blocks
+- [ ] All API calls handle errors properly
+- [ ] All required `index.ts` files exist for lazy-loaded routes
+- [ ] Pre-commit hook passes (linting + build)
+- [ ] No TypeScript errors
+- [ ] No console errors in browser
+- [ ] Loading and error states are handled for all async operations
+
+## Auto-Fix Patterns
+
+### When AI suggests code:
+
+1. **Verify imports** - ensure all used components are imported
+2. **Check dependencies** - ensure useEffect dependencies are correct
+3. **Validate types** - ensure all props/types are properly defined
+4. **Test error paths** - ensure error handling is in place
+5. **Run pre-commit** - never commit without passing pre-commit
+
+## Common Pitfalls to Avoid
+
+- ❌ Missing `index.ts` files for lazy-loaded components → Build fails
+- ❌ Unused imports → Build warnings accumulate
+- ❌ Missing useEffect dependencies → Stale closures, bugs
+- ❌ Unhandled promise rejections → Silent failures
+- ❌ Missing error boundaries → App crashes
+- ❌ Hardcoded values instead of config → Maintenance issues
+- ❌ Missing loading states → Poor UX
+- ❌ No error feedback → Users confused
+
+## Development Workflow & Scripts
+
+### 20. Reset Database & Restart Dev Server
+
+- **USE**: `npm run reset-and-restart` for one-command reset and restart
+- **PURPOSE**: Stops dev server, resets database with seed data, restarts dev server
+- **ALTERNATIVES**:
+  - VS Code Task: `Cmd+Shift+P` → "Tasks: Run Task" → "Reset Database & Restart Dev Server"
+  - Direct script: `./scripts/reset-and-restart.sh` (macOS/Linux) or `scripts\reset-and-restart.bat` (Windows)
+- **WHEN TO USE**: After database schema changes, for fresh test data, or when starting fresh
+- **NOTE**: Always stops processes on ports 3000 and 3010 before proceeding
+
+### 21. Dev Server Management
+
+- **START**: `npm run dev` (runs client and server concurrently)
+- **STOP**: `npm run dev:stop` (kills all dev server processes)
+- **PATTERN**: Use `reset-and-restart` when you need fresh data; use `dev:stop` + `dev` when you just need to restart
+
+## Success Criteria
+
+Code is considered "fail-proof" when:
+
+- ✅ Pre-commit hook passes without errors
+- ✅ Application builds successfully
+- ✅ No runtime errors in browser console
+- ✅ All async operations have loading/error states
+- ✅ All user actions provide feedback
+- ✅ TypeScript compiles without errors
+- ✅ All imports resolve correctly
+- ✅ No unused variables or imports
+- ✅ All components are properly typed
