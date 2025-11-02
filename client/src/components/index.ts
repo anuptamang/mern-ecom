@@ -18,5 +18,7 @@ export * from './AddressSelect';
 export * from './DeliveryTracking';
 export * from './RefundStatus';
 export * from './ChatBox';
+export * from './AuthModal';
 export * from '../features/UserProfileDetails';
 export * from './Wrapper';
+export { default as WorkloadDashboard } from './WorkloadDashboard/WorkloadDashboard';
