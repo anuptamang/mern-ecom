@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, List, Tag, Button, message, Empty, Spin, Typography, Space, Table, Badge } from 'antd';
 import { CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { getWorkloadDashboardApi } from 'services/endPoints/user/userListEndpoints';
+import { MESSAGES } from '../../constants';
 import './WorkloadDashboard.scss';
 
 const { Text, Title } = Typography;
@@ -61,7 +62,7 @@ const WorkloadDashboard: React.FC<IWorkloadDashboardProps> = ({ onUserClick }) =
       setGrouped(data.grouped || { free: [], busy: [], occupied: [], unknown: [] });
       setSummary(data.summary || { total: 0, free: 0, busy: 0, occupied: 0, unknown: 0 });
     } catch (error: any) {
-      message.error(error?.response?.data?.message || 'Failed to load workload dashboard');
+      message.error(error?.response?.data?.message || MESSAGES.ERROR.FAILED_TO_LOAD_WORKLOAD_DASHBOARD);
     } finally {
       setLoading(false);
     }

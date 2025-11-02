@@ -4,6 +4,7 @@ import { RegisterForm } from 'features/RegisterForm';
 import { useEffect, useState, useRef } from 'react';
 import { useAppSelector } from 'redux/store';
 import { authSelector } from 'redux/slice';
+import { MESSAGES } from '../../constants';
 
 interface AuthModalProps {
   open: boolean;
@@ -26,7 +27,7 @@ export const AuthModal = ({ open, onClose, onSuccess }: AuthModalProps) => {
                          result;
     
     if (justLoggedIn) {
-      message.success('Welcome back!');
+      message.success(MESSAGES.SUCCESS.WELCOME_BACK);
       onClose();
       if (onSuccess) {
         // Small delay to ensure auth state is fully updated

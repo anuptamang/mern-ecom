@@ -14,6 +14,7 @@ import { getAgencyPersonsApi } from 'services/endPoints/delivery/deliveryAssignm
 import { getToken } from 'utils/localStorage';
 import { useAppSelector } from 'redux/store';
 import { authSelector } from 'redux/slice';
+import { MESSAGES } from '../../constants';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -153,7 +154,7 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
       setDeliveryPersons(customerDeliverers);
     } catch (error: any) {
       console.error('Failed to load delivery persons:', error);
-      message.error('Failed to load delivery persons');
+      message.error(MESSAGES.ERROR.FAILED_TO_LOAD_DELIVERY_PERSONS);
     } finally {
       setLoadingPersons(false);
     }
@@ -165,7 +166,7 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
     // Warehouse operator must assign customer deliverer when updating to out_for_delivery
     if (userRole === 'warehouse_operator' && selectedStatus === 'out_for_delivery') {
       if (!selectedDeliveryPersonId) {
-        message.error('Please select a customer deliverer when updating status to "Out for Delivery"');
+        message.error(MESSAGES.WARNING.SELECT_CUSTOMER_DELIVERER);
         return;
       }
       // Note is optional - backend will auto-populate with deliverer info
@@ -175,7 +176,7 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
     try {
       const token = getToken();
       if (!token) {
-        message.error('Authentication required');
+        message.error(MESSAGES.ERROR.AUTHENTICATION_REQUIRED);
         return;
       }
       // Use orderItemId/productId from props, or extract from delivery object
@@ -186,7 +187,7 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
         ? selectedDeliveryPersonId 
         : undefined;
       const response = await updateDeliveryStatusApi(order._id, selectedStatus, updateNote, itemId, prodId, deliveryPersonId);
-      message.success('Delivery status updated successfully');
+      message.success(MESSAGES.SUCCESS.DELIVERY_STATUS_UPDATED);
       setUpdateModalVisible(false);
       setSelectedStatus('');
       setUpdateNote('');
@@ -221,7 +222,7 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
         onStatusUpdate();
       }
     } catch (error: any) {
-      message.error(error?.response?.data?.message || 'Failed to update delivery status');
+      message.error(error?.response?.data?.message || MESSAGES.ERROR.FAILED_TO_UPDATE_DELIVERY_STATUS);
     } finally {
       setUpdating(false);
     }

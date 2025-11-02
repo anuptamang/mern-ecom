@@ -9,6 +9,7 @@ import { authSelector } from 'redux/slice';
 import { message } from 'antd';
 import { useState, useRef } from 'react';
 import { AuthModal } from 'components/AuthModal';
+import { MESSAGES, LABELS, ROLES } from '../../constants';
 import './RelatedProducts.scss';
 
 type RelatedProductsProps = {
@@ -20,7 +21,7 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { result } = useAppSelector(authSelector);
-  const isSeller = result?.role === 'seller';
+  const isSeller = result?.role === ROLES.SELLER;
   const carouselRef = useRef<any>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [authModalVisible, setAuthModalVisible] = useState(false);
@@ -36,18 +37,18 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
     }
 
     if (isSeller) {
-      message.warning('Sellers cannot purchase products');
+      message.warning(MESSAGES.WARNING.SELLERS_CANNOT_PURCHASE);
       return;
     }
 
     if (stock <= 0) {
-      message.error('Product is out of stock');
+      message.error(MESSAGES.ERROR.PRODUCT_OUT_OF_STOCK);
       return;
     }
 
     try {
       await dispatch(addToCart({ productId })).unwrap();
-      message.success(`${title} added to cart`);
+      message.success(MESSAGES.SUCCESS.PRODUCT_ADDED_TO_CART(title));
       dispatch(fetchMyCart());
     } catch (error: any) {
       // If error is about needing to log in, open auth modal instead of showing error
@@ -57,7 +58,7 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
         setPendingProductTitle(title);
         setAuthModalVisible(true);
       } else if (error?.response?.status !== 401) {
-        message.error(errorMessage || 'Failed to add product to cart');
+        message.error(errorMessage || MESSAGES.ERROR.FAILED_TO_ADD_TO_CART);
       }
     }
   };
@@ -87,29 +88,29 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
           </div>
         ) : (
           <div className="product-image-wrapper" onClick={() => navigate(`/products/${item._id}`)}>
-            <ProductImagePlaceholder title={item.title || 'Product'} />
+            <ProductImagePlaceholder title={item.title || LABELS.COMMON.PRODUCT} />
           </div>
         )
       }
       actions={[
-        <Button
-          key="view"
-          type="link"
-          onClick={() => navigate(`/products/${item._id}`)}
-        >
-          View
-        </Button>,
-        !isSeller && result ? (
           <Button
-            key="cart"
-            type="primary"
-            size="small"
-            disabled={(item.stock || 0) <= 0}
-            onClick={() => handleAddToCart(item._id, item.title, item.stock || 0)}
+            key="view"
+            type="link"
+            onClick={() => navigate(`/products/${item._id}`)}
           >
-            Add to Cart
-          </Button>
-        ) : null,
+            {LABELS.BUTTON.VIEW_DETAILS}
+          </Button>,
+          !isSeller && result ? (
+            <Button
+              key="cart"
+              type="primary"
+              size="small"
+              disabled={(item.stock || 0) <= 0}
+              onClick={() => handleAddToCart(item._id, item.title, item.stock || 0)}
+            >
+              {LABELS.BUTTON.ADD_TO_CART}
+            </Button>
+          ) : null,
       ].filter(Boolean)}
       hoverable
     >
@@ -128,7 +129,7 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
             <div className="related-product-stock">
               {item.stock !== undefined ? (
                 <span className={item.stock > 0 ? 'stock-available' : 'stock-out'}>
-                  {item.stock > 0 ? `In Stock (${item.stock})` : 'Out of Stock'}
+                  {item.stock > 0 ? `${LABELS.COMMON.IN_STOCK} (${item.stock})` : LABELS.COMMON.OUT_OF_STOCK}
                 </span>
               ) : null}
             </div>
@@ -141,8 +142,8 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
   if (loading) {
     return (
       <div className="related-products">
-        <Card title="Related Products" className="related-products-card">
-          <Spin tip="Loading related products..." />
+        <Card title={LABELS.COMMON.RELATED_PRODUCTS} className="related-products-card">
+          <Spin tip={MESSAGES.INFO.LOADING} />
         </Card>
       </div>
     );
@@ -166,7 +167,7 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
   return (
     <div className="related-products">
       <Card 
-        title="Related Products" 
+        title={LABELS.COMMON.RELATED_PRODUCTS} 
         className="related-products-card"
         extra={
           useCarousel && (
