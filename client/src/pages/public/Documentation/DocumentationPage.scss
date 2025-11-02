@@ -1,0 +1,104 @@
+.documentation-page {
+  .markdown-content {
+    h1, h2, h3, h4, h5, h6 {
+      scroll-margin-top: 80px;
+    }
+
+    pre {
+      background: #f6f8fa;
+      border-radius: 6px;
+      padding: 16px;
+      overflow-x: auto;
+      code {
+        background: transparent;
+        padding: 0;
+        border: none;
+      }
+    }
+
+    code {
+      background: #f6f8fa;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.9em;
+      border: 1px solid #e1e4e8;
+    }
+
+    blockquote {
+      border-left: 4px solid #dfe2e5;
+      padding-left: 16px;
+      margin: 16px 0;
+      color: #6a737d;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 16px 0;
+
+      th, td {
+        border: 1px solid #dfe2e5;
+        padding: 8px 12px;
+        text-align: left;
+      }
+
+      th {
+        background: #f6f8fa;
+        font-weight: 600;
+      }
+    }
+
+    ul, ol {
+      margin: 16px 0;
+      padding-left: 24px;
+    }
+
+    li {
+      margin: 8px 0;
+    }
+
+    a {
+      color: #0366d6;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+      margin: 16px 0;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #dfe2e5;
+      margin: 24px 0;
+    }
+  }
+
+  .ant-anchor-link {
+    padding: 4px 0 4px 8px;
+    font-size: 13px;
+  }
+
+  .ant-anchor-link-title {
+    color: #586069;
+  }
+
+  .ant-anchor-link-active > .ant-anchor-link-title {
+    color: #0366d6;
+  }
+
+  .search-result-item {
+    transition: all 0.3s;
+
+    &:hover {
+      background: #f5f5f5;
+      border-color: #1890ff;
+    }
+  }
+}

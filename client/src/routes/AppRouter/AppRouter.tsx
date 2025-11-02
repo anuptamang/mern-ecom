@@ -4,9 +4,17 @@ import { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import PrivateRoute from 'routes/PrivateRoute';
 import { SellerRoute } from 'routes/SellerRoute';
+import { BuyerOnlyRoute } from 'routes/BuyerOnlyRoute/BuyerOnlyRoute';
+import { BuyerSellerRoute } from 'routes/BuyerSellerRoute/BuyerSellerRoute';
 import { DeliveryAgencyRoute } from 'routes/DeliveryAgencyRoute/DeliveryAgencyRoute';
 import { DeliveryPersonRoute } from 'routes/DeliveryPersonRoute/DeliveryPersonRoute';
 import { WarehouseOperatorRoute } from 'routes/WarehouseOperatorRoute/WarehouseOperatorRoute';
+import { SupportRoute } from 'routes/SupportRoute/SupportRoute';
+import { VerificationRoute } from 'routes/VerificationRoute/VerificationRoute';
+import { InspectorRoute } from 'routes/InspectorRoute/InspectorRoute';
+import { FinanceRoute } from 'routes/FinanceRoute/FinanceRoute';
+import { ReturnDelivererRoute } from 'routes/ReturnDelivererRoute/ReturnDelivererRoute';
+import { AdminRoute } from 'routes/AdminRoute/AdminRoute';
 
 const GeneralLayout = lazy(() => import('layouts/General'));
 
@@ -17,7 +25,9 @@ const LoginPage = lazy(() => import('pages/public/Auth/Login'));
 const RegisterPage = lazy(() => import('pages/public/Auth/Register'));
 const ForgotPasswordPage = lazy(() => import('pages/public/Auth/Forgot'));
 const PrivacyPolicyPage = lazy(() => import('pages/public/PrivacyPolicy'));
+const DocumentationPage = lazy(() => import('pages/public/Documentation'));
 const NotFoundPage = lazy(() => import('pages/public/NotFound'));
+const ProductsHomePage = lazy(() => import('pages/public/Products/Home'));
 const SingleProductPage = lazy(() => import('pages/public/Products/Single'));
 
 const UserPrivacyPolicyPage = lazy(
@@ -45,6 +55,12 @@ const DeliveryPersonDashboard = lazy(
 const WarehouseOperatorDashboard = lazy(
   () => import('pages/private/WarehouseOperator/Dashboard')
 );
+const SupportDashboard = lazy(() => import('pages/private/Support/Dashboard'));
+const VerificationTeamDashboard = lazy(() => import('pages/private/VerificationTeam/Dashboard'));
+const InspectorDashboard = lazy(() => import('pages/private/Inspector/Dashboard'));
+const FinanceDashboard = lazy(() => import('pages/private/Finance/Dashboard'));
+const ReturnDelivererDashboard = lazy(() => import('pages/private/ReturnDeliverer/Dashboard'));
+const AdminDashboard = lazy(() => import('pages/private/Admin/Dashboard'));
 const ChatsDashboard = lazy(() => import('pages/private/Chats/Dashboard'));
 
 const AppRouter = () => {
@@ -54,6 +70,7 @@ const AppRouter = () => {
   return (
     <Suspense fallback={null}>
       <Routes>
+        <Route path="/documentation" element={<DocumentationPage />} />
         <Route path={pageRoutes.home} element={<GeneralLayout />}>
           <Route index element={<HomePage />} />
           <Route path={pageRoutes.contact} element={<ContactPage />} />
@@ -66,7 +83,31 @@ const AppRouter = () => {
           />
           <Route
             path={`${pageRoutes.products}/:id`}
-            element={<SingleProductPage />}
+            element={
+              <BuyerSellerRoute>
+                <SingleProductPage />
+              </BuyerSellerRoute>
+            }
+          />
+          <Route
+            path={pageRoutes.products}
+            element={
+              <BuyerSellerRoute>
+                <ProductsHomePage />
+              </BuyerSellerRoute>
+            }
+          />
+
+          {/* Privacy Policy - Always use GeneralLayout so header is visible for all users */}
+          <Route
+            path={pageRoutes.privacyPolicy}
+            element={
+              isAuthenticated ? (
+                <UserPrivacyPolicyPage />
+              ) : (
+                <PrivacyPolicyPage />
+              )
+            }
           />
 
           <Route
@@ -88,12 +129,54 @@ const AppRouter = () => {
                 </SellerRoute>
               }
             />
-            <Route path={pageRoutes.carts} element={<CartsDashboard />} />
-            <Route path={'orders'} element={<OrdersDashboard />} />
-            <Route path={'checkout'} element={<UserCheckoutPage />} />
-            <Route path={'wishlist'} element={<WishlistDashboard />} />
-            <Route path={'returns'} element={<ReturnsDashboard />} />
-            <Route path={'chats'} element={<ChatsDashboard />} />
+            <Route 
+              path={pageRoutes.carts} 
+              element={
+                <BuyerOnlyRoute>
+                  <CartsDashboard />
+                </BuyerOnlyRoute>
+              } 
+            />
+            <Route 
+              path={'orders'} 
+              element={
+                <BuyerOnlyRoute>
+                  <OrdersDashboard />
+                </BuyerOnlyRoute>
+              } 
+            />
+            <Route 
+              path={'checkout'} 
+              element={
+                <BuyerOnlyRoute>
+                  <UserCheckoutPage />
+                </BuyerOnlyRoute>
+              } 
+            />
+            <Route 
+              path={'wishlist'} 
+              element={
+                <BuyerOnlyRoute>
+                  <WishlistDashboard />
+                </BuyerOnlyRoute>
+              } 
+            />
+            <Route 
+              path={'returns'} 
+              element={
+                <BuyerOnlyRoute>
+                  <ReturnsDashboard />
+                </BuyerOnlyRoute>
+              } 
+            />
+            <Route 
+              path={'chats'} 
+              element={
+                <BuyerOnlyRoute>
+                  <ChatsDashboard />
+                </BuyerOnlyRoute>
+              } 
+            />
             <Route
               path={'delivery-agency'}
               element={
@@ -118,28 +201,55 @@ const AppRouter = () => {
                 </WarehouseOperatorRoute>
               }
             />
-          </Route>
-
-          {isAuthenticated ? (
             <Route
-              path={pageRoutes.home}
+              path={'support'}
               element={
-                <PrivateRoute redirect={`${pageRoutes.privacyPolicy}`} />
+                <SupportRoute>
+                  <SupportDashboard />
+                </SupportRoute>
               }
-            >
-              <Route
-                path={pageRoutes.privacyPolicy}
-                element={<UserPrivacyPolicyPage />}
-              />
-            </Route>
-          ) : (
-            <Route path={pageRoutes.home}>
-              <Route
-                path={pageRoutes.privacyPolicy}
-                element={<PrivacyPolicyPage />}
-              />
-            </Route>
-          )}
+            />
+            <Route
+              path={'verification'}
+              element={
+                <VerificationRoute>
+                  <VerificationTeamDashboard />
+                </VerificationRoute>
+              }
+            />
+            <Route
+              path={'inspector'}
+              element={
+                <InspectorRoute>
+                  <InspectorDashboard />
+                </InspectorRoute>
+              }
+            />
+            <Route
+              path={'finance'}
+              element={
+                <FinanceRoute>
+                  <FinanceDashboard />
+                </FinanceRoute>
+              }
+            />
+            <Route
+              path={'return-deliverer'}
+              element={
+                <ReturnDelivererRoute>
+                  <ReturnDelivererDashboard />
+                </ReturnDelivererRoute>
+              }
+            />
+            <Route
+              path={'admin'}
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }
+            />
+          </Route>
 
           <Route path="*" element={<NotFoundPage />} />
         </Route>

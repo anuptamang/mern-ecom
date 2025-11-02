@@ -1,4 +1,4 @@
-import { pageRoutes } from "./pageRoutes";
+import { pageRoutes } from './pageRoutes';
 
 export interface NavDataProps {
   key: string;
@@ -13,6 +13,11 @@ export const navData: NavDataProps[] = [
     to: `${pageRoutes.home}`,
   },
   {
+    key: `/${pageRoutes.products}`,
+    label: 'Products',
+    to: `/${pageRoutes.products}`,
+  },
+  {
     key: `/${pageRoutes.about}`,
     label: 'About',
     to: `/${pageRoutes.about}`,
@@ -21,5 +26,10 @@ export const navData: NavDataProps[] = [
     key: `/${pageRoutes.contact}`,
     label: 'Contact',
     to: `/${pageRoutes.contact}`,
+  },
+  {
+    key: '/documentation',
+    label: 'Documentation',
+    to: '/documentation',
   },
 ];
