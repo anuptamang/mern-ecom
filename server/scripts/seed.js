@@ -247,6 +247,30 @@ async function seedUser() {
     console.log(`Delivery person 2 already exists: ${person2Email}`);
   }
 
+  // Create warehouse operator user
+  const warehouseOperatorEmail = "warehouse@example.com";
+  let warehouseOperator = await User.findOne({ email: warehouseOperatorEmail });
+  if (!warehouseOperator) {
+    const password = await bcrypt.hash("password123", 12);
+    warehouseOperator = await User.create({
+      email: warehouseOperatorEmail,
+      role: "warehouse_operator",
+      password,
+      fullName: "Bob Warehouse",
+      phone: "+1-555-0501",
+      primaryAddress: {
+        street: "100 Warehouse Blvd",
+        city: "Chicago",
+        state: "IL",
+        zipCode: "60603",
+        country: "USA",
+      },
+    });
+    console.log(`Created warehouse operator: ${warehouseOperatorEmail} / password123`);
+  } else {
+    console.log(`Warehouse operator already exists: ${warehouseOperatorEmail}`);
+  }
+
   return {
     buyer,
     seller,
@@ -254,6 +278,7 @@ async function seedUser() {
     deliveryAgency,
     deliveryPerson1,
     deliveryPerson2,
+    warehouseOperator,
     support,
   };
 }

@@ -62,6 +62,13 @@ export const getPersonDeliveriesApi = async () => {
   });
 };
 
+export const getWarehouseOperatorDeliveriesApi = async () => {
+  const token = getToken() || "";
+  return axios.get(`${DELIVERY_API}/warehouse-operator/list`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};
+
 export const getAgencyPersonsApi = async (agencyId?: string) => {
   const token = getToken() || "";
   const url = agencyId 

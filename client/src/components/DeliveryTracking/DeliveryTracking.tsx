@@ -10,6 +10,7 @@ import {
 } from '@ant-design/icons';
 import { IDeliveryTracking } from 'types/delivery/deliveryTypes';
 import { updateDeliveryStatusApi } from 'services/endPoints/delivery';
+import { getAgencyPersonsApi } from 'services/endPoints/delivery/deliveryAssignmentEndpoints';
 import { getToken } from 'utils/localStorage';
 import { useAppSelector } from 'redux/store';
 import { authSelector } from 'redux/slice';
@@ -34,6 +35,9 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
   const [updateNote, setUpdateNote] = useState<string>('');
   const [updating, setUpdating] = useState(false);
   const [currentDelivery, setCurrentDelivery] = useState(delivery);
+  const [selectedDeliveryPersonId, setSelectedDeliveryPersonId] = useState<string>('');
+  const [deliveryPersons, setDeliveryPersons] = useState<any[]>([]);
+  const [loadingPersons, setLoadingPersons] = useState(false);
 
   // Update currentDelivery when delivery prop changes
   useEffect(() => {
@@ -41,6 +45,13 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
       setCurrentDelivery(delivery);
     }
   }, [delivery]);
+
+  // Load delivery persons when warehouse operator opens modal and needs to assign customer deliverer
+  useEffect(() => {
+    if (updateModalVisible && userRole === 'warehouse_operator' && selectedStatus === 'out_for_delivery') {
+      loadDeliveryPersons();
+    }
+  }, [updateModalVisible, selectedStatus, userRole]);
 
   if (!currentDelivery && !order) {
     return <Empty description="No delivery tracking information available" />;
@@ -57,6 +68,7 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
     in_transit: { step: 4, title: 'In Transit', icon: <CarOutlined />, description: 'Package is on the way' },
     out_for_delivery: { step: 5, title: 'Out for Delivery', icon: <CarOutlined />, description: 'Out for delivery today' },
     delivered: { step: 6, title: 'Delivered', icon: <CheckCircleOutlined />, description: 'Package delivered successfully' },
+    rejected: { step: -1, title: 'Rejected', icon: <CloseCircleOutlined />, description: 'Delivery was rejected' },
     cancelled: { step: -1, title: 'Cancelled', icon: <CloseCircleOutlined />, description: 'Order has been cancelled' },
   };
 
@@ -86,6 +98,15 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
         { value: 'packing', label: 'Packing' },
         { value: 'ready_to_ship', label: 'Ready to Ship' },
       ];
+    } else if (userRole === 'warehouse_operator') {
+      // Warehouse operator can update: in_facility -> in_transit -> out_for_delivery
+      const allowedStatuses = [];
+      if (currentStatus === 'in_facility') {
+        allowedStatuses.push({ value: 'in_transit', label: 'In Transit' });
+      } else if (currentStatus === 'in_transit') {
+        allowedStatuses.push({ value: 'out_for_delivery', label: 'Out for Delivery' });
+      }
+      return allowedStatuses;
     } else if (userRole === 'delivery_person') {
       // Check deliverer type from user object
       const delivererType = user?.delivererType;
@@ -97,14 +118,11 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
           { value: 'in_facility', label: 'In Delivery Facility' },
         ];
       } else if (delivererType === 'customer') {
-        // Customer deliverer can only update: in_transit (if current is in_facility) -> out_for_delivery -> delivered
+        // Customer deliverer can only update: out_for_delivery -> delivered or rejected
         const allowedStatuses = [];
-        if (currentStatus === 'in_facility') {
-          allowedStatuses.push({ value: 'in_transit', label: 'In Transit' });
-        } else if (currentStatus === 'in_transit') {
-          allowedStatuses.push({ value: 'out_for_delivery', label: 'Out for Delivery' });
-        } else if (currentStatus === 'out_for_delivery') {
+        if (currentStatus === 'out_for_delivery') {
           allowedStatuses.push({ value: 'delivered', label: 'Delivered' });
+          allowedStatuses.push({ value: 'rejected', label: 'Rejected' });
         }
         return allowedStatuses;
       }
@@ -115,12 +133,40 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
   };
 
   const validStatuses = getAllowedStatuses();
-  const canUpdate = (userRole === 'seller' || userRole === 'delivery_person') && 
+  const canUpdate = (userRole === 'seller' || userRole === 'delivery_person' || userRole === 'warehouse_operator') && 
                     currentStatus !== 'delivered' && 
-                    currentStatus !== 'cancelled';
+                    currentStatus !== 'cancelled' &&
+                    currentStatus !== 'rejected';
+
+  const loadDeliveryPersons = async () => {
+    try {
+      setLoadingPersons(true);
+      const { data } = await getAgencyPersonsApi();
+      // Filter to only customer deliverers for warehouse operator
+      const customerDeliverers = (data.deliveryPersons || []).filter((p: any) => p.delivererType === 'customer');
+      setDeliveryPersons(customerDeliverers);
+    } catch (error: any) {
+      console.error('Failed to load delivery persons:', error);
+      message.error('Failed to load delivery persons');
+    } finally {
+      setLoadingPersons(false);
+    }
+  };
 
   const handleUpdateStatus = async () => {
     if (!selectedStatus || !order?._id) return;
+    
+    // Warehouse operator must assign customer deliverer when updating to out_for_delivery
+    if (userRole === 'warehouse_operator' && selectedStatus === 'out_for_delivery') {
+      if (!selectedDeliveryPersonId) {
+        message.error('Please select a customer deliverer when updating status to "Out for Delivery"');
+        return;
+      }
+      if (!updateNote || updateNote.trim().length === 0) {
+        message.error('Please add a note with delivery person details (name, phone number)');
+        return;
+      }
+    }
     
     setUpdating(true);
     try {
@@ -132,11 +178,16 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
       // Use orderItemId/productId from props, or extract from delivery object
       const itemId = orderItemId || (currentDelivery as any)?.orderItemId;
       const prodId = productId || (currentDelivery as any)?.productId;
-      const response = await updateDeliveryStatusApi(order._id, selectedStatus, updateNote, itemId, prodId);
+      // For warehouse operator updating to out_for_delivery, include deliveryPersonId
+      const deliveryPersonId = (userRole === 'warehouse_operator' && selectedStatus === 'out_for_delivery') 
+        ? selectedDeliveryPersonId 
+        : undefined;
+      const response = await updateDeliveryStatusApi(order._id, selectedStatus, updateNote, itemId, prodId, deliveryPersonId);
       message.success('Delivery status updated successfully');
       setUpdateModalVisible(false);
       setSelectedStatus('');
       setUpdateNote('');
+      setSelectedDeliveryPersonId('');
       
       // Update the current delivery with the response data
       if (response?.data?.delivery) {
@@ -270,6 +321,7 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
         setUpdateModalVisible(false);
         setSelectedStatus('');
         setUpdateNote('');
+        setSelectedDeliveryPersonId('');
       }}
       okText="Update Status"
       okButtonProps={{ loading: updating }}
@@ -280,7 +332,13 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
           <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Status:</label>
           <Select
             value={selectedStatus}
-            onChange={setSelectedStatus}
+            onChange={(value) => {
+              setSelectedStatus(value);
+              // Clear delivery person selection when status changes
+              if (value !== 'out_for_delivery') {
+                setSelectedDeliveryPersonId('');
+              }
+            }}
             style={{ width: '100%' }}
             options={validStatuses.map(s => ({
               value: s.value,
@@ -289,14 +347,51 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
             }))}
           />
         </div>
+        
+        {/* Warehouse operator must assign customer deliverer when updating to out_for_delivery */}
+        {userRole === 'warehouse_operator' && selectedStatus === 'out_for_delivery' && (
+          <div>
+            <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
+              Assign Customer Deliverer <span style={{ color: 'red' }}>*</span>:
+            </label>
+            <Select
+              value={selectedDeliveryPersonId}
+              onChange={setSelectedDeliveryPersonId}
+              style={{ width: '100%' }}
+              loading={loadingPersons}
+              placeholder="Select a customer deliverer"
+              options={deliveryPersons.map(p => ({
+                value: p._id,
+                label: `${p.fullName} (${p.phone || 'No phone'})`,
+              }))}
+            />
+            <Text type="secondary" style={{ fontSize: '12px', marginTop: 4, display: 'block' }}>
+              Select the customer deliverer who will complete the final delivery
+            </Text>
+          </div>
+        )}
+        
         <div>
-          <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Note (optional):</label>
+          <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
+            Note {userRole === 'warehouse_operator' && selectedStatus === 'out_for_delivery' ? (
+              <span style={{ color: 'red' }}>*</span>
+            ) : '(optional)'}:
+          </label>
           <TextArea
             rows={3}
-            placeholder="Add a note about this status update..."
+            placeholder={
+              userRole === 'warehouse_operator' && selectedStatus === 'out_for_delivery'
+                ? "Enter delivery person details: Name, Phone Number, etc."
+                : "Add a note about this status update..."
+            }
             value={updateNote}
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setUpdateNote(e.target.value)}
           />
+          {userRole === 'warehouse_operator' && selectedStatus === 'out_for_delivery' && (
+            <Text type="secondary" style={{ fontSize: '12px', marginTop: 4, display: 'block' }}>
+              Include delivery person name, phone number, and any relevant details
+            </Text>
+          )}
         </div>
       </Space>
     </Modal>

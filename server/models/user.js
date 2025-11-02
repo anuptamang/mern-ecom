@@ -24,6 +24,7 @@ const userSchema = new mongoose.Schema({
       "user",
       "delivery_agency",
       "delivery_person",
+      "warehouse_operator",
       "support",
     ],
     required: true,

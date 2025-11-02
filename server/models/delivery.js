@@ -28,6 +28,7 @@ const deliveryTrackingSchema = new mongoose.Schema(
         "in_transit",
         "out_for_delivery",
         "delivered",
+        "rejected",
         "cancelled",
       ],
       default: "packing",

@@ -91,10 +91,11 @@ export const assignToDeliveryPerson = async (req, res) => {
     const userId = req.userId;
     const userRole = req.userRole;
 
-    // Only admin or delivery agency can assign to delivery person
-    if (userRole !== "admin" && userRole !== "delivery_agency") {
+    // Only admin, delivery agency, or warehouse operator can assign to delivery person
+    // Warehouse operators can only assign customer deliverers
+    if (userRole !== "admin" && userRole !== "delivery_agency" && userRole !== "warehouse_operator") {
       return res.status(403).json({ 
-        message: "Only admins or delivery agencies can assign orders to delivery persons." 
+        message: "Only admins, delivery agencies, or warehouse operators can assign orders to delivery persons." 
       });
     }
 
@@ -126,11 +127,30 @@ export const assignToDeliveryPerson = async (req, res) => {
         }
       }
     }
-
+    
     // Verify delivery person exists and has correct role
     const deliveryPerson = await User.findById(deliveryPersonId);
     if (!deliveryPerson || deliveryPerson.role !== "delivery_person") {
       return res.status(404).json({ message: "Delivery person not found" });
+    }
+    
+    // Warehouse operators can only assign customer deliverers and only when status is in_transit
+    if (userRole === "warehouse_operator") {
+      // Verify delivery person is a customer deliverer
+      if (deliveryPerson.delivererType !== "customer") {
+        return res.status(400).json({ 
+          message: "Warehouse operators can only assign customer deliverers." 
+        });
+      }
+      
+      for (const delivery of deliveries) {
+        const freshDelivery = await Delivery.findById(delivery._id);
+        if (freshDelivery.status !== "in_transit") {
+          return res.status(400).json({ 
+            message: `Warehouse operator can only assign customer deliverers when status is 'in_transit'. Current status is '${freshDelivery.status}' for item ${freshDelivery.orderItemId || freshDelivery.productId}` 
+          });
+        }
+      }
     }
 
     // Check deliverer type and current status
@@ -163,11 +183,21 @@ export const assignToDeliveryPerson = async (req, res) => {
           }
         }
       } else if (deliveryPerson.delivererType === "customer") {
-        // Customer deliverer can only be assigned when status is in_facility or in_transit
-        if (currentStatus !== "in_facility" && currentStatus !== "in_transit") {
-          return res.status(400).json({ 
-            message: `Customer deliverer can only be assigned when status is 'in_facility' or 'in_transit'. Current status is '${currentStatus}' for item ${freshDelivery.orderItemId || freshDelivery.productId}. Please assign a warehouse deliverer first to move status to 'in_facility'.` 
-          });
+        // Customer deliverer can be assigned when status is in_facility or in_transit
+        // If assigned by warehouse operator, status must be in_transit
+        if (userRole === "warehouse_operator") {
+          if (currentStatus !== "in_transit") {
+            return res.status(400).json({ 
+              message: `Warehouse operator can only assign customer deliverers when status is 'in_transit'. Current status is '${currentStatus}' for item ${freshDelivery.orderItemId || freshDelivery.productId}.` 
+            });
+          }
+        } else {
+          // For admin or delivery agency, customer deliverer can be assigned at in_facility or in_transit
+          if (currentStatus !== "in_facility" && currentStatus !== "in_transit") {
+            return res.status(400).json({ 
+              message: `Customer deliverer can only be assigned when status is 'in_facility' or 'in_transit'. Current status is '${currentStatus}' for item ${freshDelivery.orderItemId || freshDelivery.productId}. Please assign a warehouse deliverer first to move status to 'in_facility'.` 
+            });
+          }
         }
         // When assigning customer deliverer, clear previous warehouse deliverer assignment
         // This ensures we transition from warehouse to customer deliverer
@@ -593,22 +623,37 @@ export const getPersonDeliveries = async (req, res) => {
 
 /**
  * Get delivery persons for an agency
+ * Also allows warehouse operators to get customer deliverers from any agency
  */
 export const getAgencyPersons = async (req, res) => {
   try {
     const userId = req.userId;
     const userRole = req.userRole;
+    const { agencyId } = req.params;
 
-    if (userRole !== "delivery_agency" && userRole !== "admin") {
+    if (userRole !== "delivery_agency" && userRole !== "admin" && userRole !== "warehouse_operator") {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    const agencyId = userRole === "admin" ? req.params.agencyId : userId;
+    // Build query based on role
+    let query = {};
+    
+    if (userRole === "warehouse_operator") {
+      // Warehouse operators can only see customer deliverers from any agency
+      query = {
+        role: "delivery_person",
+        delivererType: "customer",
+      };
+    } else {
+      // Delivery agencies and admins see all deliverers from their agency
+      const agencyIdToUse = userRole === "admin" ? (agencyId || userId) : userId;
+      query = {
+        role: "delivery_person",
+        deliveryAgencyId: agencyIdToUse,
+      };
+    }
 
-    const deliveryPersons = await User.find({
-      role: "delivery_person",
-      deliveryAgencyId: agencyId,
-    }).select("fullName email phone delivererType");
+    const deliveryPersons = await User.find(query).select("fullName email phone delivererType deliveryAgencyId");
 
     return res.json({ deliveryPersons, count: deliveryPersons.length });
   } catch (error) {

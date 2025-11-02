@@ -1,0 +1,29 @@
+# Cursor Rules for E-commerce Project
+
+## Code Quality & Error Handling
+
+### Shell Scripts & Pre-commit Hooks
+- Always use error checking for directory changes: `cd directory || exit 1` instead of just `cd directory`
+- This prevents silent failures when directories don't exist or cd fails
+- Apply this pattern to all shell scripts, especially in pre-commit hooks
+
+### TypeScript/JavaScript
+- Remove unused imports and variables
+- Add proper error handling for async operations
+- Use proper type definitions for all props and state
+
+### React Best Practices
+- Always include all dependencies in useEffect dependency arrays or disable the rule with a comment
+- Remove unused variables and imports
+- Ensure all imported components are actually used
+
+## Project Structure
+- Follow the existing folder structure: `client/src/` for frontend, `server/` for backend
+- Keep API endpoints organized by feature in `services/endPoints/`
+- Use TypeScript interfaces for all data structures
+
+## Git & Commits
+- Run pre-commit hooks before committing (linting, type checking)
+- Fix all linting errors before committing
+- Use meaningful commit messages
+

@@ -11,11 +11,11 @@ export const getDeliveryTrackingApi = async (orderId: string) => {
   });
 };
 
-export const updateDeliveryStatusApi = async (orderId: string, status: string, note?: string, orderItemId?: string, productId?: string) => {
+export const updateDeliveryStatusApi = async (orderId: string, status: string, note?: string, orderItemId?: string, productId?: string, deliveryPersonId?: string) => {
   const token = getToken() || "";
   return axios.patch(
     `${DELIVERY_API}/${orderId}/status`,
-    { status, note, orderItemId, productId },
+    { status, note, orderItemId, productId, deliveryPersonId },
     {
       headers: { Authorization: `Bearer ${token}` },
     }
@@ -39,4 +39,3 @@ export const getRefundStatusApi = async (orderId: string) => {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
-

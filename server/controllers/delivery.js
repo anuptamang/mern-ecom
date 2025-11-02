@@ -100,6 +100,7 @@ export const updateDeliveryStatus = async (req, res) => {
       "in_transit",
       "out_for_delivery",
       "delivered",
+      "rejected",
       "cancelled",
     ];
 
@@ -137,6 +138,7 @@ export const updateDeliveryStatus = async (req, res) => {
     // Delivery agencies cannot update tracking status - they can only assign deliverers
     const deliveryAgencyStatuses = []; // Delivery agencies cannot update tracking
     const deliveryPersonStatuses = ["picked_up", "in_facility", "in_transit", "out_for_delivery", "delivered"]; // Deliverers handle from pickup onwards
+    const warehouseOperatorStatuses = ["in_transit", "out_for_delivery"]; // Warehouse operators handle from in_facility onwards
 
     if (userRole === "admin") {
       isAuthorized = true;
@@ -193,11 +195,9 @@ export const updateDeliveryStatus = async (req, res) => {
             isAuthorized = false;
           }
         } else if (deliverer?.delivererType === "customer") {
-          // Customer deliverer can only update: in_transit -> out_for_delivery -> delivered
-          // But they can only update to in_transit if they're assigned and status is in_facility
-          // They can only update to out_for_delivery if status is in_transit
-          // They can only update to delivered if status is out_for_delivery
-          const customerStatuses = ["in_transit", "out_for_delivery", "delivered"];
+          // Customer deliverer can only update: out_for_delivery -> delivered or rejected
+          // They can only update after warehouse operator has set status to out_for_delivery and assigned them
+          const customerStatuses = ["delivered", "rejected"];
           isAuthorized = customerStatuses.includes(status);
           
           // Ensure customer deliverer is assigned to this delivery
@@ -205,17 +205,23 @@ export const updateDeliveryStatus = async (req, res) => {
             isAuthorized = false;
           }
           
-          // Customer deliverer can only update to in_transit if current status is in_facility
-          if (status === "in_transit" && delivery.status !== "in_facility") {
+          // Customer deliverer can only update if current status is out_for_delivery
+          // This ensures warehouse operator has already processed the package
+          if (delivery.status !== "out_for_delivery") {
             isAuthorized = false;
           }
-          // Customer deliverer can only update to out_for_delivery if current status is in_transit
-          if (status === "out_for_delivery" && delivery.status !== "in_transit") {
-            isAuthorized = false;
-          }
-          // Customer deliverer can only update to delivered if current status is out_for_delivery
-          if (status === "delivered" && delivery.status !== "out_for_delivery") {
-            isAuthorized = false;
+          
+          // Handle rejected status
+          if (status === "rejected") {
+            const { rejectionReason } = req.body;
+            if (!rejectionReason) {
+              return res.status(400).json({ 
+                message: "Rejection reason is required when marking delivery as rejected." 
+              });
+            }
+            delivery.buyerAcceptance = "rejected";
+            delivery.buyerRejectionReason = rejectionReason;
+            delivery.buyerRejectedAt = new Date();
           }
         } else {
           // Deliverer without type cannot update
@@ -224,11 +230,53 @@ export const updateDeliveryStatus = async (req, res) => {
       } else {
         isAuthorized = false;
       }
+    } else if (userRole === "warehouse_operator" && warehouseOperatorStatuses.includes(status)) {
+      // Warehouse operator can update: in_facility -> in_transit -> out_for_delivery
+      // They can only update when status is in_facility or in_transit
+      if (status === "in_transit") {
+        // Warehouse operator can change in_facility to in_transit
+        isAuthorized = delivery.status === "in_facility";
+      } else if (status === "out_for_delivery") {
+        // Warehouse operator can change in_transit to out_for_delivery
+        // But they must assign a customer deliverer and provide notes
+        isAuthorized = delivery.status === "in_transit";
+        
+        // When updating to out_for_delivery, warehouse operator must assign customer deliverer
+        const { deliveryPersonId } = req.body;
+        if (!deliveryPersonId) {
+          return res.status(400).json({ 
+            message: "Customer deliverer must be assigned when updating status to 'out_for_delivery'. Please provide deliveryPersonId." 
+          });
+        }
+        
+        // Verify delivery person exists and is a customer deliverer
+        const User = (await import("../models/user.js")).default;
+        const deliveryPerson = await User.findById(deliveryPersonId);
+        if (!deliveryPerson || deliveryPerson.role !== "delivery_person") {
+          return res.status(404).json({ message: "Delivery person not found" });
+        }
+        if (deliveryPerson.delivererType !== "customer") {
+          return res.status(400).json({ 
+            message: "Only customer deliverers can be assigned when updating status to 'out_for_delivery'" 
+          });
+        }
+        
+        // Assign customer deliverer
+        delivery.assignedDeliveryPerson = deliveryPersonId;
+        delivery.assignedAt = new Date();
+        
+        // Note must include delivery person details
+        if (!note) {
+          return res.status(400).json({ 
+            message: "Note is required when updating status to 'out_for_delivery'. Please include delivery person details (name, phone number)." 
+          });
+        }
+      }
     }
 
     if (!isAuthorized) {
       return res.status(403).json({ 
-        message: `Unauthorized. ${userRole === "seller" ? "Sellers" : userRole === "delivery_agency" ? "Delivery agencies" : userRole === "delivery_person" ? "Delivery persons" : "Users"} cannot update status to ${status}.` 
+        message: `Unauthorized. ${userRole === "seller" ? "Sellers" : userRole === "delivery_agency" ? "Delivery agencies" : userRole === "delivery_person" ? "Delivery persons" : userRole === "warehouse_operator" ? "Warehouse operators" : "Users"} cannot update status to ${status}.` 
       });
     }
 
@@ -371,6 +419,36 @@ export const updateDeliveryStatus = async (req, res) => {
           });
         } catch (notifError) {
           console.error("Error creating deliverer notification:", notifError);
+        }
+      }
+
+      // Notify warehouse operators about packages ready for processing (in_facility status)
+      if (status === "in_facility") {
+        try {
+          const warehouseOperators = await User.find({ role: "warehouse_operator" });
+          for (const operator of warehouseOperators) {
+            await createNotification({
+              userId: operator._id,
+              type: "order",
+              title: "Package Ready for Processing",
+              message: `Package for order #${orderId.toString().slice(-8)} item "${product?.title || "Product"}" is now in the delivery facility and ready for processing.`,
+              relatedEntity: {
+                entityType: "order",
+                entityId: orderId,
+              },
+              actionUrl: `/user/warehouse-operator?orderId=${orderId}&orderItemId=${orderItemIdStr}&productId=${productIdStr}`,
+              metadata: {
+                orderId: orderId.toString(),
+                deliveryId: delivery._id.toString(),
+                productId: productIdStr,
+                orderItemId: orderItemIdStr,
+                productTitle: product?.title || "Product",
+                status: status,
+              },
+            });
+          }
+        } catch (notifError) {
+          console.error("Error creating warehouse operator notification:", notifError);
         }
       }
 

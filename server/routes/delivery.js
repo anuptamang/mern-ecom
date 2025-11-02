@@ -12,6 +12,7 @@ import {
   markAsDelivered,
   getAgencyDeliveries,
   getPersonDeliveries,
+  getWarehouseOperatorDeliveries,
   getAgencyPersons,
   createDeliveryPerson,
 } from "../controllers/deliveryAssignment.js";
@@ -27,6 +28,9 @@ router.get("/agency/list", getAgencyDeliveries);
 
 // Get deliveries for delivery person (must be before /:orderId)
 router.get("/person/list", getPersonDeliveries);
+
+// Get deliveries for warehouse operator (must be before /:orderId)
+router.get("/warehouse-operator/list", getWarehouseOperatorDeliveries);
 
 // Get delivery persons for an agency (must be before /:orderId)
 router.get("/agency/persons", getAgencyPersons); // For logged-in agency

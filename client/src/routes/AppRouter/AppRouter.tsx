@@ -6,6 +6,7 @@ import PrivateRoute from 'routes/PrivateRoute';
 import { SellerRoute } from 'routes/SellerRoute';
 import { DeliveryAgencyRoute } from 'routes/DeliveryAgencyRoute/DeliveryAgencyRoute';
 import { DeliveryPersonRoute } from 'routes/DeliveryPersonRoute/DeliveryPersonRoute';
+import { WarehouseOperatorRoute } from 'routes/WarehouseOperatorRoute/WarehouseOperatorRoute';
 
 const GeneralLayout = lazy(() => import('layouts/General'));
 
@@ -31,10 +32,19 @@ const ProductsDashboardPage = lazy(
 const CartsDashboard = lazy(() => import('pages/private/Carts/Dashboard'));
 const OrdersDashboard = lazy(() => import('pages/private/Orders/Dashboard'));
 const UserCheckoutPage = lazy(() => import('pages/private/User/Checkout'));
-const WishlistDashboard = lazy(() => import('pages/private/Wishlist/Dashboard'));
+const WishlistDashboard = lazy(
+  () => import('pages/private/Wishlist/Dashboard')
+);
 const ReturnsDashboard = lazy(() => import('pages/private/Returns/Dashboard'));
-const DeliveryAgencyDashboard = lazy(() => import('pages/private/DeliveryAgency/Dashboard'));
-const DeliveryPersonDashboard = lazy(() => import('pages/private/DeliveryPerson/Dashboard'));
+const DeliveryAgencyDashboard = lazy(
+  () => import('pages/private/DeliveryAgency/Dashboard')
+);
+const DeliveryPersonDashboard = lazy(
+  () => import('pages/private/DeliveryPerson/Dashboard')
+);
+const WarehouseOperatorDashboard = lazy(
+  () => import('pages/private/WarehouseOperator/Dashboard')
+);
 const ChatsDashboard = lazy(() => import('pages/private/Chats/Dashboard'));
 
 const AppRouter = () => {
@@ -84,21 +94,29 @@ const AppRouter = () => {
             <Route path={'wishlist'} element={<WishlistDashboard />} />
             <Route path={'returns'} element={<ReturnsDashboard />} />
             <Route path={'chats'} element={<ChatsDashboard />} />
-            <Route 
-              path={'delivery-agency'} 
+            <Route
+              path={'delivery-agency'}
               element={
                 <DeliveryAgencyRoute>
                   <DeliveryAgencyDashboard />
                 </DeliveryAgencyRoute>
-              } 
+              }
             />
-            <Route 
-              path={'delivery-person'} 
+            <Route
+              path={'delivery-person'}
               element={
                 <DeliveryPersonRoute>
                   <DeliveryPersonDashboard />
                 </DeliveryPersonRoute>
-              } 
+              }
+            />
+            <Route
+              path={'warehouse-operator'}
+              element={
+                <WarehouseOperatorRoute>
+                  <WarehouseOperatorDashboard />
+                </WarehouseOperatorRoute>
+              }
             />
           </Route>
 
