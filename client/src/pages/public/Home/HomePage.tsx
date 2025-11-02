@@ -1,10 +1,11 @@
 import { Container } from 'components/UI';
+import { AuthModal } from 'components/AuthModal';
 import { usePageTitle } from 'hooks/usePageTitle';
 import { ReactNode, useEffect, useState } from 'react';
 import { fetchProducts } from 'redux/action/products';
 import { productsSelector } from 'redux/slice';
-import { useAppDispatch, useAppSelector } from 'redux/store';
-import { Button, Card, List, Image, message, Tag, Tabs, Spin } from 'antd';
+import { useAppSelector, useAppDispatch } from 'redux/store';
+import { Button, Card, List, Image, message, Tag, Tabs, Spin, Typography, Space } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { pageRoutes } from 'data/static/pageRoutes';
 import { ProductImagePlaceholder } from 'components/ProductImageGallery/ProductImagePlaceholder';
@@ -13,6 +14,19 @@ import { authSelector } from 'redux/slice';
 import { WishlistButton } from 'components/WishlistButton';
 import styles from 'assets/styles/Common.module.scss';
 import './HomePage.scss';
+import { 
+  CarOutlined, 
+  TeamOutlined, 
+  SafetyOutlined, 
+  BankOutlined, 
+  UserOutlined,
+  DashboardOutlined,
+  ShoppingOutlined,
+  ShopOutlined,
+  CheckCircleOutlined
+} from '@ant-design/icons';
+
+const { Title, Paragraph, Text } = Typography;
 
 const HomePage = () => {
   const title: ReactNode = usePageTitle();
@@ -20,7 +34,19 @@ const HomePage = () => {
   const dispatch = useAppDispatch();
   const { productList, status } = useAppSelector(productsSelector);
   const { result } = useAppSelector(authSelector);
+  const userRole = result?.role;
   const isSeller = result?.role === 'seller';
+  const isBuyer = result?.role === 'user';
+  const isDeliveryUser = userRole === 'delivery_agency' || 
+                         userRole === 'delivery_person' || 
+                         userRole === 'warehouse_operator' ||
+                         userRole === 'support' ||
+                         userRole === 'support_user' ||
+                         userRole === 'verification_team' ||
+                         userRole === 'return_inspector' ||
+                         userRole === 'return_deliverer' ||
+                         userRole === 'finance' ||
+                         userRole === 'admin';
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categoryProducts, setCategoryProducts] = useState<Record<string, any[]>>({});
 
@@ -74,13 +100,19 @@ const HomePage = () => {
     navigate(`/products/${productId}`);
   };
 
+  const [authModalVisible, setAuthModalVisible] = useState(false);
+  const [pendingProductId, setPendingProductId] = useState<string | null>(null);
+  const [pendingProductTitle, setPendingProductTitle] = useState<string>('');
+
   const handleAddToCart = (productId: string, stock: number, title: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     if (!result) {
-      message.warning('Please log in to add items to cart');
-      navigate(`/${pageRoutes.login}`);
+      // Store the product info for after login
+      setPendingProductId(productId);
+      setPendingProductTitle(title);
+      setAuthModalVisible(true);
       return;
     }
 
@@ -101,18 +133,208 @@ const HomePage = () => {
         dispatch(fetchMyCart());
       })
       .catch((error: any) => {
-        // Don't show error if user is being redirected (interceptor handles it)
-        // The axios interceptor will show a warning and redirect
-        if (error?.response?.status !== 401) {
-          message.error(error?.message || 'Failed to add product to cart');
+        // If error is about needing to log in, open auth modal instead of showing error
+        const errorMessage = error?.message || error?.payload || String(error);
+        if (errorMessage.includes('log in') || errorMessage.includes('Please log in')) {
+          setPendingProductId(productId);
+          setPendingProductTitle(title);
+          setAuthModalVisible(true);
+        } else if (error?.response?.status !== 401) {
+          message.error(errorMessage || 'Failed to add product to cart');
         }
       });
+  };
+
+  const handleAuthSuccess = async () => {
+    if (pendingProductId) {
+      // After successful login/register, add the item to cart
+      try {
+        await dispatch(addToCart({ productId: pendingProductId })).unwrap();
+        message.success(`${pendingProductTitle || 'Product'} added to cart`);
+        dispatch(fetchMyCart());
+        setPendingProductId(null);
+        setPendingProductTitle('');
+      } catch (error: any) {
+        message.error(error?.message || 'Failed to add product to cart');
+      }
+    }
   };
 
   const productsToShow = selectedCategory
     ? categoryProducts[selectedCategory] || []
     : allProducts;
 
+  // Role-specific homepage content
+  const getRoleSpecificContent = () => {
+    switch (userRole) {
+      case 'delivery_agency':
+        return {
+          title: 'Delivery Agency Dashboard',
+          description: 'Welcome to your delivery management console. Manage customer deliveries and returns efficiently.',
+          features: [
+            'Manage customer delivery assignments',
+            'Manage return delivery assignments',
+            'Assign warehouse operators and delivery personnel',
+            'Track delivery status in real-time',
+          ],
+          dashboardLink: '/user/delivery-agency',
+          icon: <CarOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+        };
+      case 'delivery_person':
+        const delivererType = result?.delivererType;
+        if (delivererType === 'customer_return') {
+          return {
+            title: 'Return Deliverer Dashboard',
+            description: 'Welcome to your return delivery management console. Handle return pickups and re-deliveries.',
+            features: [
+              'View assigned return deliveries',
+              'Pick up returns from customers',
+              'Submit returns to support',
+              'Re-deliver rejected returns',
+            ],
+            dashboardLink: '/user/return-deliverer',
+            icon: <CarOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+          };
+        }
+        return {
+          title: 'Delivery Person Dashboard',
+          description: 'Welcome to your delivery management console. Manage your assigned deliveries efficiently.',
+          features: [
+            'View assigned deliveries',
+            'Update delivery status',
+            'Mark deliveries as completed',
+            'Handle delivery acceptance/rejection',
+          ],
+          dashboardLink: '/user/delivery-person',
+          icon: <CarOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+        };
+      case 'warehouse_operator':
+        return {
+          title: 'Warehouse Operator Dashboard',
+          description: 'Welcome to your warehouse management console. Coordinate orders within the delivery facility.',
+          features: [
+            'View orders in facility',
+            'Assign customer delivery deliverers',
+            'Update delivery status',
+            'Track order processing',
+          ],
+          dashboardLink: '/user/warehouse-operator',
+          icon: <CheckCircleOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+        };
+      case 'support':
+      case 'support_user':
+        return {
+          title: 'Support Team Dashboard',
+          description: 'Welcome to your support management console. Manage return requests and coordinate the return workflow.',
+          features: [
+            'View and assign return requests',
+            'Assign delivery agencies',
+            'Assign verification teams',
+            'Coordinate return workflow',
+          ],
+          dashboardLink: '/user/support',
+          icon: <TeamOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+        };
+      case 'verification_team':
+        return {
+          title: 'Verification Team Dashboard',
+          description: 'Welcome to your verification management console. Manage return inspections and assign inspectors.',
+          features: [
+            'View returns in inspection queue',
+            'Assign return inspectors',
+            'Track inspection status',
+            'Coordinate inspection workflow',
+          ],
+          dashboardLink: '/user/verification',
+          icon: <SafetyOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+        };
+      case 'return_inspector':
+        return {
+          title: 'Inspector Dashboard',
+          description: 'Welcome to your inspection console. Inspect return packages and make accept/reject decisions.',
+          features: [
+            'View assigned return inspections',
+            'Inspect return packages',
+            'Accept or reject returns',
+            'Document inspection findings',
+          ],
+          dashboardLink: '/user/inspector',
+          icon: <SafetyOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+        };
+      case 'finance':
+        return {
+          title: 'Finance Dashboard',
+          description: 'Welcome to your finance management console. Process refunds securely and manage financial transactions.',
+          features: [
+            'View returns pending refund',
+            'Process refunds via Stripe',
+            'Track refund status',
+            'View refund history',
+          ],
+          dashboardLink: '/user/finance',
+          icon: <BankOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+        };
+      case 'admin':
+        return {
+          title: 'Admin Dashboard',
+          description: 'Welcome to your administration console. Manage the platform, users, and system operations.',
+          features: [
+            'Create and manage delivery agencies',
+            'Create and manage support admins',
+            'Create and manage finance users',
+            'Reset passwords for child users',
+          ],
+          dashboardLink: '/user/admin',
+          icon: <UserOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+        };
+      default:
+        return null;
+    }
+  };
+
+  const roleContent = getRoleSpecificContent();
+
+  // Show role-specific content for non-buyers/sellers
+  if (isDeliveryUser && roleContent) {
+    return (
+      <>
+        {title}
+        <Container className={styles.pageContainer}>
+          <Space direction="vertical" size="large" style={{ width: '100%', textAlign: 'center' }}>
+            <Card>
+              <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                <div>{roleContent.icon}</div>
+                <Title level={1}>{roleContent.title}</Title>
+                <Paragraph style={{ fontSize: '16px' }}>{roleContent.description}</Paragraph>
+                
+                <List
+                  dataSource={roleContent.features}
+                  renderItem={(item) => (
+                    <List.Item>
+                      <Text>• {item}</Text>
+                    </List.Item>
+                  )}
+                  style={{ textAlign: 'left', maxWidth: '600px', margin: '0 auto' }}
+                />
+
+                <Button
+                  type="primary"
+                  size="large"
+                  icon={<DashboardOutlined />}
+                  onClick={() => navigate(roleContent.dashboardLink)}
+                  style={{ marginTop: '20px' }}
+                >
+                  Go to Dashboard
+                </Button>
+              </Space>
+            </Card>
+          </Space>
+        </Container>
+      </>
+    );
+  }
+
+  // Show products for buyers, sellers, and unauthenticated users
   return (
     <>
       {title}
@@ -203,7 +425,9 @@ const HomePage = () => {
                                 size="small"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  message.warning('Please log in to add items to cart');
+                                  setPendingProductId(item._id);
+                                  setPendingProductTitle(item.title);
+                                  setAuthModalVisible(true);
                                 }}
                               >
                                 Add to Cart
@@ -242,6 +466,15 @@ const HomePage = () => {
           </Spin>
         </div>
       </Container>
+      <AuthModal
+        open={authModalVisible}
+        onClose={() => {
+          setAuthModalVisible(false);
+          setPendingProductId(null);
+          setPendingProductTitle('');
+        }}
+        onSuccess={handleAuthSuccess}
+      />
     </>
   );
 };
