@@ -14,7 +14,13 @@ import {
   getPersonDeliveries,
   getWarehouseOperatorDeliveries,
   getAgencyPersons,
+  getWarehouseOperators,
+  assignWarehouseOperator,
   createDeliveryPerson,
+  reassignDeliveryAgency,
+  reassignDeliveryPerson,
+  reassignWarehouseOperator,
+  rejectDeliveryAssignment,
 } from "../controllers/deliveryAssignment.js";
 import { Upload } from "../middlewares/upload.js";
 
@@ -36,6 +42,9 @@ router.get("/warehouse-operator/list", getWarehouseOperatorDeliveries);
 router.get("/agency/persons", getAgencyPersons); // For logged-in agency
 router.get("/agency/:agencyId/persons", getAgencyPersons);
 
+// Get warehouse operators (must be before /:orderId)
+router.get("/warehouse-operators", getWarehouseOperators);
+
 // Create delivery person for an agency
 router.post("/agency/persons", createDeliveryPerson); // For logged-in agency
 router.post("/agency/:agencyId/persons", createDeliveryPerson);
@@ -55,10 +64,21 @@ router.post("/:orderId/assign-agency", assignToDeliveryAgency);
 // Assign delivery to delivery person (admin, delivery agency)
 router.post("/:orderId/assign-person", assignToDeliveryPerson);
 
+// Assign warehouse operator to delivery (delivery agency, admin)
+router.post("/:orderId/assign-warehouse-operator", assignWarehouseOperator);
+
 // Mark as delivered with proof (customer deliverer only)
 router.post("/:orderId/delivered", Upload.single("deliveryProof"), markAsDelivered);
 
 // Cancel order and process refund
 router.post("/:orderId/cancel", cancelOrder);
+
+// Reassign endpoints
+router.post("/:orderId/reassign-agency", reassignDeliveryAgency);
+router.post("/:orderId/reassign-person", reassignDeliveryPerson);
+router.post("/:orderId/reassign-warehouse-operator", reassignWarehouseOperator);
+
+// Reject assignment endpoint
+router.post("/:orderId/reject-assignment", rejectDeliveryAssignment);
 
 export default router;
