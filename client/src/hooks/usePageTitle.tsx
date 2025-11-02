@@ -1,4 +1,4 @@
-import { siteInfo } from 'configs/site';
+import { siteData } from 'configs/site';
 import { Helmet } from 'react-helmet-async';
 import { useLocation, useParams } from 'react-router-dom';
 import { capitalizeText } from 'utils';
@@ -19,7 +19,7 @@ export const usePageTitle = () => {
 
   return (
     <Helmet>
-      <title>{`${pathname} | ${siteInfo.title}`}</title>
+      <title>{`${pathname} | ${siteData.site.title}`}</title>
     </Helmet>
   );
 };
