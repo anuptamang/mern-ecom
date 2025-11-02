@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import * as dotenv from "dotenv";
 import bcrypt from "bcryptjs";
+import { fileURLToPath } from "url";
+import { resolve as resolvePath } from "path";
 import Product from "../models/product.js";
 import User from "../models/user.js";
 
@@ -13,13 +15,33 @@ async function connect() {
   await mongoose.connect(uri);
 }
 
-async function seedUser() {
+// Helper function to safely create a user, handling duplicates
+async function createUserSafely(userData) {
+  try {
+    const user = await User.create(userData);
+    console.log(`Created ${userData.role}: ${userData.email} / password123`);
+    return user;
+  } catch (error) {
+    // If user already exists (duplicate key error), fetch it
+    if (error.code === 11000 || error.message?.includes("duplicate")) {
+      const existingUser = await User.findOne({ email: userData.email });
+      console.log(
+        `${userData.role} already exists (caught duplicate): ${userData.email}`
+      );
+      return existingUser;
+    } else {
+      throw error;
+    }
+  }
+}
+
+export async function seedUser() {
   // Create buyer user
   const buyerEmail = "buyer@example.com";
   let buyer = await User.findOne({ email: buyerEmail });
   if (!buyer) {
     const password = await bcrypt.hash("password123", 12);
-    buyer = await User.create({
+    buyer = await createUserSafely({
       email: buyerEmail,
       role: "user",
       password,
@@ -42,7 +64,6 @@ async function seedUser() {
         country: "USA",
       },
     });
-    console.log(`Created buyer: ${buyerEmail} / password123`);
   } else {
     console.log(`Buyer already exists: ${buyerEmail}`);
     // Update existing buyer with new fields if not set
@@ -74,7 +95,7 @@ async function seedUser() {
   let seller = await User.findOne({ email: sellerEmail });
   if (!seller) {
     const password = await bcrypt.hash("password123", 12);
-    seller = await User.create({
+    seller = await createUserSafely({
       email: sellerEmail,
       role: "seller",
       password,
@@ -97,7 +118,6 @@ async function seedUser() {
         country: "USA",
       },
     });
-    console.log(`Created seller: ${sellerEmail} / password123`);
   } else {
     console.log(`Seller already exists: ${sellerEmail}`);
     // Update existing seller with new fields if not set
@@ -129,7 +149,7 @@ async function seedUser() {
   let admin = await User.findOne({ email: adminEmail });
   if (!admin) {
     const password = await bcrypt.hash("password123", 12);
-    admin = await User.create({
+    admin = await createUserSafely({
       email: adminEmail,
       role: "admin",
       password,
@@ -143,7 +163,6 @@ async function seedUser() {
         country: "USA",
       },
     });
-    console.log(`Created admin: ${adminEmail} / password123`);
   } else {
     console.log(`Admin already exists: ${adminEmail}`);
   }
@@ -153,7 +172,7 @@ async function seedUser() {
   let deliveryAgency = await User.findOne({ email: agencyEmail });
   if (!deliveryAgency) {
     const password = await bcrypt.hash("password123", 12);
-    deliveryAgency = await User.create({
+    deliveryAgency = await createUserSafely({
       email: agencyEmail,
       role: "delivery_agency",
       password,
@@ -167,9 +186,12 @@ async function seedUser() {
         country: "USA",
       },
     });
-    console.log(`Created delivery agency: ${agencyEmail} / password123`);
   } else {
     console.log(`Delivery agency already exists: ${agencyEmail}`);
+  }
+
+  if (!deliveryAgency) {
+    throw new Error("Failed to create or find delivery agency");
   }
 
   // Create support user
@@ -177,7 +199,7 @@ async function seedUser() {
   let support = await User.findOne({ email: supportEmail });
   if (!support) {
     const password = await bcrypt.hash("password123", 12);
-    support = await User.create({
+    support = await createUserSafely({
       email: supportEmail,
       role: "support",
       password,
@@ -191,7 +213,6 @@ async function seedUser() {
         country: "USA",
       },
     });
-    console.log(`Created support user: ${supportEmail} / password123`);
   } else {
     console.log(`Support user already exists: ${supportEmail}`);
   }
@@ -201,13 +222,13 @@ async function seedUser() {
   let deliveryPerson1 = await User.findOne({ email: person1Email });
   if (!deliveryPerson1) {
     const password = await bcrypt.hash("password123", 12);
-    deliveryPerson1 = await User.create({
+    deliveryPerson1 = await createUserSafely({
       email: person1Email,
       role: "delivery_person",
       password,
       fullName: "John Delivery",
       phone: "+1-555-0401",
-      deliveryAgencyId: deliveryAgency._id,
+      deliveryAgencyId: deliveryAgency?._id,
       delivererType: "warehouse",
       primaryAddress: {
         street: "50 Worker Ave",
@@ -217,7 +238,6 @@ async function seedUser() {
         country: "USA",
       },
     });
-    console.log(`Created delivery person: ${person1Email} / password123`);
   } else {
     console.log(`Delivery person 1 already exists: ${person1Email}`);
   }
@@ -226,14 +246,14 @@ async function seedUser() {
   let deliveryPerson2 = await User.findOne({ email: person2Email });
   if (!deliveryPerson2) {
     const password = await bcrypt.hash("password123", 12);
-    deliveryPerson2 = await User.create({
+    deliveryPerson2 = await createUserSafely({
       email: person2Email,
       role: "delivery_person",
       password,
       fullName: "Jane Courier",
       phone: "+1-555-0402",
-      deliveryAgencyId: deliveryAgency._id,
-      delivererType: "customer",
+      deliveryAgencyId: deliveryAgency?._id,
+      delivererType: "customer_delivery",
       primaryAddress: {
         street: "51 Worker Ave",
         city: "Chicago",
@@ -242,9 +262,54 @@ async function seedUser() {
         country: "USA",
       },
     });
-    console.log(`Created delivery person: ${person2Email} / password123`);
   } else {
     console.log(`Delivery person 2 already exists: ${person2Email}`);
+    // Update existing deliverer to customer_delivery type if needed
+    if (deliveryPerson2.delivererType !== "customer_delivery") {
+      deliveryPerson2.delivererType = "customer_delivery";
+      await deliveryPerson2.save();
+      console.log(`Updated delivery person 2 to customer_delivery type`);
+    }
+  }
+
+  // Create customer return deliverer
+  const person3Email = "return_deliverer2@example.com";
+  let deliveryPerson3 = await User.findOne({ email: person3Email });
+  if (!deliveryPerson3) {
+    const password = await bcrypt.hash("password123", 12);
+    deliveryPerson3 = await createUserSafely({
+      email: person3Email,
+      role: "delivery_person",
+      password,
+      fullName: "Return Courier",
+      phone: "+1-555-0403",
+      deliveryAgencyId: deliveryAgency?._id,
+      delivererType: "customer_return",
+      primaryAddress: {
+        street: "52 Worker Ave",
+        city: "Chicago",
+        state: "IL",
+        zipCode: "60602",
+        country: "USA",
+      },
+    });
+  } else {
+    console.log(`Return deliverer already exists: ${person3Email}`);
+    // Update existing deliverer if role is incorrect
+    if (
+      deliveryPerson3.role !== "delivery_person" ||
+      deliveryPerson3.delivererType !== "customer_return"
+    ) {
+      deliveryPerson3.role = "delivery_person";
+      deliveryPerson3.delivererType = "customer_return";
+      if (deliveryAgency && deliveryAgency._id) {
+        deliveryPerson3.deliveryAgencyId = deliveryAgency._id;
+      }
+      await deliveryPerson3.save();
+      console.log(
+        `Updated return deliverer ${person3Email} to correct role and type`
+      );
+    }
   }
 
   // Create warehouse operator user
@@ -252,7 +317,7 @@ async function seedUser() {
   let warehouseOperator = await User.findOne({ email: warehouseOperatorEmail });
   if (!warehouseOperator) {
     const password = await bcrypt.hash("password123", 12);
-    warehouseOperator = await User.create({
+    warehouseOperator = await createUserSafely({
       email: warehouseOperatorEmail,
       role: "warehouse_operator",
       password,
@@ -266,9 +331,140 @@ async function seedUser() {
         country: "USA",
       },
     });
-    console.log(`Created warehouse operator: ${warehouseOperatorEmail} / password123`);
   } else {
     console.log(`Warehouse operator already exists: ${warehouseOperatorEmail}`);
+  }
+
+  // Create support user
+  const supportUserEmail = "support_user@example.com";
+  let supportUser = await User.findOne({ email: supportUserEmail });
+  if (!supportUser) {
+    const password = await bcrypt.hash("password123", 12);
+    supportUser = await createUserSafely({
+      email: supportUserEmail,
+      role: "support_user",
+      password,
+      fullName: "Support User",
+      phone: "+1-555-0601",
+      primaryAddress: {
+        street: "200 Support St",
+        city: "New York",
+        state: "NY",
+        zipCode: "10002",
+        country: "USA",
+      },
+    });
+  } else {
+    console.log(`Support user already exists: ${supportUserEmail}`);
+  }
+
+  // Create verification team user
+  const verificationTeamEmail = "verification@example.com";
+  let verificationTeam = await User.findOne({ email: verificationTeamEmail });
+  if (!verificationTeam) {
+    const password = await bcrypt.hash("password123", 12);
+    verificationTeam = await createUserSafely({
+      email: verificationTeamEmail,
+      role: "verification_team",
+      password,
+      fullName: "Verification Team",
+      phone: "+1-555-0701",
+      primaryAddress: {
+        street: "300 Verification Ave",
+        city: "New York",
+        state: "NY",
+        zipCode: "10003",
+        country: "USA",
+      },
+    });
+  } else {
+    console.log(`Verification team already exists: ${verificationTeamEmail}`);
+  }
+
+  // Create return inspector user
+  const inspectorEmail = "inspector@example.com";
+  let inspector = await User.findOne({ email: inspectorEmail });
+  if (!inspector) {
+    const password = await bcrypt.hash("password123", 12);
+    inspector = await createUserSafely({
+      email: inspectorEmail,
+      role: "return_inspector",
+      password,
+      fullName: "Return Inspector",
+      phone: "+1-555-0801",
+      primaryAddress: {
+        street: "400 Inspection Blvd",
+        city: "New York",
+        state: "NY",
+        zipCode: "10004",
+        country: "USA",
+      },
+    });
+  } else {
+    console.log(`Return inspector already exists: ${inspectorEmail}`);
+  }
+
+  // Create return deliverer user
+  const returnDelivererEmail = "return_deliverer1@example.com";
+  let returnDeliverer = await User.findOne({ email: returnDelivererEmail });
+  if (!returnDeliverer) {
+    const password = await bcrypt.hash("password123", 12);
+    returnDeliverer = await createUserSafely({
+      email: returnDelivererEmail,
+      role: "delivery_person",
+      password,
+      fullName: "Return Deliverer",
+      phone: "+1-555-0901",
+      deliveryAgencyId: deliveryAgency._id,
+      delivererType: "customer_return",
+      primaryAddress: {
+        street: "500 Return St",
+        city: "Chicago",
+        state: "IL",
+        zipCode: "60604",
+        country: "USA",
+      },
+    });
+  } else {
+    console.log(`Return deliverer already exists: ${returnDelivererEmail}`);
+    // Update existing deliverer if role is incorrect
+    if (
+      returnDeliverer.role !== "delivery_person" ||
+      returnDeliverer.delivererType !== "customer_return"
+    ) {
+      returnDeliverer.role = "delivery_person";
+      returnDeliverer.delivererType = "customer_return";
+      if (deliveryAgency && deliveryAgency._id) {
+        returnDeliverer.deliveryAgencyId = deliveryAgency._id;
+      }
+      await returnDeliverer.save();
+      console.log(
+        `Updated return deliverer ${returnDelivererEmail} to correct role and type`
+      );
+    }
+  }
+
+  // Create finance user
+  const financeEmail = "finance@example.com";
+  let finance = await User.findOne({ email: financeEmail });
+  if (!finance) {
+    const password = await bcrypt.hash("password123", 12);
+    finance = await createUserSafely({
+      email: financeEmail,
+      role: "finance",
+      password,
+      fullName: "Finance Team",
+      phone: "+1-555-1001",
+      primaryAddress: {
+        street: "600 Finance Ave",
+        city: "New York",
+        state: "NY",
+        zipCode: "10005",
+        country: "USA",
+      },
+    });
+  } else {
+    console.log(`Finance user already exists: ${financeEmail}`);
   }
 
   return {
@@ -278,8 +474,14 @@ async function seedUser() {
     deliveryAgency,
     deliveryPerson1,
     deliveryPerson2,
+    deliveryPerson3,
     warehouseOperator,
     support,
+    supportUser,
+    verificationTeam,
+    inspector,
+    returnDeliverer,
+    finance,
   };
 }
 
@@ -629,8 +831,13 @@ async function main() {
       deliveryAgency,
       deliveryPerson1,
       deliveryPerson2,
+      warehouseOperator,
       support,
     } = await seedUser();
+
+    if (!seller || !seller._id) {
+      throw new Error("Failed to create seller - cannot seed products");
+    }
     await seedProducts(seller._id);
     console.log("Seeding completed successfully!");
     console.log("\n=== Test Credentials ===");
@@ -640,7 +847,18 @@ async function main() {
     console.log("Delivery Agency: delivery@example.com / password123");
     console.log("Delivery Person 1: deliverer1@example.com / password123");
     console.log("Delivery Person 2: deliverer2@example.com / password123");
+    console.log("Warehouse Operator: warehouse@example.com / password123");
     console.log("Support: support@example.com / password123");
+    console.log("Support User: support_user@example.com / password123");
+    console.log("Verification Team: verification@example.com / password123");
+    console.log("Return Inspector: inspector@example.com / password123");
+    console.log(
+      "Return Deliverer: return_deliverer1@example.com / password123"
+    );
+    console.log(
+      "Return Deliverer: return_deliverer2@example.com / password123"
+    );
+    console.log("Finance: finance@example.com / password123");
   } catch (e) {
     console.error(e);
     process.exitCode = 1;
@@ -649,4 +867,13 @@ async function main() {
   }
 }
 
-main();
+// Only run main() if this file is executed directly, not when imported as a module
+// Check if this script is being run directly vs imported
+const currentFile = fileURLToPath(import.meta.url);
+const runFile = process.argv[1] ? resolvePath(process.argv[1]) : "";
+
+const isMainModule = currentFile === runFile || runFile.endsWith("seed.js");
+
+if (isMainModule) {
+  main();
+}

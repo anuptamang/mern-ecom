@@ -10,6 +10,8 @@
     "client-start": "cd client && npm run start",
     "server-start": "cd server && npm run start",
     "dev": "concurrently \"npm run client-start\" \"npm run server-start\"",
+    "dev:stop": "pkill -f 'node.*client' && pkill -f 'node.*server' && pkill -f nodemon && pkill -f concurrently 2>/dev/null || true; lsof -ti:3000 | xargs kill -9 2>/dev/null || true; lsof -ti:3010 | xargs kill -9 2>/dev/null || true; lsof -ti:2000 | xargs kill -9 2>/dev/null || true; echo 'Dev server stopped'",
+    "reset-and-restart": "bash scripts/reset-and-restart.sh",
     "client:lint": "cd client && npm run lint",
     "client:lint:fix": "cd client && npm run lint:fix",
     "prepare": "husky install"
