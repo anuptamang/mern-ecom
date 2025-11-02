@@ -8,6 +8,8 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
+    unique: true,
+    index: true,
   },
   password: {
     type: String,
@@ -26,6 +28,11 @@ const userSchema = new mongoose.Schema({
       "delivery_person",
       "warehouse_operator",
       "support",
+      "support_user",
+      "verification_team",
+      "return_inspector",
+      "return_deliverer",
+      "finance",
     ],
     required: true,
   },
@@ -38,8 +45,11 @@ const userSchema = new mongoose.Schema({
   // For delivery persons - type of deliverer
   delivererType: {
     type: String,
-    enum: ["warehouse", "customer"],
+    enum: ["warehouse", "customer_delivery", "customer_return"],
     // No default - only set for delivery_person role
+    // warehouse: picks up from seller and delivers to facility
+    // customer_delivery: delivers orders to customers
+    // customer_return: handles return pickups and re-deliveries
   },
   profilePhoto: { type: String },
   coverPhoto: { type: String },
@@ -62,6 +72,21 @@ const userSchema = new mongoose.Schema({
     zipCode: { type: String },
     country: { type: String },
   },
+  // Bank payout information (for sellers)
+  bankPayout: {
+    accountHolderName: { type: String },
+    accountNumber: { type: String },
+    bankName: { type: String },
+    routingNumber: { type: String },
+    swiftCode: { type: String },
+    iban: { type: String },
+    accountType: { type: String, enum: ["checking", "savings"] },
+  },
+  // Profile completion tracking
+  profileCompleted: { type: Boolean, default: false },
+  profileCompletedAt: { type: Date },
+  // Workload tracking (computed fields, not stored in DB but can be queried)
+  // This will be calculated dynamically based on active assignments
 });
 
 export default mongoose.model("User", userSchema);
