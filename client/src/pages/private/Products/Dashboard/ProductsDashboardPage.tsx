@@ -1,11 +1,40 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Card, List, message, Modal, Tabs, Tag, Statistic, Row, Col, Space, Image, Popconfirm, Spin, Empty, Input } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
-import { fetchMyProductsApi, deleteProductApi } from 'services/endPoints/products/productsEndpoints';
+import {
+  Button,
+  Card,
+  List,
+  message,
+  Modal,
+  Tabs,
+  Tag,
+  Statistic,
+  Row,
+  Col,
+  Space,
+  Image,
+  Popconfirm,
+  Spin,
+  Empty,
+  Input,
+} from 'antd';
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  EyeOutlined,
+} from '@ant-design/icons';
+import {
+  fetchMyProductsApi,
+  deleteProductApi,
+} from 'services/endPoints/products/productsEndpoints';
 import { getSellerOrdersApi } from 'services/endPoints/orders/ordersEndpoints';
 import { getDeliveryTrackingApi } from 'services/endPoints/delivery';
-import { getSellerReturnsApi, approveReturnApi, rejectReturnApi } from 'services/endPoints/return';
-import { DeliveryTracking, RefundStatus } from 'components';
+import {
+  getSellerReturnsApi,
+  approveReturnApi,
+  rejectReturnApi,
+} from 'services/endPoints/return';
+import { DeliveryTracking } from 'components';
 import { getSellerCartItemsApi } from 'services/endPoints/carts/cartsEndpoints';
 import { getUserStatsApi } from 'services/endPoints/user/userEndpoints';
 import { getSellerWishlistApi } from 'services/endPoints/wishlist';
@@ -46,7 +75,9 @@ const ProductsDashboardPage = (props: Props) => {
   const [returns, setReturns] = useState<any[]>([]);
   const [rejectReason, setRejectReason] = useState('');
   const [rejectModalVisible, setRejectModalVisible] = useState(false);
-  const [rejectingReturnId, setRejectingReturnId] = useState<string | null>(null);
+  const [rejectingReturnId, setRejectingReturnId] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     loadProducts();
@@ -70,7 +101,7 @@ const ProductsDashboardPage = (props: Props) => {
     const orderId = searchParams.get('orderId');
     const orderItemId = searchParams.get('orderItemId');
     const productId = searchParams.get('productId');
-    
+
     if (orderId) {
       setActiveTab('orders');
       // After orders load, open tracking modal for specific item
@@ -80,10 +111,14 @@ const ProductsDashboardPage = (props: Props) => {
           if (order) {
             try {
               const { data } = await getDeliveryTrackingApi(orderId);
-              const itemDelivery = data.deliveries?.find(
-                (d: any) => (orderItemId && String(d.orderItemId) === orderItemId) ||
-                           (productId && String(d.productId) === productId)
-              ) || data.deliveries?.[0] || data.delivery;
+              const itemDelivery =
+                data.deliveries?.find(
+                  (d: any) =>
+                    (orderItemId && String(d.orderItemId) === orderItemId) ||
+                    (productId && String(d.productId) === productId)
+                ) ||
+                data.deliveries?.[0] ||
+                data.delivery;
               if (itemDelivery) {
                 setDeliveryTracking(itemDelivery);
                 setDeliveries([itemDelivery]);
@@ -117,7 +152,7 @@ const ProductsDashboardPage = (props: Props) => {
       // Handle both response.data.data and response.data formats
       const productsData = response.data?.data || response.data || [];
       setProducts(Array.isArray(productsData) ? productsData : []);
-      
+
       if (productsData.length === 0) {
         console.log('No products found for user');
       }
@@ -205,7 +240,9 @@ const ProductsDashboardPage = (props: Props) => {
       message.success('Return approved and refund processed');
       loadReturns();
     } catch (error: any) {
-      message.error(error?.response?.data?.message || 'Failed to approve return');
+      message.error(
+        error?.response?.data?.message || 'Failed to approve return'
+      );
     }
   };
 
@@ -219,7 +256,9 @@ const ProductsDashboardPage = (props: Props) => {
       setRejectingReturnId(null);
       loadReturns();
     } catch (error: any) {
-      message.error(error?.response?.data?.message || 'Failed to reject return');
+      message.error(
+        error?.response?.data?.message || 'Failed to reject return'
+      );
     }
   };
 
@@ -302,7 +341,15 @@ const ProductsDashboardPage = (props: Props) => {
                           preview={false}
                         />
                       ) : (
-                        <div style={{ height: 200, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div
+                          style={{
+                            height: 200,
+                            background: '#f0f0f0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
                           No Image
                         </div>
                       )
@@ -326,11 +373,7 @@ const ProductsDashboardPage = (props: Props) => {
                         okText="Yes"
                         cancelText="No"
                       >
-                        <Button
-                          type="link"
-                          danger
-                          icon={<DeleteOutlined />}
-                        >
+                        <Button type="link" danger icon={<DeleteOutlined />}>
                           Delete
                         </Button>
                       </Popconfirm>,
@@ -344,9 +387,11 @@ const ProductsDashboardPage = (props: Props) => {
                           <div>Stock: {item.stock || 0}</div>
                           {item.categories && item.categories.length > 0 && (
                             <div className="mt-2">
-                              {item.categories.slice(0, 2).map((cat: string) => (
-                                <Tag key={cat}>{cat}</Tag>
-                              ))}
+                              {item.categories
+                                .slice(0, 2)
+                                .map((cat: string) => (
+                                  <Tag key={cat}>{cat}</Tag>
+                                ))}
                             </div>
                           )}
                         </div>
@@ -358,7 +403,10 @@ const ProductsDashboardPage = (props: Props) => {
             />
             {products.length === 0 && !loading && (
               <div className="text-center py-8">
-                <p>No products yet. Click "Add Product" to create your first product.</p>
+                <p>
+                  No products yet. Click "Add Product" to create your first
+                  product.
+                </p>
               </div>
             )}
           </TabPane>
@@ -372,9 +420,12 @@ const ProductsDashboardPage = (props: Props) => {
                   <Card className="w-full">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <div className="font-semibold">Order #{order._id.slice(-8)}</div>
+                        <div className="font-semibold">
+                          Order #{order._id.slice(-8)}
+                        </div>
                         <div className="text-sm text-gray-500">
-                          {order.userId?.fullName || 'Unknown Buyer'} ({order.userId?.email || 'N/A'})
+                          {order.userId?.fullName || 'Unknown Buyer'} (
+                          {order.userId?.email || 'N/A'})
                         </div>
                         <div className="text-sm text-gray-500">
                           {dayjs(order.createdAt).format('MMM DD, YYYY HH:mm')}
@@ -387,20 +438,34 @@ const ProductsDashboardPage = (props: Props) => {
                           </Tag>
                           {order.deliveryStatus && (
                             <Tag color="blue" style={{ marginLeft: 8 }}>
-                              {order.deliveryStatus.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                              {order.deliveryStatus
+                                .replace(/_/g, ' ')
+                                .replace(/\b\w/g, (l: string) =>
+                                  l.toUpperCase()
+                                )}
                             </Tag>
                           )}
                           {order.refundStatus && (
-                            <Tag 
-                              color={order.refundStatus === 'succeeded' ? 'success' : order.refundStatus === 'failed' ? 'error' : 'warning'} 
+                            <Tag
+                              color={
+                                order.refundStatus === 'succeeded'
+                                  ? 'success'
+                                  : order.refundStatus === 'failed'
+                                  ? 'error'
+                                  : 'warning'
+                              }
                               style={{ marginLeft: 8 }}
                             >
-                              Refund: {order.refundStatus.replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                              Refund:{' '}
+                              {order.refundStatus.replace(
+                                /\b\w/g,
+                                (l: string) => l.toUpperCase()
+                              )}
                             </Tag>
                           )}
                         </div>
                         <div className="font-semibold text-lg mt-2">
-                          ${(order.amount / 100).toFixed(2)}
+                          ${(order.amount / 10000).toFixed(2)}
                         </div>
                       </div>
                     </div>
@@ -408,10 +473,14 @@ const ProductsDashboardPage = (props: Props) => {
                       <div className="font-semibold mb-2">Items:</div>
                       {order.items?.map((item: any, idx: number) => {
                         const itemDeliveryTracking = item.deliveryTracking;
-                        const itemStatus = item.deliveryStatus || itemDeliveryTracking?.status;
-                        
+                        const itemStatus =
+                          item.deliveryStatus || itemDeliveryTracking?.status;
+
                         return (
-                          <div key={idx} className="flex items-start gap-4 mb-3 pb-3 border-b last:border-b-0">
+                          <div
+                            key={idx}
+                            className="flex items-start gap-4 mb-3 pb-3 border-b last:border-b-0"
+                          >
                             {item.thumbnail && (
                               <Image
                                 src={item.thumbnail}
@@ -425,33 +494,81 @@ const ProductsDashboardPage = (props: Props) => {
                             <div className="flex-1">
                               <div className="font-medium">{item.title}</div>
                               <div className="text-sm text-gray-500">
-                                ${item.price} x {item.quantity} = ${(item.price * item.quantity).toFixed(2)}
+                                ${item.price} x {item.quantity} = $
+                                {(item.price * item.quantity).toFixed(2)}
                               </div>
                               {itemDeliveryTracking && (
                                 <div className="mt-2">
                                   <Tag color="blue" style={{ marginTop: 4 }}>
-                                    Delivery: {itemDeliveryTracking.status?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || itemStatus?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || 'Packing'}
+                                    Delivery:{' '}
+                                    {itemDeliveryTracking.status
+                                      ?.replace(/_/g, ' ')
+                                      .replace(/\b\w/g, (l: string) =>
+                                        l.toUpperCase()
+                                      ) ||
+                                      itemStatus
+                                        ?.replace(/_/g, ' ')
+                                        .replace(/\b\w/g, (l: string) =>
+                                          l.toUpperCase()
+                                        ) ||
+                                      'Packing'}
                                   </Tag>
-                                  {itemDeliveryTracking.buyerAcceptance === 'accepted' && (
-                                    <Tag color="success" style={{ marginLeft: 4 }}>Buyer Accepted</Tag>
+                                  {itemDeliveryTracking.buyerAcceptance ===
+                                    'accepted' && (
+                                    <Tag
+                                      color="success"
+                                      style={{ marginLeft: 4 }}
+                                    >
+                                      Buyer Accepted
+                                    </Tag>
                                   )}
-                                  {itemDeliveryTracking.buyerAcceptance === 'rejected' && (
-                                    <Tag color="error" style={{ marginLeft: 4 }}>Buyer Rejected</Tag>
+                                  {itemDeliveryTracking.buyerAcceptance ===
+                                    'rejected' && (
+                                    <Tag
+                                      color="error"
+                                      style={{ marginLeft: 4 }}
+                                    >
+                                      Buyer Rejected
+                                    </Tag>
                                   )}
-                                  {itemDeliveryTracking.buyerAcceptance === 'pending' && itemStatus === 'delivered' && (
-                                    <Tag color="warning" style={{ marginLeft: 4 }}>Pending Buyer Acceptance</Tag>
-                                  )}
+                                  {itemDeliveryTracking.buyerAcceptance ===
+                                    'pending' &&
+                                    itemStatus === 'delivered' && (
+                                      <Tag
+                                        color="warning"
+                                        style={{ marginLeft: 4 }}
+                                      >
+                                        Pending Buyer Acceptance
+                                      </Tag>
+                                    )}
                                   {item.returnStatus && (
-                                    <Tag color="orange" style={{ marginLeft: 4 }}>
-                                      Return: {item.returnStatus.replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                                    <Tag
+                                      color="orange"
+                                      style={{ marginLeft: 4 }}
+                                    >
+                                      Return:{' '}
+                                      {item.returnStatus.replace(
+                                        /\b\w/g,
+                                        (l: string) => l.toUpperCase()
+                                      )}
                                     </Tag>
                                   )}
                                   {item.refundStatus && (
-                                    <Tag 
-                                      color={item.refundStatus === 'succeeded' ? 'success' : item.refundStatus === 'failed' ? 'error' : 'warning'}
+                                    <Tag
+                                      color={
+                                        item.refundStatus === 'succeeded'
+                                          ? 'success'
+                                          : item.refundStatus === 'failed'
+                                          ? 'error'
+                                          : 'warning'
+                                      }
                                       style={{ marginLeft: 4 }}
                                     >
-                                      Refund: {item.refundStatus.replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                                      Refund:{' '}
+                                      {item.refundStatus.replace(
+                                        /\b\w/g,
+                                        (l: string) => l.toUpperCase()
+                                      )}
                                     </Tag>
                                   )}
                                 </div>
@@ -461,7 +578,9 @@ const ProductsDashboardPage = (props: Props) => {
                               <Button
                                 type="link"
                                 size="small"
-                                onClick={() => navigate(`/products/${item.productId}`)}
+                                onClick={() =>
+                                  navigate(`/products/${item.productId}`)
+                                }
                               >
                                 View Product
                               </Button>
@@ -471,12 +590,17 @@ const ProductsDashboardPage = (props: Props) => {
                                   size="small"
                                   onClick={async () => {
                                     try {
-                                      const { data } = await getDeliveryTrackingApi(order._id);
+                                      const { data } =
+                                        await getDeliveryTrackingApi(order._id);
                                       // Find delivery for this specific item
-                                      const itemDelivery = data.deliveries?.find(
-                                        (d: any) => String(d.orderItemId) === String(item._id) || 
-                                                   String(d.productId) === String(item.productId)
-                                      ) || data.delivery;
+                                      const itemDelivery =
+                                        data.deliveries?.find(
+                                          (d: any) =>
+                                            String(d.orderItemId) ===
+                                              String(item._id) ||
+                                            String(d.productId) ===
+                                              String(item.productId)
+                                        ) || data.delivery;
                                       if (itemDelivery) {
                                         setDeliveryTracking(itemDelivery);
                                         setDeliveries([itemDelivery]);
@@ -489,18 +613,23 @@ const ProductsDashboardPage = (props: Props) => {
                                           status: itemStatus || 'packing',
                                           ...itemDeliveryTracking,
                                         });
-                                        setDeliveries([{
-                                          orderId: order._id,
-                                          orderItemId: item._id,
-                                          productId: item.productId,
-                                          status: itemStatus || 'packing',
-                                          ...itemDeliveryTracking,
-                                        }]);
+                                        setDeliveries([
+                                          {
+                                            orderId: order._id,
+                                            orderItemId: item._id,
+                                            productId: item.productId,
+                                            status: itemStatus || 'packing',
+                                            ...itemDeliveryTracking,
+                                          },
+                                        ]);
                                       }
                                       setSelectedOrder(order);
                                       setTrackingModalVisible(true);
                                     } catch (error: any) {
-                                      message.error(error?.response?.data?.message || 'Failed to load delivery tracking');
+                                      message.error(
+                                        error?.response?.data?.message ||
+                                          'Failed to load delivery tracking'
+                                      );
                                     }
                                   }}
                                 >
@@ -518,7 +647,10 @@ const ProductsDashboardPage = (props: Props) => {
             />
             {orders.length === 0 && !orderLoading && (
               <div className="text-center py-8">
-                <p>No orders yet. Orders containing your products will appear here.</p>
+                <p>
+                  No orders yet. Orders containing your products will appear
+                  here.
+                </p>
               </div>
             )}
           </TabPane>
@@ -547,7 +679,8 @@ const ProductsDashboardPage = (props: Props) => {
                           Buyer: {item.buyerName} ({item.buyerEmail})
                         </div>
                         <div className="text-sm">
-                          ${item.price} x {item.quantity} = ${(item.price * item.quantity).toFixed(2)}
+                          ${item.price} x {item.quantity} = $
+                          {(item.price * item.quantity).toFixed(2)}
                         </div>
                       </div>
                       <Button
@@ -563,7 +696,10 @@ const ProductsDashboardPage = (props: Props) => {
             />
             {cartItems.length === 0 && !cartLoading && (
               <div className="text-center py-8">
-                <p>No cart items yet. Items from your products in buyer carts will appear here.</p>
+                <p>
+                  No cart items yet. Items from your products in buyer carts
+                  will appear here.
+                </p>
               </div>
             )}
           </TabPane>
@@ -613,15 +749,18 @@ const ProductsDashboardPage = (props: Props) => {
               <h3 className="mb-4">Summary</h3>
               <div className="space-y-2">
                 <p>
-                  You have <strong>{stats.totalProducts || 0}</strong> products listed.
+                  You have <strong>{stats.totalProducts || 0}</strong> products
+                  listed.
                 </p>
                 <p>
-                  Your products have been purchased <strong>{stats.totalSales || 0}</strong> times,
-                  generating <strong>${(stats.totalRevenue || 0).toFixed(2)}</strong> in revenue.
+                  Your products have been purchased{' '}
+                  <strong>{stats.totalSales || 0}</strong> times, generating{' '}
+                  <strong>${(stats.totalRevenue || 0).toFixed(2)}</strong> in
+                  revenue.
                 </p>
                 <p>
-                  Currently, <strong>{stats.cartItemsCount || 0}</strong> of your products are in
-                  buyers' shopping carts.
+                  Currently, <strong>{stats.cartItemsCount || 0}</strong> of
+                  your products are in buyers' shopping carts.
                 </p>
               </div>
             </Card>
@@ -636,12 +775,17 @@ const ProductsDashboardPage = (props: Props) => {
                   <Card className="w-full">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <div className="font-semibold">Return #{returnRequest._id.slice(-8)}</div>
-                        <div className="text-sm text-gray-500">
-                          Buyer: {returnRequest.userId?.fullName || 'Unknown'} ({returnRequest.userId?.email || 'N/A'})
+                        <div className="font-semibold">
+                          Return #{returnRequest._id.slice(-8)}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {dayjs(returnRequest.createdAt).format('MMM DD, YYYY HH:mm')}
+                          Buyer: {returnRequest.userId?.fullName || 'Unknown'} (
+                          {returnRequest.userId?.email || 'N/A'})
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {dayjs(returnRequest.createdAt).format(
+                            'MMM DD, YYYY HH:mm'
+                          )}
                         </div>
                         {returnRequest.reason && (
                           <div className="text-sm text-gray-600 mt-2">
@@ -651,37 +795,87 @@ const ProductsDashboardPage = (props: Props) => {
                       </div>
                       <div className="text-right">
                         <div className="mb-2">
-                          <Tag color={
-                            returnRequest.returnStatus === 'pending' ? 'warning' :
-                            returnRequest.returnStatus === 'approved' ? 'processing' :
-                            returnRequest.returnStatus === 'refunded' || returnRequest.returnStatus === 'completed' ? 'success' :
-                            returnRequest.returnStatus === 'rejected' ? 'error' :
-                            'default'
-                          }>
-                            {returnRequest.returnStatus?.toUpperCase()}
+                          <Tag
+                            color={
+                              returnRequest.returnStatus === 'pending'
+                                ? 'warning'
+                                : returnRequest.returnStatus ===
+                                    'assigned_support' ||
+                                  returnRequest.returnStatus ===
+                                    'assigned_agency' ||
+                                  returnRequest.returnStatus ===
+                                    'assigned_deliverer' ||
+                                  returnRequest.returnStatus === 'picked_up' ||
+                                  returnRequest.returnStatus ===
+                                    'submitted_to_support' ||
+                                  returnRequest.returnStatus ===
+                                    'in_inspection' ||
+                                  returnRequest.returnStatus ===
+                                    'inspector_assigned' ||
+                                  returnRequest.returnStatus ===
+                                    'refund_processing' ||
+                                  returnRequest.returnStatus === 're_delivery'
+                                ? 'processing'
+                                : returnRequest.returnStatus ===
+                                    'inspection_accepted' ||
+                                  returnRequest.returnStatus === 'refunded' ||
+                                  returnRequest.returnStatus === 'completed' ||
+                                  returnRequest.returnStatus ===
+                                    'submitted_to_support'
+                                ? 'success'
+                                : returnRequest.returnStatus ===
+                                  'inspection_rejected'
+                                ? 'error'
+                                : returnRequest.returnStatus === 'approved' // Legacy
+                                ? 'processing'
+                                : returnRequest.returnStatus === 'rejected' // Legacy
+                                ? 'error'
+                                : 'default'
+                            }
+                          >
+                            {returnRequest.returnStatus
+                              ?.replace(/_/g, ' ')
+                              .replace(/\b\w/g, (l: string) =>
+                                l.toUpperCase()
+                              ) || 'Unknown'}
                           </Tag>
                           {returnRequest.refundStatus && (
-                            <Tag 
-                              color={returnRequest.refundStatus === 'succeeded' ? 'success' : returnRequest.refundStatus === 'failed' ? 'error' : 'warning'} 
+                            <Tag
+                              color={
+                                returnRequest.refundStatus === 'succeeded'
+                                  ? 'success'
+                                  : returnRequest.refundStatus === 'failed'
+                                  ? 'error'
+                                  : 'warning'
+                              }
                               style={{ marginLeft: 8 }}
                             >
-                              Refund: {returnRequest.refundStatus.replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                              Refund:{' '}
+                              {returnRequest.refundStatus.replace(
+                                /\b\w/g,
+                                (l: string) => l.toUpperCase()
+                              )}
                             </Tag>
                           )}
                         </div>
                         <div className="font-semibold text-lg mt-2">
-                          ${((returnRequest.returnAmount || 0) / 100).toFixed(2)}
+                          $
+                          {((returnRequest.returnAmount || 0) / 100).toFixed(2)}
                         </div>
                       </div>
                     </div>
                     <div className="border-t pt-4">
                       <div className="font-semibold mb-2">Return Items:</div>
                       {returnRequest.items?.map((item: any, idx: number) => (
-                        <div key={idx} className="flex items-center gap-4 mb-2 pb-2 border-b last:border-b-0">
+                        <div
+                          key={idx}
+                          className="flex items-center gap-4 mb-2 pb-2 border-b last:border-b-0"
+                        >
                           <div className="flex-1">
                             <div className="font-medium">{item.title}</div>
                             <div className="text-sm text-gray-500">
-                              Quantity: {item.quantity} × ${item.price} = ${(item.price * item.quantity).toFixed(2)}
+                              Quantity: {item.quantity} × ${item.price} = $
+                              {(item.price * item.quantity).toFixed(2)}
                             </div>
                             {item.reason && (
                               <div className="text-sm text-gray-500 mt-1">
@@ -698,7 +892,9 @@ const ProductsDashboardPage = (props: Props) => {
                           <>
                             <Button
                               type="primary"
-                              onClick={() => handleApproveReturn(returnRequest._id)}
+                              onClick={() =>
+                                handleApproveReturn(returnRequest._id)
+                              }
                             >
                               Approve Return
                             </Button>
@@ -714,12 +910,16 @@ const ProductsDashboardPage = (props: Props) => {
                             </Button>
                           </>
                         )}
-                        {(returnRequest.returnStatus === 'refunded' || returnRequest.refundStatus) && (
+                        {(returnRequest.returnStatus === 'refunded' ||
+                          returnRequest.refundStatus) && (
                           <Button
                             type="default"
                             onClick={async () => {
                               try {
-                                const { data } = await getDeliveryTrackingApi(returnRequest.orderId?._id || returnRequest.orderId);
+                                const { data } = await getDeliveryTrackingApi(
+                                  returnRequest.orderId?._id ||
+                                    returnRequest.orderId
+                                );
                                 setDeliveryTracking(data.delivery);
                                 setSelectedOrder(returnRequest.orderId);
                                 setTrackingModalVisible(true);
@@ -735,7 +935,8 @@ const ProductsDashboardPage = (props: Props) => {
                     </div>
                     {returnRequest.rejectionReason && (
                       <div className="border-t pt-4 mt-4 text-red-600">
-                        <strong>Rejection Reason:</strong> {returnRequest.rejectionReason}
+                        <strong>Rejection Reason:</strong>{' '}
+                        {returnRequest.rejectionReason}
                       </div>
                     )}
                   </Card>
@@ -744,7 +945,10 @@ const ProductsDashboardPage = (props: Props) => {
             />
             {returns.length === 0 && !returnsLoading && (
               <div className="text-center py-8">
-                <p>No return requests yet. Return requests for your products will appear here.</p>
+                <p>
+                  No return requests yet. Return requests for your products will
+                  appear here.
+                </p>
               </div>
             )}
           </TabPane>
@@ -760,18 +964,33 @@ const ProductsDashboardPage = (props: Props) => {
                 <Empty description="No one has added your products to their wishlist yet" />
               ) : (
                 <List
-                  grid={{ gutter: 16, xs: 1, sm: 2, md: 4, lg: 4, xl: 4, xxl: 4 }}
+                  grid={{
+                    gutter: 16,
+                    xs: 1,
+                    sm: 2,
+                    md: 4,
+                    lg: 4,
+                    xl: 4,
+                    xxl: 4,
+                  }}
                   dataSource={wishlistItems}
                   renderItem={(item: any) => {
                     const product = item.productId;
                     const user = item.userId;
-                    const productId = typeof product === 'object' ? product._id : product;
-                    const productTitle = typeof product === 'object' ? product.title : 'Product';
-                    const productThumbnail = typeof product === 'object' ? product.thumbnail : null;
-                    const productPrice = typeof product === 'object' ? product.price : null;
-                    const userName = typeof user === 'object' ? user.fullName : 'Unknown User';
-                    const userEmail = typeof user === 'object' ? user.email : '';
-                    const userPhoto = typeof user === 'object' ? user.profilePhoto : null;
+                    const productId =
+                      typeof product === 'object' ? product._id : product;
+                    const productTitle =
+                      typeof product === 'object' ? product.title : 'Product';
+                    const productThumbnail =
+                      typeof product === 'object' ? product.thumbnail : null;
+                    const productPrice =
+                      typeof product === 'object' ? product.price : null;
+                    const userName =
+                      typeof user === 'object' ? user.fullName : 'Unknown User';
+                    const userEmail =
+                      typeof user === 'object' ? user.email : '';
+                    const userPhoto =
+                      typeof user === 'object' ? user.profilePhoto : null;
 
                     return (
                       <List.Item>
@@ -787,7 +1006,15 @@ const ProductsDashboardPage = (props: Props) => {
                                 preview={false}
                               />
                             ) : (
-                              <div style={{ height: 200, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <div
+                                style={{
+                                  height: 200,
+                                  background: '#f0f0f0',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
                                 No Image
                               </div>
                             )
@@ -801,9 +1028,17 @@ const ProductsDashboardPage = (props: Props) => {
                           <Card.Meta
                             title={
                               <div>
-                                <div style={{ marginBottom: 8 }}>{productTitle}</div>
+                                <div style={{ marginBottom: 8 }}>
+                                  {productTitle}
+                                </div>
                                 {productPrice && (
-                                  <div style={{ fontSize: 16, fontWeight: 600, color: '#1890ff' }}>
+                                  <div
+                                    style={{
+                                      fontSize: 16,
+                                      fontWeight: 600,
+                                      color: '#1890ff',
+                                    }}
+                                  >
                                     ${productPrice.toFixed(2)}
                                   </div>
                                 )}
@@ -811,8 +1046,19 @@ const ProductsDashboardPage = (props: Props) => {
                             }
                             description={
                               <div>
-                                <div style={{ marginTop: 12, padding: 8, background: '#f5f5f5', borderRadius: 4 }}>
-                                  <div style={{ fontWeight: 600, marginBottom: 4 }}>Added by:</div>
+                                <div
+                                  style={{
+                                    marginTop: 12,
+                                    padding: 8,
+                                    background: '#f5f5f5',
+                                    borderRadius: 4,
+                                  }}
+                                >
+                                  <div
+                                    style={{ fontWeight: 600, marginBottom: 4 }}
+                                  >
+                                    Added by:
+                                  </div>
                                   <Space>
                                     {userPhoto && (
                                       <Image
@@ -826,12 +1072,28 @@ const ProductsDashboardPage = (props: Props) => {
                                     )}
                                     <div>
                                       <div>{userName}</div>
-                                      {userEmail && <div style={{ fontSize: 12, color: '#666' }}>{userEmail}</div>}
+                                      {userEmail && (
+                                        <div
+                                          style={{
+                                            fontSize: 12,
+                                            color: '#666',
+                                          }}
+                                        >
+                                          {userEmail}
+                                        </div>
+                                      )}
                                     </div>
                                   </Space>
                                 </div>
-                                <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
-                                  Added {dayjs(item.createdAt).format('MMM DD, YYYY')}
+                                <div
+                                  style={{
+                                    marginTop: 8,
+                                    fontSize: 12,
+                                    color: '#999',
+                                  }}
+                                >
+                                  Added{' '}
+                                  {dayjs(item.createdAt).format('MMM DD, YYYY')}
                                 </div>
                               </div>
                             }
@@ -871,12 +1133,15 @@ const ProductsDashboardPage = (props: Props) => {
             setSelectedOrder(null);
           }}
           footer={[
-            <Button key="close" onClick={() => {
-              setTrackingModalVisible(false);
-              setDeliveryTracking(null);
-              setDeliveries([]);
-              setSelectedOrder(null);
-            }}>
+            <Button
+              key="close"
+              onClick={() => {
+                setTrackingModalVisible(false);
+                setDeliveryTracking(null);
+                setDeliveries([]);
+                setSelectedOrder(null);
+              }}
+            >
               Close
             </Button>,
           ]}
@@ -886,22 +1151,35 @@ const ProductsDashboardPage = (props: Props) => {
             <div>
               {(() => {
                 const orderItem = selectedOrder.items?.find(
-                  (item: any) => String(item._id) === String(deliveryTracking.orderItemId) || 
-                                String(item.productId) === String(deliveryTracking.productId)
+                  (item: any) =>
+                    String(item._id) === String(deliveryTracking.orderItemId) ||
+                    String(item.productId) ===
+                      String(deliveryTracking.productId)
                 );
                 return (
                   <div>
                     {orderItem && (
-                      <div style={{ marginBottom: 16, padding: 12, background: '#f5f5f5', borderRadius: 4 }}>
-                        <div style={{ fontWeight: 600, marginBottom: 4 }}>Product:</div>
+                      <div
+                        style={{
+                          marginBottom: 16,
+                          padding: 12,
+                          background: '#f5f5f5',
+                          borderRadius: 4,
+                        }}
+                      >
+                        <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                          Product:
+                        </div>
                         <div>{orderItem.title}</div>
-                        <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+                        <div
+                          style={{ fontSize: 12, color: '#666', marginTop: 4 }}
+                        >
                           ${orderItem.price} × {orderItem.quantity}
                         </div>
                       </div>
                     )}
-                    <DeliveryTracking 
-                      delivery={deliveryTracking} 
+                    <DeliveryTracking
+                      delivery={deliveryTracking}
                       order={selectedOrder}
                       isSeller={true}
                       orderItemId={deliveryTracking.orderItemId}
@@ -909,11 +1187,17 @@ const ProductsDashboardPage = (props: Props) => {
                       onStatusUpdate={async () => {
                         // Reload delivery tracking after update
                         try {
-                          const { data } = await getDeliveryTrackingApi(selectedOrder._id);
-                          const itemDelivery = data.deliveries?.find(
-                            (d: any) => String(d.orderItemId) === String(deliveryTracking.orderItemId) || 
-                                       String(d.productId) === String(deliveryTracking.productId)
-                          ) || data.delivery;
+                          const { data } = await getDeliveryTrackingApi(
+                            selectedOrder._id
+                          );
+                          const itemDelivery =
+                            data.deliveries?.find(
+                              (d: any) =>
+                                String(d.orderItemId) ===
+                                  String(deliveryTracking.orderItemId) ||
+                                String(d.productId) ===
+                                  String(deliveryTracking.productId)
+                            ) || data.delivery;
                           if (itemDelivery) {
                             setDeliveryTracking(itemDelivery);
                             setDeliveries([itemDelivery]);
@@ -921,7 +1205,10 @@ const ProductsDashboardPage = (props: Props) => {
                           // Also reload orders to refresh status
                           loadOrders();
                         } catch (error: any) {
-                          console.error('Failed to reload delivery tracking:', error);
+                          console.error(
+                            'Failed to reload delivery tracking:',
+                            error
+                          );
                         }
                       }}
                     />
@@ -947,7 +1234,9 @@ const ProductsDashboardPage = (props: Props) => {
           <Input.TextArea
             placeholder="Please provide a reason for rejecting this return request"
             value={rejectReason}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setRejectReason(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+              setRejectReason(e.target.value)
+            }
             rows={4}
           />
         </Modal>

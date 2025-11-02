@@ -117,10 +117,11 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
           { value: 'picked_up', label: 'Picked Up' },
           { value: 'in_facility', label: 'In Delivery Facility' },
         ];
-      } else if (delivererType === 'customer') {
-        // Customer deliverer can only update: out_for_delivery -> delivered or rejected
+      } else if (delivererType === 'customer_delivery' || delivererType === 'customer_return') {
+        // Customer delivery deliverer can only update: out_for_delivery -> delivered or rejected
+        // Customer return deliverer handles return pickups
         const allowedStatuses = [];
-        if (currentStatus === 'out_for_delivery') {
+        if (currentStatus === 'out_for_delivery' && delivererType === 'customer_delivery') {
           allowedStatuses.push({ value: 'delivered', label: 'Delivered' });
           allowedStatuses.push({ value: 'rejected', label: 'Rejected' });
         }
@@ -133,17 +134,22 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
   };
 
   const validStatuses = getAllowedStatuses();
-  const canUpdate = (userRole === 'seller' || userRole === 'delivery_person' || userRole === 'warehouse_operator') && 
-                    currentStatus !== 'delivered' && 
-                    currentStatus !== 'cancelled' &&
-                    currentStatus !== 'rejected';
+  // Warehouse operators can only update when status is in_facility or in_transit (not out_for_delivery or beyond)
+  const canUpdateWarehouse = userRole === 'warehouse_operator' && 
+                             (currentStatus === 'in_facility' || currentStatus === 'in_transit') &&
+                             validStatuses.length > 0;
+  const canUpdateOthers = (userRole === 'seller' || userRole === 'delivery_person') && 
+                          currentStatus !== 'delivered' && 
+                          currentStatus !== 'cancelled' &&
+                          currentStatus !== 'rejected';
+  const canUpdate = canUpdateWarehouse || canUpdateOthers;
 
   const loadDeliveryPersons = async () => {
     try {
       setLoadingPersons(true);
       const { data } = await getAgencyPersonsApi();
-      // Filter to only customer deliverers for warehouse operator
-      const customerDeliverers = (data.deliveryPersons || []).filter((p: any) => p.delivererType === 'customer');
+      // Filter to only customer_delivery deliverers for warehouse operator
+      const customerDeliverers = (data.deliveryPersons || []).filter((p: any) => p.delivererType === 'customer_delivery');
       setDeliveryPersons(customerDeliverers);
     } catch (error: any) {
       console.error('Failed to load delivery persons:', error);
@@ -162,10 +168,7 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
         message.error('Please select a customer deliverer when updating status to "Out for Delivery"');
         return;
       }
-      if (!updateNote || updateNote.trim().length === 0) {
-        message.error('Please add a note with delivery person details (name, phone number)');
-        return;
-      }
+      // Note is optional - backend will auto-populate with deliverer info
     }
     
     setUpdating(true);
@@ -366,7 +369,7 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
               }))}
             />
             <Text type="secondary" style={{ fontSize: '12px', marginTop: 4, display: 'block' }}>
-              Select the customer deliverer who will complete the final delivery
+              Select the customer deliverer who will complete the final delivery. Deliverer information will be automatically included.
             </Text>
           </div>
         )}

@@ -1,16 +1,40 @@
-import { Card, List, Tag, Spin, Empty, message, Button, Image, Modal, Popconfirm, Input, Space, Typography } from 'antd';
+import {
+  Card,
+  List,
+  Tag,
+  Spin,
+  Empty,
+  message,
+  Button,
+  Image,
+  Modal,
+  Popconfirm,
+  Input,
+  Typography,
+} from 'antd';
 import { Container } from 'components/UI';
 import { usePageTitle } from 'hooks/usePageTitle';
 import { useEffect, useState } from 'react';
 import { listMyOrdersApi } from 'services/endPoints/orders/ordersEndpoints';
-import { getDeliveryTrackingApi, cancelOrderApi } from 'services/endPoints/delivery';
+import {
+  getDeliveryTrackingApi,
+  cancelOrderApi,
+} from 'services/endPoints/delivery';
+import { getMyReturnsApi } from 'services/endPoints/return';
 import { getToken } from 'utils/localStorage';
 import { useAppSelector, useAppDispatch } from 'redux/store';
 import { authSelector } from 'redux/slice';
-import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, EyeOutlined, StopOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import {
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
+  EyeOutlined,
+  StopOutlined,
+  UndoOutlined,
+} from '@ant-design/icons';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
-import { DeliveryTracking, RefundStatus } from 'components';
+import { DeliveryTracking } from 'components';
 import { pageRoutes } from 'data/static/pageRoutes';
 import './OrdersDashboard.scss';
 
@@ -26,13 +50,16 @@ const OrdersDashboard = (props: TProps) => {
   const { result } = useAppSelector(authSelector);
   const isSeller = result?.role === 'seller';
   const [orders, setOrders] = useState<any[]>([]);
+  const [returns, setReturns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [deliveryTracking, setDeliveryTracking] = useState<any>(null);
   const [deliveries, setDeliveries] = useState<any[]>([]);
   const [trackingModalVisible, setTrackingModalVisible] = useState(false);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
-  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(
+    null
+  );
   const [cancelReason, setCancelReason] = useState('');
 
   useEffect(() => {
@@ -50,24 +77,37 @@ const OrdersDashboard = (props: TProps) => {
       try {
         const { data } = await listMyOrdersApi(token);
         setOrders(data.orders || []);
-        
+
+        // Load return requests to check status for each item
+        try {
+          const { data: returnsData } = await getMyReturnsApi();
+          setReturns(returnsData.returns || []);
+        } catch (returnError) {
+          console.error('Failed to load returns:', returnError);
+          setReturns([]);
+        }
+
         // Check URL params for notification navigation
         const orderId = searchParams.get('orderId');
         const orderItemId = searchParams.get('orderItemId');
         const productId = searchParams.get('productId');
-        
+
         if (orderId && data.orders) {
           const order = data.orders.find((o: any) => String(o._id) === orderId);
           if (order) {
             setSelectedOrder(order);
             // Load tracking for specific item
             try {
-              const { data: trackingData } = await getDeliveryTrackingApi(orderId);
-              const itemDelivery = trackingData.deliveries?.find(
-                (d: any) => (orderItemId && String(d.orderItemId) === orderItemId) ||
-                           (productId && String(d.productId) === productId) ||
-                           (!orderItemId && !productId && trackingData.deliveries?.[0])
-              ) || trackingData.delivery;
+              const { data: trackingData } = await getDeliveryTrackingApi(
+                orderId
+              );
+              const itemDelivery =
+                trackingData.deliveries?.find(
+                  (d: any) =>
+                    (orderItemId && String(d.orderItemId) === orderItemId) ||
+                    (productId && String(d.productId) === productId) ||
+                    (!orderItemId && !productId && trackingData.deliveries?.[0])
+                ) || trackingData.delivery;
               if (itemDelivery) {
                 setDeliveryTracking(itemDelivery);
                 setDeliveries([itemDelivery]);
@@ -87,21 +127,29 @@ const OrdersDashboard = (props: TProps) => {
     load();
   }, [isSeller, searchParams]);
 
-
-
   const handleCancelOrder = async () => {
     if (!cancellingOrderId) return;
     try {
       await cancelOrderApi(cancellingOrderId, cancelReason);
-      message.success('Order cancelled successfully. Refund will be processed.');
+      message.success(
+        'Order cancelled successfully. Refund will be processed.'
+      );
       setCancelModalVisible(false);
       setCancelReason('');
       setCancellingOrderId(null);
-      // Reload orders
+      // Reload orders and returns
       const token = getToken();
       if (token) {
         const { data } = await listMyOrdersApi(token);
         setOrders(data.orders || []);
+
+        // Reload returns
+        try {
+          const { data: returnsData } = await getMyReturnsApi();
+          setReturns(returnsData.returns || []);
+        } catch (returnError) {
+          console.error('Failed to reload returns:', returnError);
+        }
       }
     } catch (error: any) {
       message.error(error?.response?.data?.message || 'Failed to cancel order');
@@ -109,7 +157,10 @@ const OrdersDashboard = (props: TProps) => {
   };
 
   const getStatusTag = (status: string) => {
-    const statusConfig: Record<string, { color: string; icon: any; text: string }> = {
+    const statusConfig: Record<
+      string,
+      { color: string; icon: any; text: string }
+    > = {
       paid: {
         color: 'success',
         icon: <CheckCircleOutlined />,
@@ -160,6 +211,66 @@ const OrdersDashboard = (props: TProps) => {
     });
   };
 
+  // Find return request for a specific order item
+  const getReturnRequestForItem = (orderId: string, productId: string) => {
+    return returns.find((ret: any) => {
+      const retOrderId = ret.orderId?._id || ret.orderId;
+      if (String(retOrderId) !== String(orderId)) return false;
+
+      // Check if any item in the return request matches the productId
+      return ret.items?.some(
+        (item: any) => String(item.productId) === String(productId)
+      );
+    });
+  };
+
+  // Get return status label
+  const getReturnStatusLabel = (status: string) => {
+    const statusLabels: Record<string, string> = {
+      pending: 'Return Initiated',
+      assigned_support: 'Support Assigned',
+      assigned_agency: 'Agency Assigned',
+      assigned_deliverer: 'Deliverer Assigned',
+      picked_up: 'Picked Up',
+      submitted_to_support: 'Submitted to Support',
+      in_inspection: 'In Inspection',
+      inspector_assigned: 'Inspector Assigned',
+      inspection_accepted: 'Inspection Accepted',
+      inspection_rejected: 'Inspection Rejected',
+      refund_processing: 'Refund Processing',
+      refunded: 'Refunded',
+      re_delivery: 'Re-delivery',
+      completed: 'Completed',
+      cancelled: 'Cancelled',
+    };
+    return (
+      statusLabels[status] ||
+      status.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())
+    );
+  };
+
+  // Get return status color
+  const getReturnStatusColor = (status: string) => {
+    const colorMap: Record<string, string> = {
+      pending: 'warning',
+      assigned_support: 'processing',
+      assigned_agency: 'processing',
+      assigned_deliverer: 'processing',
+      picked_up: 'processing',
+      submitted_to_support: 'success',
+      in_inspection: 'processing',
+      inspector_assigned: 'processing',
+      inspection_accepted: 'success',
+      inspection_rejected: 'error',
+      refund_processing: 'processing',
+      refunded: 'success',
+      re_delivery: 'warning',
+      completed: 'success',
+      cancelled: 'default',
+    };
+    return colorMap[status] || 'default';
+  };
+
   const handleBuyAgain = async (item: any) => {
     try {
       await dispatch(addToCart({ productId: item.productId })).unwrap();
@@ -177,7 +288,9 @@ const OrdersDashboard = (props: TProps) => {
         <Container className="py-6">
           <Card title="My Orders">
             <div className="text-center py-8">
-              <p className="text-gray-500">Sellers cannot view orders. This page is for buyers only.</p>
+              <p className="text-gray-500">
+                Sellers cannot view orders. This page is for buyers only.
+              </p>
             </div>
           </Card>
         </Container>
@@ -220,24 +333,38 @@ const OrdersDashboard = (props: TProps) => {
                             {getStatusTag(order.status)}
                             {order.deliveryStatus && (
                               <Tag color="blue" style={{ marginLeft: 8 }}>
-                                {order.deliveryStatus.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                                {order.deliveryStatus
+                                  .replace(/_/g, ' ')
+                                  .replace(/\b\w/g, (l: string) =>
+                                    l.toUpperCase()
+                                  )}
                               </Tag>
                             )}
                             {order.refundStatus && (
-                              <Tag 
-                                color={order.refundStatus === 'succeeded' ? 'success' : order.refundStatus === 'failed' ? 'error' : 'warning'} 
+                              <Tag
+                                color={
+                                  order.refundStatus === 'succeeded'
+                                    ? 'success'
+                                    : order.refundStatus === 'failed'
+                                    ? 'error'
+                                    : 'warning'
+                                }
                                 style={{ marginLeft: 8 }}
                               >
-                                Refund: {order.refundStatus.replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                                Refund:{' '}
+                                {order.refundStatus.replace(
+                                  /\b\w/g,
+                                  (l: string) => l.toUpperCase()
+                                )}
                               </Tag>
                             )}
                           </div>
                           <div className="order-amount">
-                            ${((order.amount || 0) / 100).toFixed(2)} {order.currency?.toUpperCase() || 'USD'}
+                            ${((order.amount || 0) / 10000).toFixed(2)}{' '}
+                            {order.currency?.toUpperCase() || 'USD'}
                           </div>
                         </div>
                       </div>
-
 
                       <div className="order-items">
                         <h4 className="order-items-title">Items:</h4>
@@ -246,7 +373,10 @@ const OrdersDashboard = (props: TProps) => {
                           dataSource={order.items || []}
                           renderItem={(item: any) => (
                             <List.Item>
-                              <Card className="order-product-card" style={{ width: '100%' }}>
+                              <Card
+                                className="order-product-card"
+                                style={{ width: '100%' }}
+                              >
                                 <div className="order-item-detail">
                                   {item.thumbnail ? (
                                     <Image
@@ -263,20 +393,49 @@ const OrdersDashboard = (props: TProps) => {
                                     </div>
                                   )}
                                   <div className="order-item-info">
-                                    <div className="order-item-title">{item.title}</div>
+                                    <div className="order-item-title">
+                                      {item.title}
+                                    </div>
                                     <div className="order-item-meta">
-                                      ${item.price} × {item.quantity} = ${(item.price * item.quantity).toFixed(2)}
+                                      ${item.price} × {item.quantity} = $
+                                      {(item.price * item.quantity).toFixed(2)}
                                     </div>
                                     {item.deliveryTracking && (
                                       <div style={{ marginTop: 8 }}>
-                                        <Tag color="blue" style={{ marginTop: 4 }}>
-                                          Delivery: {item.deliveryTracking.status?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || item.deliveryStatus?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || 'Packing'}
+                                        <Tag
+                                          color="blue"
+                                          style={{ marginTop: 4 }}
+                                        >
+                                          Delivery:{' '}
+                                          {item.deliveryTracking.status
+                                            ?.replace(/_/g, ' ')
+                                            .replace(/\b\w/g, (l: string) =>
+                                              l.toUpperCase()
+                                            ) ||
+                                            item.deliveryStatus
+                                              ?.replace(/_/g, ' ')
+                                              .replace(/\b\w/g, (l: string) =>
+                                                l.toUpperCase()
+                                              ) ||
+                                            'Packing'}
                                         </Tag>
-                                        {item.deliveryTracking.buyerAcceptance === 'accepted' && (
-                                          <Tag color="success" style={{ marginLeft: 4 }}>Accepted</Tag>
+                                        {item.deliveryTracking
+                                          .buyerAcceptance === 'accepted' && (
+                                          <Tag
+                                            color="success"
+                                            style={{ marginLeft: 4 }}
+                                          >
+                                            Accepted
+                                          </Tag>
                                         )}
-                                        {item.deliveryTracking.buyerAcceptance === 'rejected' && (
-                                          <Tag color="error" style={{ marginLeft: 4 }}>Rejected</Tag>
+                                        {item.deliveryTracking
+                                          .buyerAcceptance === 'rejected' && (
+                                          <Tag
+                                            color="error"
+                                            style={{ marginLeft: 4 }}
+                                          >
+                                            Rejected
+                                          </Tag>
                                         )}
                                       </div>
                                     )}
@@ -286,7 +445,9 @@ const OrdersDashboard = (props: TProps) => {
                                       type="default"
                                       icon={<EyeOutlined />}
                                       size="small"
-                                      onClick={() => navigate(`/products/${item.productId}`)}
+                                      onClick={() =>
+                                        navigate(`/products/${item.productId}`)
+                                      }
                                     >
                                       View
                                     </Button>
@@ -297,12 +458,19 @@ const OrdersDashboard = (props: TProps) => {
                                         size="small"
                                         onClick={async () => {
                                           try {
-                                            const { data } = await getDeliveryTrackingApi(order._id);
+                                            const { data } =
+                                              await getDeliveryTrackingApi(
+                                                order._id
+                                              );
                                             // Find delivery for this specific item
-                                            const itemDelivery = data.deliveries?.find(
-                                              (d: any) => String(d.orderItemId) === String(item._id) || 
-                                                         String(d.productId) === String(item.productId)
-                                            ) || data.delivery;
+                                            const itemDelivery =
+                                              data.deliveries?.find(
+                                                (d: any) =>
+                                                  String(d.orderItemId) ===
+                                                    String(item._id) ||
+                                                  String(d.productId) ===
+                                                    String(item.productId)
+                                              ) || data.delivery;
                                             if (itemDelivery) {
                                               setDeliveryTracking(itemDelivery);
                                               setDeliveries([itemDelivery]);
@@ -312,51 +480,182 @@ const OrdersDashboard = (props: TProps) => {
                                                 orderId: order._id,
                                                 orderItemId: item._id,
                                                 productId: item.productId,
-                                                status: item.deliveryStatus || 'packing',
+                                                status:
+                                                  item.deliveryStatus ||
+                                                  'packing',
                                                 ...item.deliveryTracking,
                                               });
-                                              setDeliveries([{
-                                                orderId: order._id,
-                                                orderItemId: item._id,
-                                                productId: item.productId,
-                                                status: item.deliveryStatus || 'packing',
-                                                ...item.deliveryTracking,
-                                              }]);
+                                              setDeliveries([
+                                                {
+                                                  orderId: order._id,
+                                                  orderItemId: item._id,
+                                                  productId: item.productId,
+                                                  status:
+                                                    item.deliveryStatus ||
+                                                    'packing',
+                                                  ...item.deliveryTracking,
+                                                },
+                                              ]);
                                             }
                                             setSelectedOrder(order);
                                             setTrackingModalVisible(true);
                                           } catch (error: any) {
-                                            message.error(error?.response?.data?.message || 'Failed to load delivery tracking');
+                                            message.error(
+                                              error?.response?.data?.message ||
+                                                'Failed to load delivery tracking'
+                                            );
                                           }
                                         }}
                                       >
                                         Track Delivery
                                       </Button>
                                     )}
-                                    {item.deliveryStatus && item.deliveryStatus !== 'delivered' && item.deliveryStatus !== 'cancelled' && (
-                                      <Popconfirm
-                                        title="Cancel This Item"
-                                        description="Are you sure you want to cancel this item? A refund will be processed."
-                                        onConfirm={() => {
-                                          message.info('Per-item cancellation will be implemented');
-                                        }}
-                                        okText="Yes, Cancel"
-                                        cancelText="No"
-                                      >
-                                        <Button type="default" danger size="small" icon={<StopOutlined />}>
-                                          Cancel Item
-                                        </Button>
-                                      </Popconfirm>
-                                    )}
-                                    {item.deliveryTracking?.buyerAcceptance === 'accepted' && item.deliveryStatus === 'delivered' && (
-                                      <Button
-                                        type="default"
-                                        size="small"
-                                        onClick={() => navigate(`/${pageRoutes.userReturns}?orderId=${order._id}&itemId=${item._id}`)}
-                                      >
-                                        Return/Refund
-                                      </Button>
-                                    )}
+                                    {(() => {
+                                      const deliveryStatus =
+                                        item.deliveryTracking?.status ||
+                                        item.deliveryStatus;
+                                      const canCancel =
+                                        deliveryStatus &&
+                                        ![
+                                          'delivered',
+                                          'cancelled',
+                                          'picked_up',
+                                          'in_facility',
+                                          'in_transit',
+                                          'out_for_delivery',
+                                        ].includes(deliveryStatus) &&
+                                        order.status === 'paid';
+
+                                      if (
+                                        !canCancel &&
+                                        deliveryStatus &&
+                                        [
+                                          'picked_up',
+                                          'in_facility',
+                                          'in_transit',
+                                          'out_for_delivery',
+                                        ].includes(deliveryStatus)
+                                      ) {
+                                        return (
+                                          <Button
+                                            type="default"
+                                            danger
+                                            size="small"
+                                            icon={<StopOutlined />}
+                                            disabled
+                                            title="Order is already shipped and cannot be cancelled. Please reject the order at the time of delivery."
+                                          >
+                                            Cancel Item
+                                          </Button>
+                                        );
+                                      }
+
+                                      if (canCancel) {
+                                        return (
+                                          <Popconfirm
+                                            title="Cancel This Item"
+                                            description="Are you sure you want to cancel this item? A refund will be processed."
+                                            onConfirm={async () => {
+                                              try {
+                                                await cancelOrderApi(
+                                                  order._id,
+                                                  'Cancelled by user'
+                                                );
+                                                message.success(
+                                                  'Order cancelled successfully'
+                                                );
+                                                // Reload orders
+                                                setLoading(true);
+                                                const token = getToken() || '';
+                                                const { data } =
+                                                  await listMyOrdersApi(token);
+                                                setOrders(data.orders || []);
+                                                setLoading(false);
+                                              } catch (error: any) {
+                                                message.error(
+                                                  error?.response?.data
+                                                    ?.message ||
+                                                    'Failed to cancel order'
+                                                );
+                                              }
+                                            }}
+                                            okText="Yes, Cancel"
+                                            cancelText="No"
+                                          >
+                                            <Button
+                                              type="default"
+                                              danger
+                                              size="small"
+                                              icon={<StopOutlined />}
+                                            >
+                                              Cancel Item
+                                            </Button>
+                                          </Popconfirm>
+                                        );
+                                      }
+
+                                      return null;
+                                    })()}
+                                    {item.deliveryStatus === 'delivered' &&
+                                      (() => {
+                                        const returnRequest =
+                                          getReturnRequestForItem(
+                                            order._id,
+                                            item.productId
+                                          );
+
+                                        if (returnRequest) {
+                                          // Show return status button that redirects to returns panel
+                                          return (
+                                            <Button
+                                              type="default"
+                                              size="small"
+                                              icon={<UndoOutlined />}
+                                              onClick={() =>
+                                                navigate(
+                                                  `/${pageRoutes.userReturns}?orderId=${order._id}&orderItemId=${item._id}&productId=${item.productId}`
+                                                )
+                                              }
+                                              style={{
+                                                borderColor:
+                                                  getReturnStatusColor(
+                                                    returnRequest.returnStatus
+                                                  ) === 'success'
+                                                    ? '#52c41a'
+                                                    : getReturnStatusColor(
+                                                        returnRequest.returnStatus
+                                                      ) === 'error'
+                                                    ? '#ff4d4f'
+                                                    : getReturnStatusColor(
+                                                        returnRequest.returnStatus
+                                                      ) === 'warning'
+                                                    ? '#faad14'
+                                                    : undefined,
+                                              }}
+                                            >
+                                              {getReturnStatusLabel(
+                                                returnRequest.returnStatus
+                                              )}
+                                            </Button>
+                                          );
+                                        } else {
+                                          // Show initial "Return/Refund" button
+                                          return (
+                                            <Button
+                                              type="default"
+                                              size="small"
+                                              icon={<UndoOutlined />}
+                                              onClick={() =>
+                                                navigate(
+                                                  `/${pageRoutes.userReturns}?orderId=${order._id}&orderItemId=${item._id}&productId=${item.productId}`
+                                                )
+                                              }
+                                            >
+                                              Return/Refund
+                                            </Button>
+                                          );
+                                        }
+                                      })()}
                                     <Button
                                       type="primary"
                                       size="small"
@@ -397,12 +696,15 @@ const OrdersDashboard = (props: TProps) => {
             setSelectedOrder(null);
           }}
           footer={[
-            <Button key="close" onClick={() => {
-              setTrackingModalVisible(false);
-              setDeliveryTracking(null);
-              setDeliveries([]);
-              setSelectedOrder(null);
-            }}>
+            <Button
+              key="close"
+              onClick={() => {
+                setTrackingModalVisible(false);
+                setDeliveryTracking(null);
+                setDeliveries([]);
+                setSelectedOrder(null);
+              }}
+            >
               Close
             </Button>,
           ]}
@@ -412,22 +714,35 @@ const OrdersDashboard = (props: TProps) => {
             <div>
               {(() => {
                 const orderItem = selectedOrder.items?.find(
-                  (item: any) => String(item._id) === String(deliveryTracking.orderItemId) || 
-                                String(item.productId) === String(deliveryTracking.productId)
+                  (item: any) =>
+                    String(item._id) === String(deliveryTracking.orderItemId) ||
+                    String(item.productId) ===
+                      String(deliveryTracking.productId)
                 );
                 return (
                   <div>
                     {orderItem && (
-                      <div style={{ marginBottom: 16, padding: 12, background: '#f5f5f5', borderRadius: 4 }}>
-                        <div style={{ fontWeight: 600, marginBottom: 4 }}>Product:</div>
+                      <div
+                        style={{
+                          marginBottom: 16,
+                          padding: 12,
+                          background: '#f5f5f5',
+                          borderRadius: 4,
+                        }}
+                      >
+                        <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                          Product:
+                        </div>
                         <div>{orderItem.title}</div>
-                        <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+                        <div
+                          style={{ fontSize: 12, color: '#666', marginTop: 4 }}
+                        >
                           ${orderItem.price} × {orderItem.quantity}
                         </div>
                       </div>
                     )}
-                    <DeliveryTracking 
-                      delivery={deliveryTracking} 
+                    <DeliveryTracking
+                      delivery={deliveryTracking}
                       order={selectedOrder}
                       orderItemId={deliveryTracking.orderItemId}
                       productId={deliveryTracking.productId}
@@ -451,7 +766,10 @@ const OrdersDashboard = (props: TProps) => {
           okText="Confirm Cancellation"
           okButtonProps={{ danger: true }}
         >
-          <p>Are you sure you want to cancel this order? A refund will be processed to your original payment method.</p>
+          <p>
+            Are you sure you want to cancel this order? A refund will be
+            processed to your original payment method.
+          </p>
           <Input.TextArea
             placeholder="Optional: Reason for cancellation"
             value={cancelReason}
@@ -460,7 +778,6 @@ const OrdersDashboard = (props: TProps) => {
             style={{ marginTop: 16 }}
           />
         </Modal>
-
       </Container>
     </>
   );
