@@ -1,0 +1,187 @@
+{
+  "site": {
+    "title": "My Shop",
+    "description": "My online shop!",
+    "tagline": "Your trusted shopping destination"
+  },
+  "contact": {
+    "phone": "+1 (234) 567-890",
+    "email": "support@myshop.com",
+    "address": "123 Shopping Street, City, State 12345",
+    "businessHours": "Monday - Friday: 9:00 AM - 6:00 PM EST"
+  },
+  "social": {
+    "facebook": "#",
+    "twitter": "#",
+    "instagram": "#",
+    "linkedin": "#",
+    "youtube": "#"
+  },
+  "mobileApp": {
+    "appStore": "#",
+    "googlePlay": "#",
+    "available": true
+  },
+  "paymentMethods": [
+    "Visa",
+    "Mastercard",
+    "American Express",
+    "PayPal",
+    "Stripe",
+    "Apple Pay",
+    "Google Pay"
+  ],
+  "verifiedBadges": [
+    {
+      "text": "SSL Secured",
+      "icon": "GlobalOutlined"
+    },
+    {
+      "text": "Trusted Site",
+      "icon": "SafetyOutlined"
+    },
+    {
+      "text": "GDPR Compliant",
+      "icon": null
+    }
+  ],
+  "footerLinks": {
+    "customerCare": [
+      {
+        "label": "Help Center",
+        "link": "/contact",
+        "icon": "QuestionCircleOutlined"
+      },
+      {
+        "label": "Contact Us",
+        "link": "/contact",
+        "icon": "MessageOutlined"
+      },
+      {
+        "label": "Returns & Refunds",
+        "link": "/user/returns",
+        "icon": null
+      },
+      {
+        "label": "FAQ",
+        "link": "/faq",
+        "icon": null
+      }
+    ],
+    "information": [
+      {
+        "label": "About Us",
+        "link": "/about",
+        "icon": null
+      },
+      {
+        "label": "Privacy Policy",
+        "link": "/privacy-policy",
+        "icon": null
+      },
+      {
+        "label": "Terms & Conditions",
+        "link": "/terms",
+        "icon": null
+      },
+      {
+        "label": "Shipping Policy",
+        "link": "/shipping",
+        "icon": null
+      },
+      {
+        "label": "Cancellation Policy",
+        "link": "/cancellation",
+        "icon": null
+      },
+      {
+        "label": "Careers",
+        "link": "/careers",
+        "icon": null
+      }
+    ],
+    "copyright": [
+      {
+        "label": "Privacy Policy",
+        "link": "/privacy-policy"
+      },
+      {
+        "label": "Terms of Service",
+        "link": "/terms"
+      },
+      {
+        "label": "Cookie Policy",
+        "link": "/cookie"
+      }
+    ]
+  },
+  "bannerSlides": [
+    {
+      "id": "1",
+      "type": "offer",
+      "title": "Summer Sale",
+      "subtitle": "Up to 50% OFF",
+      "description": "Discover amazing deals on summer essentials",
+      "backgroundColor": "#ff6b6b",
+      "textColor": "#fff",
+      "buttonText": "Shop Now",
+      "buttonLink": "/products",
+      "discount": "50%"
+    },
+    {
+      "id": "2",
+      "type": "voucher",
+      "title": "Get Your Voucher",
+      "subtitle": "SAVE20",
+      "description": "Use code SAVE20 to get 20% off on your next purchase",
+      "backgroundColor": "#4ecdc4",
+      "textColor": "#fff",
+      "buttonText": "Copy Code",
+      "voucherCode": "SAVE20"
+    },
+    {
+      "id": "3",
+      "type": "featured",
+      "title": "Featured Products",
+      "subtitle": "Best Sellers",
+      "description": "Check out our top-rated products this week",
+      "backgroundColor": "#45b7d1",
+      "textColor": "#fff",
+      "buttonText": "View Products",
+      "buttonLink": "/products"
+    },
+    {
+      "id": "4",
+      "type": "coming-soon",
+      "title": "Coming Soon",
+      "subtitle": "New Collection",
+      "description": "Exciting new products launching next week!",
+      "backgroundColor": "#f39c12",
+      "textColor": "#fff",
+      "buttonText": "Notify Me"
+    },
+    {
+      "id": "5",
+      "type": "banner",
+      "title": "Free Shipping",
+      "subtitle": "On Orders Over $100",
+      "description": "Shop now and enjoy free shipping on all orders",
+      "backgroundColor": "#9b59b6",
+      "textColor": "#fff",
+      "buttonText": "Shop Now",
+      "buttonLink": "/products"
+    },
+    {
+      "id": "6",
+      "type": "offer",
+      "title": "Flash Sale",
+      "subtitle": "Limited Time",
+      "description": "Limited time offer - don't miss out!",
+      "backgroundColor": "#e74c3c",
+      "textColor": "#fff",
+      "buttonText": "Shop Now",
+      "buttonLink": "/products",
+      "discount": "30%"
+    }
+  ]
+}

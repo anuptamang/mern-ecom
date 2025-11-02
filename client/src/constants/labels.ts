@@ -1,0 +1,82 @@
+/**
+ * Centralized label constants for UI elements
+ * Used for buttons, form labels, table headers, etc.
+ */
+
+export const LABELS = {
+  // Button Labels
+  BUTTON: {
+    SHOP_NOW: 'Shop Now',
+    VIEW_PRODUCTS: 'View Products',
+    COPY_CODE: 'Copy Code',
+    NOTIFY_ME: 'Notify Me',
+    COMING_SOON: 'Coming Soon',
+    ADD_TO_CART: 'Add to Cart',
+    BUY_NOW: 'Buy Now',
+    VIEW_DETAILS: 'View Details',
+    SUBMIT: 'Submit',
+    CANCEL: 'Cancel',
+    SAVE: 'Save',
+    EDIT: 'Edit',
+    DELETE: 'Delete',
+    UPDATE: 'Update',
+    CONFIRM: 'Confirm',
+    CLOSE: 'Close',
+    BACK: 'Back',
+    NEXT: 'Next',
+    PREVIOUS: 'Previous',
+    SEARCH: 'Search',
+    FILTER: 'Filter',
+    RESET: 'Reset',
+    SEND: 'Send',
+    RETRY: 'Retry',
+    REFRESH: 'Refresh',
+  },
+
+  // Common Labels
+  COMMON: {
+    DISCOUNT: 'OFF',
+    COPIED: '✓ Copied!',
+    VOUCHER_CODE: 'Voucher Code',
+    ORDER_ID: 'Order ID',
+    REFUND_ID: 'Refund ID',
+    REFUND_AMOUNT: 'Refund Amount',
+    REFUND_REQUESTED: 'Refund Requested',
+    REFUND_COMPLETED: 'Refund Completed',
+    REFUND_STATUS: 'Refund Status',
+    DELIVERY_STATUS: 'Delivery Status',
+    ORDER_STATUS: 'Order Status',
+    RETURN_STATUS: 'Return Status',
+    STATUS: 'Status',
+    TOTAL: 'Total',
+    SUBTOTAL: 'Subtotal',
+    PRICE: 'Price',
+    QUANTITY: 'Quantity',
+    DESCRIPTION: 'Description',
+    TITLE: 'Title',
+    CATEGORY: 'Category',
+    CATEGORIES: 'Categories',
+    ALL_PRODUCTS: 'All Products',
+    IN_STOCK: 'In Stock',
+    OUT_OF_STOCK: 'Out of Stock',
+    STOCK_UNAVAILABLE: 'Stock information unavailable',
+    NO_DESCRIPTION: 'No description available.',
+    RELATED_PRODUCTS: 'Related Products',
+    PRODUCT: 'Product',
+  },
+
+  // Banner Types
+  BANNER: {
+    SUMMER_SALE: 'Summer Sale',
+    GET_YOUR_VOUCHER: 'Get Your Voucher',
+    FEATURED_PRODUCTS: 'Featured Products',
+    COMING_SOON: 'Coming Soon',
+    FREE_SHIPPING: 'Free Shipping',
+    FLASH_SALE: 'Flash Sale',
+    UP_TO_OFF: (percentage: string) => `Up to ${percentage} OFF`,
+    ON_ORDERS_OVER: (amount: string) => `On Orders Over ${amount}`,
+    LIMITED_TIME: 'Limited Time',
+    NEW_COLLECTION: 'New Collection',
+    BEST_SELLERS: 'Best Sellers',
+  },
+} as const;
