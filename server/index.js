@@ -19,6 +19,7 @@ import chatRoutes from "./routes/chat.js";
 import returnRoutes from "./routes/return.js";
 import docsRoutes from "./routes/docs.js";
 import payoutRoutes from "./routes/payout.js";
+import bannerRoutes from "./routes/banner.js";
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use("/returns", returnRoutes);
 app.use("/chat", chatRoutes);
 app.use("/docs", docsRoutes);
 app.use("/payouts", payoutRoutes);
+app.use("/banners", bannerRoutes);
 
 const PORT = process.env.PORT || 3010;
 
