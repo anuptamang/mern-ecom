@@ -17,6 +17,8 @@ import wishlistRoutes from "./routes/wishlist.js";
 import deliveryRoutes from "./routes/delivery.js";
 import chatRoutes from "./routes/chat.js";
 import returnRoutes from "./routes/return.js";
+import docsRoutes from "./routes/docs.js";
+import payoutRoutes from "./routes/payout.js";
 
 const app = express();
 
@@ -37,10 +39,24 @@ app.use("/wishlist", wishlistRoutes);
 app.use("/delivery", deliveryRoutes);
 app.use("/returns", returnRoutes);
 app.use("/chat", chatRoutes);
+app.use("/docs", docsRoutes);
+app.use("/payouts", payoutRoutes);
 
 const PORT = process.env.PORT || 3010;
 
-app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
+const server = app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
+
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`\n❌ Port ${PORT} is already in use.`);
+    console.error(`   Please stop the existing server or use a different port.`);
+    console.error(`   You can run: npm run dev:stop\n`);
+    process.exit(1);
+  } else {
+    console.error('Server error:', error);
+    process.exit(1);
+  }
+});
 
 mongoose.set("strictQuery", false);
 mongoose
@@ -55,8 +71,8 @@ chat.use(cors());
 
 const users = [{}];
 
-const server = http.createServer(chat);
-const io = new Server(server);
+const chatServer = http.createServer(chat);
+const io = new Server(chatServer);
 
 chat.get("/", (req, res) => {
   res.send("Chat ready");
@@ -77,6 +93,15 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(2000, () => {
-  console.log(`Server listening on port: 2000`);
+chatServer.listen(2000, () => {
+  console.log(`Chat server listening on port: 2000`);
+});
+
+chatServer.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`\n❌ Port 2000 (chat server) is already in use.`);
+    console.error(`   Please stop the existing chat server.\n`);
+  } else {
+    console.error('Chat server error:', error);
+  }
 });
