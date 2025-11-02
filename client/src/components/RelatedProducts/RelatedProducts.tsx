@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from 'redux/store';
 import { authSelector } from 'redux/slice';
 import { message } from 'antd';
 import { useState, useRef } from 'react';
+import { AuthModal } from 'components/AuthModal';
 import './RelatedProducts.scss';
 
 type RelatedProductsProps = {
@@ -22,11 +23,15 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
   const isSeller = result?.role === 'seller';
   const carouselRef = useRef<any>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [authModalVisible, setAuthModalVisible] = useState(false);
+  const [pendingProductId, setPendingProductId] = useState<string | null>(null);
+  const [pendingProductTitle, setPendingProductTitle] = useState<string>('');
 
   const handleAddToCart = async (productId: string, title: string, stock: number) => {
     if (!result) {
-      message.warning('Please log in to add items to cart');
-      navigate(`/${pageRoutes.login}`);
+      setPendingProductId(productId);
+      setPendingProductTitle(title);
+      setAuthModalVisible(true);
       return;
     }
 
@@ -45,10 +50,24 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
       message.success(`${title} added to cart`);
       dispatch(fetchMyCart());
     } catch (error: any) {
-      // Don't show error if user is being redirected (interceptor handles it)
-      // The axios interceptor will show a warning and redirect
-      if (error?.response?.status !== 401) {
-        message.error(error?.message || 'Failed to add product to cart');
+      // If error is about needing to log in, open auth modal instead of showing error
+      const errorMessage = error?.message || error?.payload || String(error);
+      if (errorMessage.includes('log in') || errorMessage.includes('Please log in')) {
+        setPendingProductId(productId);
+        setPendingProductTitle(title);
+        setAuthModalVisible(true);
+      } else if (error?.response?.status !== 401) {
+        message.error(errorMessage || 'Failed to add product to cart');
+      }
+    }
+  };
+
+  const handleAuthSuccess = async () => {
+    if (pendingProductId && pendingProductTitle) {
+      // Find the product to get stock info
+      const product = products.find(p => p._id === pendingProductId);
+      if (product) {
+        await handleAddToCart(pendingProductId, pendingProductTitle, product.stock || 0);
       }
     }
   };
@@ -197,6 +216,16 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
           </div>
         )}
       </Card>
+
+      <AuthModal
+        open={authModalVisible}
+        onClose={() => {
+          setAuthModalVisible(false);
+          setPendingProductId(null);
+          setPendingProductTitle('');
+        }}
+        onSuccess={handleAuthSuccess}
+      />
     </div>
   );
 };

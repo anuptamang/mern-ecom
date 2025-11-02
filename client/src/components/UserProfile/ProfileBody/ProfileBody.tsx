@@ -32,6 +32,7 @@ type TProfileBody = {
   onFormSubmit?: (values: any) => void;
   onCancel?: () => void;
   loadingSubmit: boolean;
+  userRole?: string; // Pass user role to determine if seller
 };
 
 export const ProfileBody = ({
@@ -39,6 +40,7 @@ export const ProfileBody = ({
   onFormSubmit,
   onCancel,
   loadingSubmit = false,
+  userRole,
 }: TProfileBody) => {
   const formRef = useRef<FormInstance>(null);
   const [componentDisabled, setComponentDisabled] = useState<boolean>(true);
@@ -169,6 +171,55 @@ export const ProfileBody = ({
         <Divider>Addresses</Divider>
         <AddressForm form={form} namePrefix="primaryAddress" label="Primary Address" />
         <AddressForm form={form} namePrefix="secondaryAddress" label="Secondary Address" />
+        
+        {/* Bank Payout Information for Sellers */}
+        {userRole === 'seller' && (
+          <>
+            <Divider>Bank Payout Information</Divider>
+            <Form.Item
+              name={['bankPayout', 'accountHolderName']}
+              label="Account Holder Name"
+            >
+              <Input placeholder="Enter account holder name" />
+            </Form.Item>
+            <Form.Item
+              name={['bankPayout', 'accountNumber']}
+              label="Account Number"
+            >
+              <Input placeholder="Enter account number" />
+            </Form.Item>
+            <Form.Item
+              name={['bankPayout', 'bankName']}
+              label="Bank Name"
+            >
+              <Input placeholder="Enter bank name" />
+            </Form.Item>
+            <Form.Item
+              name={['bankPayout', 'routingNumber']}
+              label="Routing Number"
+            >
+              <Input placeholder="Enter routing number" />
+            </Form.Item>
+            <Form.Item
+              name={['bankPayout', 'swiftCode']}
+              label="SWIFT Code (Optional)"
+            >
+              <Input placeholder="Enter SWIFT code" />
+            </Form.Item>
+            <Form.Item
+              name={['bankPayout', 'iban']}
+              label="IBAN (Optional)"
+            >
+              <Input placeholder="Enter IBAN" />
+            </Form.Item>
+            <Form.Item
+              name={['bankPayout', 'accountType']}
+              label="Account Type"
+            >
+              <Input placeholder="checking or savings" />
+            </Form.Item>
+          </>
+        )}
       </Form>
     </div>
   );

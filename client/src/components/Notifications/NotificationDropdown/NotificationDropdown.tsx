@@ -106,18 +106,32 @@ export const NotificationDropdown = ({
 
     // Extract hash from actionUrl if present, or add scroll target
     if (navigateUrl) {
-      const url = new URL(navigateUrl, window.location.origin);
-      const existingHash = url.hash;
+      // Handle relative URLs with query params
+      let finalUrl = navigateUrl;
       
-      if (scrollTarget && !existingHash) {
-        // Add hash fragment for scrolling
-        navigateUrl = `${navigateUrl}#${scrollTarget}`;
-      } else if (existingHash) {
-        // Keep existing hash
-        navigateUrl = url.href.replace(url.origin, '');
+      try {
+        // Try to parse as absolute URL first
+        const url = new URL(navigateUrl, window.location.origin);
+        const existingHash = url.hash;
+        
+        if (scrollTarget && !existingHash) {
+          // Add hash fragment for scrolling
+          finalUrl = `${navigateUrl}#${scrollTarget}`;
+        } else if (existingHash) {
+          // Keep existing hash but preserve query params
+          finalUrl = url.pathname + url.search + url.hash;
+        } else {
+          // Preserve query params if present
+          finalUrl = url.pathname + url.search;
+        }
+      } catch (e) {
+        // If URL parsing fails (unlikely), use original URL
+        if (scrollTarget && !finalUrl.includes('#')) {
+          finalUrl = `${finalUrl}#${scrollTarget}`;
+        }
       }
       
-      onNavigate(navigateUrl);
+      onNavigate(finalUrl);
     }
   };
 

@@ -28,12 +28,22 @@ export const UserPanel = (props: Props) => {
   const dispatch = useAppDispatch();
   const carts = useAppSelector((state) => state.carts);
   const isSeller = auth?.result?.role === 'seller';
+  const isDeliveryAgency = auth?.result?.role === 'delivery_agency';
+  const isDeliveryPerson = auth?.result?.role === 'delivery_person';
+  const isWarehouseOperator = auth?.result?.role === 'warehouse_operator';
+  const isFinance = auth?.result?.role === 'finance';
+  const isSupport = auth?.result?.role === 'support' || auth?.result?.role === 'support_user';
+  const isVerificationTeam = auth?.result?.role === 'verification_team';
+  const isInspector = auth?.result?.role === 'return_inspector';
+  const isReturnDeliverer = auth?.result?.role === 'delivery_person' && auth?.result?.delivererType === 'customer_return';
+  const isAdmin = auth?.result?.role === 'admin';
+  const isDeliveryUser = isDeliveryAgency || isDeliveryPerson || isWarehouseOperator || isFinance || isSupport || isVerificationTeam || isInspector || isReturnDeliverer || isAdmin;
 
   useEffect(() => {
-    if (auth?.tokenStatus === 'valid' && !isSeller) {
+    if (auth?.tokenStatus === 'valid' && !isSeller && !isDeliveryUser) {
       dispatch(fetchMyCart());
     }
-  }, [auth?.tokenStatus, dispatch, isSeller]);
+  }, [auth?.tokenStatus, dispatch, isSeller, isDeliveryUser]);
 
   const handleLogout = () => {
     dispatch(signOut());
@@ -70,7 +80,7 @@ export const UserPanel = (props: Props) => {
         {auth?.tokenStatus === 'valid' ? (
           <li style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
             <NotificationBell />
-            {!isSeller && (
+            {!isSeller && !isDeliveryUser && (
               <Link to={`/${pageRoutes.userCarts}`}>
                 <Badge size="small" count={carts.totalCount || 0} color={token.colorPrimaryBg}>
                   <ShoppingCartOutlined

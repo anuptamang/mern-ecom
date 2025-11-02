@@ -86,13 +86,23 @@ export const NotificationBell = () => {
           onNavigate={(url) => {
             setDropdownVisible(false);
             
-            // Split URL and hash
-            const [path, hash] = url.split('#');
+            // Split URL, query params, and hash
+            const [pathAndQuery, hash] = url.split('#');
+            const [path, query] = pathAndQuery.split('?');
             
-            // Navigate first
-            navigate(path);
+            // Build final URL preserving query params and hash
+            let finalUrl = path;
+            if (query) {
+              finalUrl += `?${query}`;
+            }
+            if (hash) {
+              finalUrl += `#${hash}`;
+            }
             
-            // Then set hash directly if present (React Router may not preserve it)
+            // Navigate to the final URL
+            navigate(finalUrl);
+            
+            // Also set hash directly after navigation (React Router may not preserve it)
             if (hash) {
               setTimeout(() => {
                 window.location.hash = hash;

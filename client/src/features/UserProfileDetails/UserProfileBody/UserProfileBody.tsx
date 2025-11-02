@@ -28,6 +28,9 @@ export const UserProfileBody = () => {
         secondaryEmail: result.secondaryEmail || '',
         primaryAddress: result.primaryAddress || {},
         secondaryAddress: result.secondaryAddress || {},
+        ...(result.role === 'seller' ? {
+          bankPayout: result.bankPayout || {},
+        } : {}),
       });
     }
   }, [result, form]);
@@ -39,7 +42,7 @@ export const UserProfileBody = () => {
       // Convert firstName and lastName to fullName
       // Email is not editable as it's used as username/identifier
       const fullName = `${values.firstName} ${values.lastName}`.trim();
-      const updateData = {
+      const updateData: any = {
         fullName,
         phone: values.phone || '',
         secondaryPhone: values.secondaryPhone || '',
@@ -48,6 +51,11 @@ export const UserProfileBody = () => {
         secondaryAddress: values.secondaryAddress || {},
         // Explicitly exclude email from update data for security
       };
+
+      // Include bank payout info for sellers
+      if (result.role === 'seller' && values.bankPayout) {
+        updateData.bankPayout = values.bankPayout;
+      }
       await dispatch(updateUserProfileThunk({ id: result._id, data: updateData })).unwrap();
       // Refresh user profile to show updated data
       await dispatch(fetchUserProfile({ id: result._id })).unwrap();
@@ -75,6 +83,9 @@ export const UserProfileBody = () => {
         secondaryEmail: result.secondaryEmail || '',
         primaryAddress: result.primaryAddress || {},
         secondaryAddress: result.secondaryAddress || {},
+        ...(result.role === 'seller' ? {
+          bankPayout: result.bankPayout || {},
+        } : {}),
       });
     }
   };
@@ -86,6 +97,7 @@ export const UserProfileBody = () => {
         onFormSubmit={onFormSubmit}
         onCancel={resetFormToOriginal}
         loadingSubmit={updating || loading}
+        userRole={result?.role}
       />
     </Spin>
   );

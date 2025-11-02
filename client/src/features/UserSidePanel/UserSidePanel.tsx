@@ -9,6 +9,12 @@ import {
   UndoOutlined,
   CarOutlined,
   MessageOutlined,
+  DollarOutlined,
+  CustomerServiceOutlined,
+  FileSearchOutlined,
+  AuditOutlined,
+  UndoOutlined as ReturnUndoOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
 import { Menu, MenuProps } from 'antd';
 import { pageRoutes } from 'data/static/pageRoutes';
@@ -32,6 +38,14 @@ export const UserSidePanel = () => {
   const isSeller = result?.role === 'seller';
   const isDeliveryAgency = result?.role === 'delivery_agency';
   const isDeliveryPerson = result?.role === 'delivery_person';
+  const isWarehouseOperator = result?.role === 'warehouse_operator';
+  const isFinance = result?.role === 'finance';
+  const isSupport = result?.role === 'support' || result?.role === 'support_user';
+  const isVerificationTeam = result?.role === 'verification_team';
+  const isInspector = result?.role === 'return_inspector';
+  const isReturnDeliverer = result?.role === 'delivery_person' && result?.delivererType === 'customer_return';
+  const isAdmin = result?.role === 'admin';
+  const isDeliveryUser = isDeliveryAgency || isDeliveryPerson || isWarehouseOperator || isFinance || isSupport || isVerificationTeam || isInspector || isReturnDeliverer || isAdmin;
 
   const onClick: MenuProps['onClick'] = (e) => {
     navigate(e.key);
@@ -80,7 +94,7 @@ export const UserSidePanel = () => {
             ),
           },
         ]
-      : [
+      : !isDeliveryUser ? [
           {
             key: `/${pageRoutes.user}/wishlist`,
             label: (
@@ -92,41 +106,43 @@ export const UserSidePanel = () => {
               </Link>
             ),
           },
-        ]),
-    {
-      key: `/${pageRoutes.userCarts}`,
-      label: (
-        <Link
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
-          to={`/${pageRoutes.userCarts}`}
-        >
-          <ShoppingCartOutlined /> Carts
-        </Link>
-      ),
-    },
-    {
-      key: `/${pageRoutes.userOrders}`,
-      label: (
-        <Link
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
-          to={`/${pageRoutes.userOrders}`}
-        >
-          <ShoppingOutlined /> Orders
-        </Link>
-      ),
-    },
-    ...(!isSeller ? [{
-      key: `/${pageRoutes.userReturns}`,
-      label: (
-        <Link
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
-          to={`/${pageRoutes.userReturns}`}
-        >
-          <UndoOutlined /> Returns & Refunds
-        </Link>
-      ),
-    }] : []),
-    {
+        ] : []),
+    ...(!isDeliveryUser ? [
+      {
+        key: `/${pageRoutes.userCarts}`,
+        label: (
+          <Link
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+            to={`/${pageRoutes.userCarts}`}
+          >
+            <ShoppingCartOutlined /> Carts
+          </Link>
+        ),
+      },
+      {
+        key: `/${pageRoutes.userOrders}`,
+        label: (
+          <Link
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+            to={`/${pageRoutes.userOrders}`}
+          >
+            <ShoppingOutlined /> Orders
+          </Link>
+        ),
+      },
+      ...(!isSeller ? [{
+        key: `/${pageRoutes.userReturns}`,
+        label: (
+          <Link
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+            to={`/${pageRoutes.userReturns}`}
+          >
+            <UndoOutlined /> Returns & Refunds
+          </Link>
+        ),
+      }] : []),
+    ] : []),
+    ...(!isAdmin ? [{
       key: `/${pageRoutes.userChats}`,
       label: (
         <Link
@@ -136,7 +152,7 @@ export const UserSidePanel = () => {
           <MessageOutlined /> Messages
         </Link>
       ),
-    },
+    }] : []),
     ...(isDeliveryAgency ? [{
       key: `/${pageRoutes.deliveryAgencyDashboard}`,
       label: (
@@ -156,6 +172,83 @@ export const UserSidePanel = () => {
           to={`/${pageRoutes.deliveryPersonDashboard}`}
         >
           <CarOutlined /> My Deliveries
+        </Link>
+      ),
+    }] : []),
+    ...(isWarehouseOperator ? [{
+      key: `/user/warehouse-operator`,
+      label: (
+        <Link
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+          to={`/user/warehouse-operator`}
+        >
+          <CarOutlined /> Warehouse Console
+        </Link>
+      ),
+    }] : []),
+    ...(isSupport ? [{
+      key: `/user/support`,
+      label: (
+        <Link
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+          to={`/user/support`}
+        >
+          <CustomerServiceOutlined /> Support Dashboard
+        </Link>
+      ),
+    }] : []),
+    ...(isVerificationTeam ? [{
+      key: `/user/verification`,
+      label: (
+        <Link
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+          to={`/user/verification`}
+        >
+          <FileSearchOutlined /> Verification Dashboard
+        </Link>
+      ),
+    }] : []),
+    ...(isInspector ? [{
+      key: `/user/inspector`,
+      label: (
+        <Link
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+          to={`/user/inspector`}
+        >
+          <AuditOutlined /> Inspector Dashboard
+        </Link>
+      ),
+    }] : []),
+    ...(isFinance ? [{
+      key: `/user/finance`,
+      label: (
+        <Link
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+          to={`/user/finance`}
+        >
+          <DollarOutlined /> Finance Dashboard
+        </Link>
+      ),
+    }] : []),
+    ...(isReturnDeliverer ? [{
+      key: `/user/return-deliverer`,
+      label: (
+        <Link
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+          to={`/user/return-deliverer`}
+        >
+          <ReturnUndoOutlined /> Return Deliverer Console
+        </Link>
+      ),
+    }] : []),
+    ...(isAdmin ? [{
+      key: `/user/admin`,
+      label: (
+        <Link
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+          to={`/user/admin`}
+        >
+          <TeamOutlined /> Admin Dashboard
         </Link>
       ),
     }] : []),
