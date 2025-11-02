@@ -2,7 +2,7 @@ import { Button, Card, List, Image, message } from 'antd';
 import { Container } from 'components/UI';
 import { usePageTitle } from 'hooks/usePageTitle';
 import styles from 'assets/styles/Common.module.scss';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 import { fetchProducts } from 'redux/action/products';
 import { Link, useNavigate } from 'react-router-dom';
@@ -10,6 +10,7 @@ import { pageRoutes } from 'data/static/pageRoutes';
 import { ProductImagePlaceholder } from 'components/ProductImageGallery/ProductImagePlaceholder';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { authSelector } from 'redux/slice';
+import { AuthModal } from 'components/AuthModal';
 import './ProductsHome.scss';
 
 type TProps = {};
@@ -36,6 +37,8 @@ const ProductsList = () => {
   const { productList } = useAppSelector((s) => s.products);
   const { result } = useAppSelector(authSelector);
   const isSeller = result?.role === 'seller';
+  const [authModalVisible, setAuthModalVisible] = useState(false);
+  const [pendingProductId, setPendingProductId] = useState<string | null>(null);
 
   useEffect(() => {
     dispatch(fetchProducts({} as any));
@@ -59,8 +62,8 @@ const ProductsList = () => {
     e.stopPropagation();
     
     if (!result) {
-      message.warning('Please log in to add items to cart');
-      navigate(`/${pageRoutes.login}`);
+      setPendingProductId(productId);
+      setAuthModalVisible(true);
       return;
     }
 
@@ -82,15 +85,32 @@ const ProductsList = () => {
         dispatch(fetchMyCart());
       })
       .catch((error: any) => {
-        // Don't show error if user is being redirected (interceptor handles it)
-        // The axios interceptor will show a warning and redirect
-        if (error?.response?.status !== 401) {
-          message.error(error?.message || 'Failed to add product to cart');
+        // If error is about needing to log in, open auth modal instead of showing error
+        const errorMessage = error?.message || error?.payload || String(error);
+        if (errorMessage.includes('log in') || errorMessage.includes('Please log in')) {
+          setPendingProductId(productId);
+          setAuthModalVisible(true);
+        } else if (error?.response?.status !== 401) {
+          message.error(errorMessage || 'Failed to add product to cart');
         }
       });
   };
 
+  const handleAuthSuccess = async () => {
+    if (pendingProductId) {
+      try {
+        await dispatch(addToCart({ productId: pendingProductId })).unwrap();
+        message.success('Product added to cart');
+        dispatch(fetchMyCart());
+        setPendingProductId(null);
+      } catch (error: any) {
+        message.error(error?.message || 'Failed to add product to cart');
+      }
+    }
+  };
+
   return (
+    <>
     <List
       grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4, xl: 4 }}
       dataSource={productList?.data || []}
@@ -144,7 +164,8 @@ const ProductsList = () => {
                     disabled={(item.stock || 0) <= 0}
                     onClick={(e) => {
                       e.stopPropagation();
-                      message.warning('Please log in to add items to cart');
+                      setPendingProductId(item._id);
+                      setAuthModalVisible(true);
                     }}
                   >
                     Add to Cart
@@ -178,5 +199,14 @@ const ProductsList = () => {
         </List.Item>
       )}
     />
+    <AuthModal
+      open={authModalVisible}
+      onClose={() => {
+        setAuthModalVisible(false);
+        setPendingProductId(null);
+      }}
+      onSuccess={handleAuthSuccess}
+    />
+  </>
   );
 };

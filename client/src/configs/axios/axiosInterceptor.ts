@@ -26,6 +26,10 @@ axios.interceptors.response.use(
       
       const token = getToken();
       
+      // Check if this is a cart endpoint - if so, don't redirect when no token
+      // Let the component handle it with the auth modal
+      const isCartEndpoint = requestUrl.includes('/carts/');
+      
       // Only logout if we have a token (meaning user was logged in)
       if (token && !isLoggingOut) {
         isLoggingOut = true;
@@ -46,10 +50,14 @@ axios.interceptors.response.use(
         setTimeout(() => {
           isLoggingOut = false;
         }, 1000);
-      } else if (!token) {
-        // No token, just redirect to login
+      } else if (!token && !isCartEndpoint) {
+        // No token, redirect to login (but not for cart endpoints - let modal handle it)
         message.warning('Please log in to continue.');
         window.location.href = '/login';
+      } else if (!token && isCartEndpoint) {
+        // For cart endpoints without token, just reject the promise
+        // The component will handle showing the auth modal
+        // Don't show warning message here - let the component handle UX
       }
       
       // Reject the promise with error

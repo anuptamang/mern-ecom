@@ -20,6 +20,7 @@ import {
   RelatedProducts,
   WishlistButton,
   ChatBox,
+  AuthModal,
 } from 'components';
 import { EyeOutlined, LikeOutlined, ShoppingCartOutlined, MessageOutlined } from '@ant-design/icons';
 import './ProductsSinglePage.scss';
@@ -51,6 +52,9 @@ const ProductDetails = () => {
   const [loadingRelated, setLoadingRelated] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showChat, setShowChat] = useState(false);
+  const [authModalVisible, setAuthModalVisible] = useState(false);
+  const [pendingProductId, setPendingProductId] = useState<string | null>(null);
+  const [pendingProductTitle, setPendingProductTitle] = useState<string>('');
   const dispatch = useAppDispatch();
   const { result } = useAppSelector(authSelector);
   const isSeller = result?.role === 'seller';
@@ -372,8 +376,9 @@ const ProductDetails = () => {
                       icon={<ShoppingCartOutlined />}
                       onClick={() => {
                         if (!result) {
-                          message.warning('Please log in to add items to cart');
-                          navigate(`/${pageRoutes.login}`);
+                          setPendingProductId(product._id);
+                          setPendingProductTitle(product.title);
+                          setAuthModalVisible(true);
                           return;
                         }
                         dispatch(addToCart({ productId: product._id }))
@@ -383,11 +388,15 @@ const ProductDetails = () => {
                             dispatch(fetchMyCart());
                           })
                           .catch((error: any) => {
-                            // Don't show error if user is being redirected (interceptor handles it)
-                            // The axios interceptor will show a warning and redirect
-                            if (error?.response?.status !== 401) {
+                            // If error is about needing to log in, open auth modal instead of showing error
+                            const errorMessage = error?.message || error?.payload || String(error);
+                            if (errorMessage.includes('log in') || errorMessage.includes('Please log in')) {
+                              setPendingProductId(product._id);
+                              setPendingProductTitle(product.title);
+                              setAuthModalVisible(true);
+                            } else if (error?.response?.status !== 401) {
                               message.error(
-                                error?.message || 'Failed to add product to cart'
+                                errorMessage || 'Failed to add product to cart'
                               );
                             }
                           });
@@ -448,6 +457,29 @@ const ProductDetails = () => {
           onClose={() => setShowChat(false)}
         />
       )}
+
+      {/* Auth Modal */}
+      <AuthModal
+        open={authModalVisible}
+        onClose={() => {
+          setAuthModalVisible(false);
+          setPendingProductId(null);
+          setPendingProductTitle('');
+        }}
+        onSuccess={async () => {
+          if (pendingProductId) {
+            try {
+              await dispatch(addToCart({ productId: pendingProductId })).unwrap();
+              message.success(`${pendingProductTitle || 'Product'} added to cart`);
+              dispatch(fetchMyCart());
+              setPendingProductId(null);
+              setPendingProductTitle('');
+            } catch (error: any) {
+              message.error(error?.message || 'Failed to add product to cart');
+            }
+          }
+        }}
+      />
     </div>
   );
 };

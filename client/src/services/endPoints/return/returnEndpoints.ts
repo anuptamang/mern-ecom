@@ -4,13 +4,30 @@ import { getToken } from "utils/localStorage";
 
 export const RETURN_API = `${BACKEND_API}/returns`;
 
-export const createReturnRequestApi = async (orderId: string, items: any[], reason?: string) => {
+export const createReturnRequestApi = async (orderId: string, items: any[], reason?: string, proofImages?: File[]) => {
   const token = getToken() || "";
+  const formData = new FormData();
+  
+  formData.append("items", JSON.stringify(items));
+  if (reason) {
+    formData.append("reason", reason);
+  }
+  
+  // Append proof images
+  if (proofImages && proofImages.length > 0) {
+    proofImages.forEach((file) => {
+      formData.append("proofImages", file);
+    });
+  }
+  
   return axios.post(
     `${RETURN_API}/${orderId}`,
-    { items, reason },
+    formData,
     {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
     }
   );
 };
@@ -64,3 +81,6 @@ export const rejectReturnApi = async (returnId: string, reason?: string) => {
     }
   );
 };
+
+// Re-export workflow endpoints
+export * from './returnWorkflowEndpoints';
