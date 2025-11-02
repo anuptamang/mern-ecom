@@ -20,11 +20,11 @@ router.get("/", getNotifications);
 // Get unread count
 router.get("/unread/count", getUnreadCount);
 
+// Mark all notifications as read (must come before /:id/read to avoid route conflict)
+router.patch("/all/read", markAllAsRead);
+
 // Mark notification as read
 router.patch("/:id/read", markAsRead);
-
-// Mark all notifications as read
-router.patch("/all/read", markAllAsRead);
 
 // Delete a notification
 router.delete("/:id", deleteNotification);

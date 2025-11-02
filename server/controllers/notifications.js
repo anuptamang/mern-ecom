@@ -85,6 +85,17 @@ export const markAsRead = async (req, res) => {
     const { id } = req.params;
     const userId = req.userId;
 
+    // Prevent treating "all" as an ID (should be handled by /all/read route)
+    if (id === "all") {
+      return res.status(400).json({ message: "Use /all/read endpoint to mark all notifications as read" });
+    }
+
+    // Validate that id is a valid ObjectId format
+    const mongoose = (await import("mongoose")).default;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid notification ID format" });
+    }
+
     const notification = await Notification.findOne({ _id: id, userId });
 
     if (!notification) {

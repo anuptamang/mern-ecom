@@ -183,19 +183,21 @@ export const updateDeliveryStatus = async (req, res) => {
         const deliverer = await User.findById(userId);
         
         if (deliverer?.delivererType === "warehouse") {
-          // Warehouse deliverer can only update: picked_up -> in_facility
+          // Warehouse deliverer can update: ready_to_ship -> picked_up -> in_facility
           const warehouseStatuses = ["picked_up", "in_facility"];
           isAuthorized = warehouseStatuses.includes(status);
           
-          // Warehouse deliverer can only update if current status is ready_to_ship or picked_up
-          if (!["ready_to_ship", "picked_up"].includes(delivery.status) && status === "picked_up") {
+          // Warehouse deliverer can update to picked_up only if current status is ready_to_ship
+          if (status === "picked_up" && delivery.status !== "ready_to_ship") {
             isAuthorized = false;
           }
-          if (delivery.status !== "picked_up" && status === "in_facility") {
+          // Warehouse deliverer can update to in_facility only if current status is picked_up
+          if (status === "in_facility" && delivery.status !== "picked_up") {
             isAuthorized = false;
           }
-        } else if (deliverer?.delivererType === "customer") {
-          // Customer deliverer can only update: out_for_delivery -> delivered or rejected
+        } else if (deliverer?.delivererType === "customer_delivery" || deliverer?.delivererType === "customer_return") {
+          // Customer deliverer can only update: out_for_delivery -> delivered or rejected (for customer_delivery)
+          // Customer return deliverer handles return pickups (for customer_return)
           // They can only update after warehouse operator has set status to out_for_delivery and assigned them
           const customerStatuses = ["delivered", "rejected"];
           isAuthorized = customerStatuses.includes(status);
@@ -255,9 +257,9 @@ export const updateDeliveryStatus = async (req, res) => {
         if (!deliveryPerson || deliveryPerson.role !== "delivery_person") {
           return res.status(404).json({ message: "Delivery person not found" });
         }
-        if (deliveryPerson.delivererType !== "customer") {
+        if (deliveryPerson.delivererType !== "customer_delivery") {
           return res.status(400).json({ 
-            message: "Only customer deliverers can be assigned when updating status to 'out_for_delivery'" 
+            message: "Only customer delivery deliverers can be assigned when updating status to 'out_for_delivery'" 
           });
         }
         
@@ -265,11 +267,10 @@ export const updateDeliveryStatus = async (req, res) => {
         delivery.assignedDeliveryPerson = deliveryPersonId;
         delivery.assignedAt = new Date();
         
-        // Note must include delivery person details
-        if (!note) {
-          return res.status(400).json({ 
-            message: "Note is required when updating status to 'out_for_delivery'. Please include delivery person details (name, phone number)." 
-          });
+        // Auto-populate note with deliverer info if not provided
+        if (!note || note.trim().length === 0) {
+          const delivererInfo = `${deliveryPerson.fullName || deliveryPerson.email || 'Delivery Person'} (${deliveryPerson.phone || 'No phone'})`;
+          note = `Assigned to customer deliverer: ${delivererInfo}`;
         }
       }
     }
@@ -281,6 +282,7 @@ export const updateDeliveryStatus = async (req, res) => {
     }
 
     const oldStatus = delivery.status;
+    const statusChanged = oldStatus !== status;
     delivery.status = status;
 
     if (status === "delivered") {
@@ -288,13 +290,51 @@ export const updateDeliveryStatus = async (req, res) => {
     }
 
     // Add to status history with who updated it
-    delivery.statusHistory.push({
-      status,
-      timestamp: new Date(),
-      note: note || `Status updated from ${oldStatus} to ${status}`,
-      updatedBy: userId,
-      updatedByRole: userRole,
-    });
+    // Only add entry if status actually changed, or if note is provided
+    // Check if last entry has the same status and is recent (within 60 seconds) to avoid duplicates
+    const lastHistoryEntry = delivery.statusHistory[delivery.statusHistory.length - 1];
+    const statusNote = note || (statusChanged ? `Status updated from ${oldStatus} to ${status}` : `Status: ${status}`);
+    const isRecentDuplicate = lastHistoryEntry && 
+                              lastHistoryEntry.status === status && 
+                              !statusChanged &&
+                              (new Date() - new Date(lastHistoryEntry.timestamp)) < 60000; // Within 60 seconds
+    
+    if (isRecentDuplicate && note) {
+      // Status hasn't changed and last entry is recent - append note to existing entry
+      if (lastHistoryEntry.note && !lastHistoryEntry.note.includes(note)) {
+        lastHistoryEntry.note = `${lastHistoryEntry.note}. ${note}`;
+      } else if (!lastHistoryEntry.note) {
+        lastHistoryEntry.note = note;
+      }
+    } else if (statusChanged) {
+      // Status changed - add new entry
+      delivery.statusHistory.push({
+        status,
+        timestamp: new Date(),
+        note: statusNote,
+        updatedBy: userId,
+        updatedByRole: userRole,
+      });
+    } else if (note) {
+      // Status unchanged but note provided - check if we should append or create new entry
+      if (isRecentDuplicate) {
+        // Recent duplicate exists - append note if not already included
+        if (lastHistoryEntry.note && !lastHistoryEntry.note.includes(note)) {
+          lastHistoryEntry.note = `${lastHistoryEntry.note}. ${note}`;
+        } else if (!lastHistoryEntry.note) {
+          lastHistoryEntry.note = note;
+        }
+      } else {
+        // No recent duplicate - create new entry
+        delivery.statusHistory.push({
+          status,
+          timestamp: new Date(),
+          note: note,
+          updatedBy: userId,
+          updatedByRole: userRole,
+        });
+      }
+    }
 
     await delivery.save();
 
@@ -425,6 +465,7 @@ export const updateDeliveryStatus = async (req, res) => {
       // Notify warehouse operators about packages ready for processing (in_facility status)
       if (status === "in_facility") {
         try {
+          const User = (await import("../models/user.js")).default;
           const warehouseOperators = await User.find({ role: "warehouse_operator" });
           for (const operator of warehouseOperators) {
             await createNotification({
@@ -537,7 +578,8 @@ export const getDeliveryTracking = async (req, res) => {
     // 2. They are seller of products in the order
     // 3. They are delivery agency assigned to the delivery
     // 4. They are delivery person assigned to the delivery
-    // 5. They are admin
+    // 5. They are warehouse operator assigned to the delivery
+    // 6. They are admin
     if (String(order.userId) !== String(userId) && userRole !== "admin") {
       let isAuthorized = false;
       
@@ -551,7 +593,7 @@ export const getDeliveryTracking = async (req, res) => {
       
       if (isSeller) {
         isAuthorized = true;
-      } else if (userRole === "delivery_agency" || userRole === "delivery_person") {
+      } else if (userRole === "delivery_agency" || userRole === "delivery_person" || userRole === "warehouse_operator") {
         // Check if deliveries are assigned to this user
         const deliveries = await Delivery.find({ orderId });
         if (userRole === "delivery_agency") {
@@ -561,6 +603,17 @@ export const getDeliveryTracking = async (req, res) => {
         } else if (userRole === "delivery_person") {
           isAuthorized = deliveries.some(
             (d) => d.assignedDeliveryPerson && String(d.assignedDeliveryPerson) === String(userId)
+          );
+        } else if (userRole === "warehouse_operator") {
+          // Warehouse operators can view deliveries they've worked on:
+          // - Deliveries with status in_facility, in_transit, or out_for_delivery (they can still view after processing)
+          // - Deliveries where they are assigned as warehouse operator (even if status is delivered)
+          isAuthorized = deliveries.some(
+            (d) => 
+              d.status === "in_facility" || 
+              d.status === "in_transit" || 
+              d.status === "out_for_delivery" ||
+              (d.assignedWarehouseOperator && String(d.assignedWarehouseOperator) === String(userId))
           );
         }
       }
@@ -628,6 +681,22 @@ export const cancelOrder = async (req, res) => {
     if (order.deliveryStatus === "delivered") {
       return res.status(400).json({
         message: "Delivered orders cannot be cancelled. Please use the Return/Refund feature instead.",
+      });
+    }
+
+    // Check delivery status: cannot cancel if status is picked_up, in_facility, in_transit, or out_for_delivery
+    // Only allow cancellation if status is still "packing" or "ready_to_ship"
+    const Delivery = (await import("../models/delivery.js")).default;
+    const deliveries = await Delivery.find({ orderId: order._id });
+    
+    // Check if any item has been picked up or shipped
+    const hasShippedItems = deliveries.some(d => 
+      ["picked_up", "in_facility", "in_transit", "out_for_delivery", "delivered"].includes(d.status)
+    );
+    
+    if (hasShippedItems) {
+      return res.status(400).json({
+        message: "Order is already shipped and cannot be cancelled. Please reject the order at the time of delivery.",
       });
     }
 

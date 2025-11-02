@@ -13,8 +13,24 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
 export const createReturnRequest = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { items, reason } = req.body;
     const userId = req.userId;
+    
+    // Parse items from FormData (may be JSON string)
+    let items = req.body.items;
+    if (typeof items === 'string') {
+      try {
+        items = JSON.parse(items);
+      } catch (e) {
+        return res.status(400).json({ message: "Invalid items format" });
+      }
+    }
+    
+    const reason = req.body.reason;
+    
+    // Get proof images from uploaded files
+    const proofImages = req.files 
+      ? req.files.map(file => `/uploads/${file.filename}`)
+      : [];
 
     const order = await Order.findById(orderId);
     if (!order) {
@@ -26,25 +42,32 @@ export const createReturnRequest = async (req, res) => {
       return res.status(403).json({ message: "Unauthorized to return this order" });
     }
 
-    // Check if order was delivered
-    if (order.deliveryStatus !== "delivered") {
+    // Check if order was delivered (check per-item delivery status)
+    const deliveredItems = order.items.filter(item => item.deliveryStatus === "delivered");
+    if (deliveredItems.length === 0) {
       return res.status(400).json({
-        message: "Only delivered orders can be returned. Please use cancellation for non-delivered orders.",
+        message: "Only delivered items can be returned. Please use cancellation for non-delivered orders.",
       });
     }
 
-    // Check if order is already cancelled or refunded
-    if (order.status === "cancelled" || order.status === "refunded") {
-      return res.status(400).json({ message: "This order has already been cancelled or refunded" });
+    // Validate that items being returned are actually delivered
+    const returnItemIds = items.map(item => String(item.productId));
+    const validReturnItems = deliveredItems.filter(item => 
+      returnItemIds.includes(String(item.productId))
+    );
+    if (validReturnItems.length === 0) {
+      return res.status(400).json({
+        message: "Selected items must be delivered to be returned.",
+      });
     }
 
-    // Check if there's already a pending return request
+    // Check if there's already a pending return request for this order
     const existingReturn = await Return.findOne({
       orderId,
-      returnStatus: { $in: ["pending", "approved", "processing"] },
+      returnStatus: { $nin: ["cancelled", "completed", "refunded"] },
     });
     if (existingReturn) {
-      return res.status(400).json({ message: "A return request is already pending for this order" });
+      return res.status(400).json({ message: "A return request already exists for this order" });
     }
 
     // Validate return items
@@ -77,23 +100,51 @@ export const createReturnRequest = async (req, res) => {
       };
     });
 
-    // Create return request
+    // Create return request - now submitted to support team
     const returnRequest = await Return.create({
       orderId,
       userId,
       items: returnItems,
       returnAmount: Math.round(returnAmount * 100), // Convert to cents
       reason: reason || "Return requested",
-      returnStatus: "pending",
+      proofImages: proofImages,
+      returnStatus: "pending", // Awaiting support assignment
       statusHistory: [
         {
           status: "pending",
           timestamp: new Date(),
-          note: "Return request created",
+          note: `Return request created with ${proofImages.length} proof image(s). Awaiting support team assignment.`,
           changedBy: userId,
         },
       ],
     });
+    
+    // Notify support team about new return request
+    try {
+      const { createNotification } = await import("./notifications.js");
+      const User = (await import("../models/user.js")).default;
+      // Notify both "support" and "support_user" roles
+      const supportUsers = await User.find({ 
+        role: { $in: ["support", "support_user"] } 
+      });
+      
+      for (const supportUser of supportUsers) {
+        await createNotification({
+          userId: supportUser._id,
+          type: "return",
+          title: "New Return Request",
+          message: `A return request has been submitted for order #${orderId.toString().slice(-8)}. Amount: $${((returnAmount || 0) / 100).toFixed(2)}`,
+          relatedEntity: {
+            entityType: "return",
+            entityId: returnRequest._id,
+          },
+          actionUrl: `/user/support?returnId=${returnRequest._id}`,
+        });
+      }
+    } catch (notifError) {
+      console.error("Error creating support notification:", notifError);
+      // Don't fail the request if notification fails
+    }
 
     // Notify seller (can be added later via notifications)
 
@@ -169,13 +220,72 @@ export const getReturnRequest = async (req, res) => {
   try {
     const { returnId } = req.params;
     const userId = req.userId;
+    const userRole = req.userRole;
 
+    // First fetch the raw document to check IDs before population
+    const rawReturnRequest = await Return.findById(returnId);
+    if (!rawReturnRequest) {
+      return res.status(404).json({ message: "Return request not found" });
+    }
+
+    // Now populate for full details
     const returnRequest = await Return.findById(returnId)
       .populate("orderId")
-      .populate("userId", "fullName email");
+      .populate("userId", "fullName email")
+      .populate("assignedSupportUser", "fullName email")
+      .populate("assignedDeliveryAgency", "fullName email")
+      .populate("assignedReturnDeliverer", "fullName email phone delivererType")
+      .populate("assignedVerificationTeam", "fullName email")
+      .populate("assignedInspector", "fullName email")
+      .populate("assignedFinance", "fullName email")
+      .populate("statusHistory.changedBy", "fullName email");
 
     if (!returnRequest) {
       return res.status(404).json({ message: "Return request not found" });
+    }
+
+    // Support, support_user, verification_team, return_inspector, finance, and admin can view their assigned returns
+    const isSupport = userRole === "support" || userRole === "support_user" || userRole === "admin";
+    const isVerificationTeam = userRole === "verification_team";
+    const isInspector = userRole === "return_inspector";
+    const isFinance = userRole === "finance";
+    const isDeliveryAgency = userRole === "delivery_agency";
+    const isDeliveryPerson = userRole === "delivery_person";
+    
+    if (isSupport) {
+      return res.json({ returnRequest });
+    }
+    
+    // Delivery agency can view returns assigned to them - use raw document for ID check
+    if (isDeliveryAgency && rawReturnRequest.assignedDeliveryAgency && String(rawReturnRequest.assignedDeliveryAgency) === String(userId)) {
+      return res.json({ returnRequest });
+    }
+    
+    // Return deliverer (delivery_person with customer_return type) can view returns assigned to them - use raw document for ID check
+    if (isDeliveryPerson) {
+      const User = (await import("../models/user.js")).default;
+      const deliverer = await User.findById(userId);
+      if (deliverer && deliverer.delivererType === "customer_return") {
+        // Use raw document for ID comparison (before population)
+        if (rawReturnRequest.assignedReturnDeliverer && String(rawReturnRequest.assignedReturnDeliverer) === String(userId)) {
+          return res.json({ returnRequest });
+        }
+      }
+    }
+    
+    // Verification team can view returns assigned to them - use raw document for ID check
+    if (isVerificationTeam && rawReturnRequest.assignedVerificationTeam && String(rawReturnRequest.assignedVerificationTeam) === String(userId)) {
+      return res.json({ returnRequest });
+    }
+    
+    // Inspector can view returns assigned to them - use raw document for ID check
+    if (isInspector && rawReturnRequest.assignedInspector && String(rawReturnRequest.assignedInspector) === String(userId)) {
+      return res.json({ returnRequest });
+    }
+    
+    // Finance can view returns assigned to them - use raw document for ID check
+    if (isFinance && rawReturnRequest.assignedFinance && String(rawReturnRequest.assignedFinance) === String(userId)) {
+      return res.json({ returnRequest });
     }
 
     // Check authorization - user must be buyer or seller of products in return

@@ -27,13 +27,21 @@ export const createOrder = async (req, res) => {
         price: i.price,
         quantity: i.quantity,
       }));
+      // Convert dollars to cents
       finalAmount = Math.round(totals.totalPrice * 100);
     } else {
       // Items are provided (selected items from checkout)
-      // Calculate total from provided items
-      finalAmount = amount || Math.round(
-        orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 100
-      );
+      // If amount is provided from payment intent, it's already in cents - use it directly
+      // Otherwise, calculate from items (prices are in dollars, convert to cents)
+      if (amount && typeof amount === 'number') {
+        // Amount from paymentIntent is already in cents - use directly
+        finalAmount = amount;
+      } else {
+        // Calculate from items: prices are in dollars, multiply by 100 to convert to cents
+        finalAmount = Math.round(
+          orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 100
+        );
+      }
     }
 
     // Validate stock availability before creating order
