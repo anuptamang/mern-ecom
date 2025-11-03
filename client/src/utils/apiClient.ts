@@ -7,7 +7,7 @@ import axios, { AxiosInstance, AxiosError, AxiosRequestConfig } from 'axios';
 import { BACKEND_API } from 'configs/api';
 import { getToken, removeToken } from './localStorage';
 import { message } from 'antd';
-import { MESSAGES } from '../../constants';
+import { MESSAGES } from '../constants';
 
 class ApiClient {
   private client: AxiosInstance;

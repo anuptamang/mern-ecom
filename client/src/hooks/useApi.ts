@@ -6,7 +6,7 @@
 import { useState, useCallback } from 'react';
 import apiClient from '../utils/apiClient';
 import { message } from 'antd';
-import { MESSAGES } from '../../constants';
+import { MESSAGES } from '../constants';
 
 interface UseApiOptions {
   showSuccessMessage?: boolean;

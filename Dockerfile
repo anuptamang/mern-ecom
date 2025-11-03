@@ -4,7 +4,7 @@
 FROM node:18-alpine AS frontend-builder
 WORKDIR /app/client
 COPY client/package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 COPY client/ ./
 RUN npm run build
 
@@ -12,7 +12,7 @@ RUN npm run build
 FROM node:18-alpine AS backend-builder
 WORKDIR /app/server
 COPY server/package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 COPY server/ ./
 
 # Stage 3: Production image
