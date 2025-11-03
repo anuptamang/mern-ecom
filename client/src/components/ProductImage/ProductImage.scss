@@ -1,0 +1,51 @@
+.product-image-wrapper {
+  position: relative;
+  width: 100%;
+  // Fixed height for consistent layout - prevents layout shift
+  aspect-ratio: 1;
+  min-height: 240px; // Fallback for older browsers
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #f5f5f5;
+
+  .product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  // Ensure placeholder also maintains aspect ratio
+  .product-image-placeholder {
+    width: 100%;
+    height: 100%;
+  }
+
+  .image-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 1;
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #1890ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

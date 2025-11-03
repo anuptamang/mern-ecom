@@ -8,7 +8,7 @@ import { useAppSelector, useAppDispatch } from 'redux/store';
 import { Button, Card, List, Image, message, Tag, Tabs, Spin, Typography, Space } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { pageRoutes } from 'data/static/pageRoutes';
-import { ProductImagePlaceholder } from 'components/ProductImageGallery/ProductImagePlaceholder';
+import { ProductImage } from 'components/ProductImage';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { authSelector } from 'redux/slice';
 import { WishlistButton } from 'components/WishlistButton';
@@ -173,7 +173,7 @@ const HomePage = () => {
            tags.includes('Flash Sale') ||
            categories.includes('flash-sale') ||
            categories.includes('flash_sale');
-  }).slice(0, 6); // Only show first 6 products
+  }).slice(0, 5); // Only show first 5 products
 
   const productsToShow = selectedCategory
     ? categoryProducts[selectedCategory] || []
@@ -388,22 +388,12 @@ const HomePage = () => {
                     key={item._id}
                     className="product-card"
                     onClick={(e) => handleCardClick(item._id, e)}
-                    cover={
-                      item.thumbnail ? (
-                        <div className="product-image-wrapper">
-                          <Image
-                            alt={item.title}
-                            src={item.thumbnail}
-                            preview={false}
-                            className="product-image"
+                        cover={
+                          <ProductImage
+                            thumbnail={item.thumbnail}
+                            title={item.title || 'Product'}
                           />
-                        </div>
-                      ) : (
-                        <div className="product-image-wrapper">
-                          <ProductImagePlaceholder title={item.title || 'Product'} />
-                        </div>
-                      )
-                    }
+                        }
                     actions={[
                       <div key="view" className="product-card-actions">
                         <Button
@@ -517,20 +507,10 @@ const HomePage = () => {
                         className="product-card"
                         onClick={(e) => handleCardClick(item._id, e)}
                         cover={
-                          item.thumbnail ? (
-                            <div className="product-image-wrapper">
-                              <Image
-                                alt={item.title}
-                                src={item.thumbnail}
-                                preview={false}
-                                className="product-image"
-                              />
-                            </div>
-                          ) : (
-                            <div className="product-image-wrapper">
-                              <ProductImagePlaceholder title={item.title || 'Product'} />
-                            </div>
-                          )
+                          <ProductImage
+                            thumbnail={item.thumbnail}
+                            title={item.title || 'Product'}
+                          />
                         }
                         actions={[
                           <div key="view" className="product-card-actions">

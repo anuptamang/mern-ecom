@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from 'redux/store';
 import { fetchProducts } from 'redux/action/products';
 import { Link, useNavigate } from 'react-router-dom';
 import { pageRoutes } from 'data/static/pageRoutes';
-import { ProductImagePlaceholder } from 'components/ProductImageGallery/ProductImagePlaceholder';
+import { ProductImage } from 'components/ProductImage';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { authSelector } from 'redux/slice';
 import { AuthModal } from 'components/AuthModal';
@@ -120,20 +120,10 @@ const ProductsList = () => {
             className="product-card"
             onClick={(e) => handleCardClick(item._id, e)}
             cover={
-              item.thumbnail ? (
-                <div className="product-image-wrapper">
-                  <Image
-                    alt={item.title}
-                    src={item.thumbnail}
-                    preview={false}
-                    className="product-image"
-                  />
-                </div>
-              ) : (
-                <div className="product-image-wrapper">
-                  <ProductImagePlaceholder title={item.title || 'Product'} />
-                </div>
-              )
+              <ProductImage
+                thumbnail={item.thumbnail}
+                title={item.title || 'Product'}
+              />
             }
             actions={[
               <div key="view" className="product-card-actions">
