@@ -6,11 +6,45 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
+ * Get the project root directory where .md files are located
+ */
+const getDocsPath = () => {
+  // Try path from controller location first
+  const controllerPath = path.join(__dirname, '..', '..');
+  
+  // Verify the path exists and contains .md files
+  if (fs.existsSync(controllerPath)) {
+    try {
+      const files = fs.readdirSync(controllerPath);
+      const hasMdFiles = files.some(file => file.endsWith('.md'));
+      if (hasMdFiles) {
+        return controllerPath;
+      }
+    } catch (error) {
+      // Fall through to process.cwd()
+    }
+  }
+  
+  // Fallback to process.cwd() (project root)
+  return process.cwd();
+};
+
+/**
  * Get list of all documentation files
  */
 export const getDocsList = async (req, res) => {
   try {
-    const docsPath = path.join(__dirname, '..', '..');
+    const docsPath = getDocsPath();
+    
+    // Verify directory exists
+    if (!fs.existsSync(docsPath)) {
+      console.error('Docs path does not exist:', docsPath);
+      return res.status(500).json({ 
+        message: 'Documentation directory not found',
+        error: `Path: ${docsPath}`
+      });
+    }
+    
     const files = fs.readdirSync(docsPath);
     
     const docsFiles = files
@@ -30,7 +64,11 @@ export const getDocsList = async (req, res) => {
     return res.json({ docs: docsFiles });
   } catch (error) {
     console.error('Error getting docs list:', error);
-    return res.status(500).json({ message: 'Failed to get documentation list' });
+    return res.status(500).json({ 
+      message: 'Failed to get documentation list',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
 
@@ -46,7 +84,7 @@ export const getDoc = async (req, res) => {
       return res.status(400).json({ message: 'Invalid documentation file name' });
     }
 
-    const docsPath = path.join(__dirname, '..', '..', docName);
+    const docsPath = path.join(getDocsPath(), docName);
     
     // Check if file exists
     if (!fs.existsSync(docsPath)) {
@@ -79,7 +117,7 @@ export const searchDocs = async (req, res) => {
       return res.json({ results: [] });
     }
 
-    const docsPath = path.join(__dirname, '..', '..');
+    const docsPath = getDocsPath();
     const files = fs.readdirSync(docsPath);
     
     const searchQuery = query.toLowerCase();
