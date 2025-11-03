@@ -1,76 +1,136 @@
 # Quick Start Guide
 
-## Reset Database & Restart Dev Server
+Get started with the Enterprise E-Commerce Platform in minutes!
 
-### Option 1: NPM Script (Recommended - One Command)
+## 🚀 Quick Setup (5 minutes)
 
-```bash
-npm run reset-and-restart
-```
-
-This single command will:
-
-1. ✅ Stop the dev server (client on port 3000, server on port 3010)
-2. ✅ Reset the database and seed with fresh data
-3. ✅ Restart the dev server automatically
-
-### Option 2: VS Code Task (Click to Run)
-
-1. Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux)
-2. Type "Tasks: Run Task"
-3. Select "Reset Database & Restart Dev Server"
-
-Or:
-
-- Go to Terminal → Run Task → "Reset Database & Restart Dev Server"
-
-### Option 3: VS Code Launch Configuration
-
-1. Go to Run and Debug (Cmd+Shift+D / Ctrl+Shift+D)
-2. Select "Reset & Restart Dev Server" from dropdown
-3. Click the green play button
-
-### Option 4: Shell Script (Direct)
+### 1. Clone & Install
 
 ```bash
-./scripts/reset-and-restart.sh
+# Clone the repository
+git clone <repository-url>
+cd ecommerce
+
+# Run setup script
+./scripts/setup.sh
+
+# Or manually:
+npm install
+cd client && npm install
+cd ../server && npm install
 ```
 
-### Option 5: Windows Batch Script
-
-```cmd
-scripts\reset-and-restart.bat
-```
-
-## Additional Useful Commands
-
-### Stop Dev Server Only
+### 2. Configure Environment
 
 ```bash
-npm run dev:stop
+# Copy environment file
+cp .env.example .env
+
+# Edit with your configuration
+nano .env  # or use your preferred editor
 ```
 
-### Start Dev Server Only
+**Minimum required configuration:**
+```env
+MONGODB_URI=mongodb://localhost:27017/ecommerce
+JWT_SECRET=your-secret-key-here
+```
+
+### 3. Start Development Servers
 
 ```bash
+# Start both client and server
 npm run dev
 ```
 
-### Reset Database Only (without restarting)
+That's it! 🎉
+
+- **Frontend**: http://localhost:3000
+- **Backend**: http://localhost:3010
+- **Health Check**: http://localhost:3010/health
+
+## 🐳 Docker Quick Start
 
 ```bash
-cd server && npm run reset && cd ..
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
 ```
 
-## Test Credentials (After Reset)
+## 📚 Next Steps
 
-After running reset-and-restart, use these credentials to login:
+- Read [README.md](./README.md) for complete documentation
+- Check [ARCHITECTURE.md](./ARCHITECTURE.md) for system design
+- Review [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines
+- See [PROJECT_TEMPLATE.md](./PROJECT_TEMPLATE.md) for customization
 
-- **Admin**: `admin@example.com` / `password123`
-- **Buyer**: `buyer@example.com` / `password123`
-- **Seller**: `seller@example.com` / `password123`
-- **Delivery Agency**: `delivery@example.com` / `password123`
-- **Delivery Person 1 (Warehouse)**: `deliverer1@example.com` / `password123`
-- **Delivery Person 2 (Customer)**: `deliverer2@example.com` / `password123`
-- **Warehouse Operator**: `warehouse@example.com` / `password123`
-- **Support**: `support@example.com` / `password123`
+## 🆘 Troubleshooting
+
+### Port already in use
+
+```bash
+# Find process using port
+lsof -i :3010
+
+# Kill process
+kill -9 <PID>
+```
+
+### Database connection error
+
+- Ensure MongoDB is running
+- Check MongoDB URI in `.env`
+- Verify database credentials
+
+### Module not found
+
+```bash
+# Clean install
+rm -rf node_modules package-lock.json
+npm install
+cd client && rm -rf node_modules package-lock.json && npm install
+cd ../server && rm -rf node_modules package-lock.json && npm install
+```
+
+## 🎯 Common Tasks
+
+### Seed Database
+
+```bash
+cd server && npm run seed
+```
+
+### Run Tests
+
+```bash
+npm test
+```
+
+### Build for Production
+
+```bash
+cd client && npm run build
+```
+
+### Check Health
+
+```bash
+curl http://localhost:3010/health
+```
+
+## 📖 Documentation Links
+
+- [Architecture](./ARCHITECTURE.md)
+- [Development Guide](./docs/DEVELOPMENT.md)
+- [API Documentation](./docs/API.md)
+- [Deployment Guide](./DEPLOYMENT.md)
+- [Security Guide](./SECURITY.md)
+
+---
+
+**Happy Coding! 🚀**
