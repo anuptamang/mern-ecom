@@ -51,33 +51,27 @@ class ApiClient {
     );
   }
 
-  private handleError(error: AxiosError) {
-    if (!error.response) {
-      // Network error
-      message.error(MESSAGES.ERROR.UNKNOWN_ERROR);
-      return;
-    }
+  private async handleError(error: AxiosError) {
+    // Import auto-fix system
+    const { autoFix, applyAutoFix } = await import('./autoFix');
+    
+    // Attempt to auto-fix the error
+    const fixResult = await autoFix(error);
+    
+    // Apply the auto-fix
+    applyAutoFix(fixResult);
+    
+    // If auto-fix didn't handle it, use fallback
+    if (!fixResult.fixed && !fixResult.message) {
+      if (!error.response) {
+        // Network error
+        message.error(MESSAGES.ERROR.UNKNOWN_ERROR);
+        return;
+      }
 
-    const { status, data } = error.response;
-
-    switch (status) {
-      case 401:
-        // Unauthorized - clear token and redirect to login
-        removeToken();
-        window.location.href = '/login';
-        break;
-      case 403:
-        message.error('You do not have permission to perform this action');
-        break;
-      case 404:
-        message.error('Resource not found');
-        break;
-      case 500:
-        message.error('Server error. Please try again later');
-        break;
-      default:
-        const errorMessage = (data as any)?.message || MESSAGES.ERROR.UNKNOWN_ERROR;
-        message.error(errorMessage);
+      const { status, data } = error.response;
+      const errorMessage = (data as any)?.message || MESSAGES.ERROR.UNKNOWN_ERROR;
+      message.error(errorMessage);
     }
   }
 
