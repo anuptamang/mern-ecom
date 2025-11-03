@@ -3,7 +3,7 @@ import { Card, List, Button, message, Empty, Spin, Typography, Space, Modal, For
 import { UserAddOutlined, TeamOutlined, EyeOutlined, DeleteOutlined, LockOutlined } from '@ant-design/icons';
 import { useAuth } from 'hooks';
 import { getUsersApi, createUserApi, resetPasswordAdminApi } from 'services/endPoints/user/userListEndpoints';
-import { WorkloadDashboard, BannerManagement } from 'components';
+import { WorkloadDashboard } from 'components';
 import './AdminDashboard.scss';
 
 const { Text, Title } = Typography;
@@ -122,13 +122,6 @@ const AdminDashboard = () => {
   };
 
   const tabItems = [
-    {
-      key: 'banners',
-      label: 'Banner Management',
-      children: (
-        <BannerManagement />
-      ),
-    },
     {
       key: 'workload',
       label: 'Workload Dashboard',

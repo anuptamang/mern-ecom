@@ -61,6 +61,7 @@ const InspectorDashboard = lazy(() => import('pages/private/Inspector/Dashboard'
 const FinanceDashboard = lazy(() => import('pages/private/Finance/Dashboard'));
 const ReturnDelivererDashboard = lazy(() => import('pages/private/ReturnDeliverer/Dashboard'));
 const AdminDashboard = lazy(() => import('pages/private/Admin/Dashboard'));
+const AdminSettings = lazy(() => import('pages/private/Admin/Settings'));
 const ChatsDashboard = lazy(() => import('pages/private/Chats/Dashboard'));
 
 const AppRouter = () => {
@@ -246,6 +247,14 @@ const AppRouter = () => {
               element={
                 <AdminRoute>
                   <AdminDashboard />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path={'admin/settings'}
+              element={
+                <AdminRoute>
+                  <AdminSettings />
                 </AdminRoute>
               }
             />

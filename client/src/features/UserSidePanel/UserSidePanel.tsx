@@ -241,17 +241,30 @@ export const UserSidePanel = () => {
         </Link>
       ),
     }] : []),
-    ...(isAdmin ? [{
-      key: `/user/admin`,
-      label: (
-        <Link
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
-          to={`/user/admin`}
-        >
-          <TeamOutlined /> Admin Dashboard
-        </Link>
-      ),
-    }] : []),
+    ...(isAdmin ? [
+      {
+        key: `/user/admin`,
+        label: (
+          <Link
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+            to={`/user/admin`}
+          >
+            <TeamOutlined /> Admin Dashboard
+          </Link>
+        ),
+      },
+      {
+        key: `/user/admin/settings`,
+        label: (
+          <Link
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
+            to={`/user/admin/settings`}
+          >
+            <SettingOutlined /> Admin Settings
+          </Link>
+        ),
+      },
+    ] : []),
     {
       key: `/${pageRoutes.userSettings}`,
       label: (
