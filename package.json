@@ -1,27 +1,52 @@
 {
-  "name": "simple-mern",
+  "name": "enterprise-ecommerce-platform",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Enterprise-grade MERN stack e-commerce platform template",
+  "main": "server/index.js",
   "scripts": {
-    "client-install": "cd client && npm install",
-    "server-install": "cd server && npm install",
-    "install-all-deps": "concurrently \"npm run server-install\" \"npm run client-install\"",
-    "client-start": "cd client && npm run start",
-    "server-start": "cd server && npm run start",
-    "dev": "concurrently \"npm run client-start\" \"npm run server-start\"",
-    "dev:stop": "pkill -f 'node.*client' && pkill -f 'node.*server' && pkill -f nodemon && pkill -f concurrently 2>/dev/null || true; lsof -ti:3000 | xargs kill -9 2>/dev/null || true; lsof -ti:3010 | xargs kill -9 2>/dev/null || true; lsof -ti:2000 | xargs kill -9 2>/dev/null || true; echo 'Dev server stopped'",
-    "reset-and-restart": "bash scripts/reset-and-restart.sh",
-    "client:lint": "cd client && npm run lint",
-    "client:lint:fix": "cd client && npm run lint:fix",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start",
+    "test": "concurrently \"npm run test:server\" \"npm run test:client\"",
+    "test:server": "cd server && npm test",
+    "test:client": "cd client && npm test",
+    "lint": "cd client && npm run lint",
+    "lint:fix": "cd client && npm run lint:fix",
+    "format": "prettier --write './**/*.{js,jsx,ts,tsx,css,scss,json,md}'",
+    "docker:build": "docker build -t ecommerce-app .",
+    "docker:run": "docker run -p 3010:3010 --env-file .env ecommerce-app",
+    "docker:compose": "docker-compose up -d",
+    "docker:down": "docker-compose down",
     "prepare": "husky install"
   },
+  "keywords": [
+    "ecommerce",
+    "mern",
+    "react",
+    "nodejs",
+    "mongodb",
+    "template",
+    "enterprise"
+  ],
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "concurrently": "^7.6.0"
-  },
+  "license": "MIT",
   "devDependencies": {
+    "concurrently": "^8.2.2",
+    "express-rate-limit": "^8.2.1",
     "husky": "^8.0.3"
-  }
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bugs": {
+    "url": ""
+  },
+  "homepage": ""
 }
