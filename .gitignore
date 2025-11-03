@@ -15,6 +15,14 @@ yarn.lock
 .env.production.local
 .env*.local
 
+# Client and Server environment files (separate for different deployments)
+client/.env
+client/.env.local
+client/.env.*.local
+server/.env
+server/.env.local
+server/.env.*.local
+
 # Build outputs
 client/build/
 client/dist/
