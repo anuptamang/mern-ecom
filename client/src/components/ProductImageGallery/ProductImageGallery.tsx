@@ -22,6 +22,19 @@ export const ProductImageGallery = ({
   const [selectedImage, setSelectedImage] = useState(allImages[0] || '');
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
+
+  // Handle image load errors
+  const handleImageError = (imageSrc: string) => {
+    setImageErrors((prev) => new Set(prev).add(imageSrc));
+    // If selected image fails, try next available image
+    if (imageSrc === selectedImage) {
+      const validImages = allImages.filter((img) => !imageErrors.has(img) && img !== imageSrc);
+      if (validImages.length > 0) {
+        setSelectedImage(validImages[0]);
+      }
+    }
+  };
 
   const handleImageClick = (image: string) => {
     setSelectedImage(image);
@@ -40,7 +53,7 @@ export const ProductImageGallery = ({
   return (
     <div className="product-image-gallery">
       <div className="main-image-container">
-        {hasImages ? (
+        {hasImages && !imageErrors.has(selectedImage) ? (
           <>
             <div className="main-image-wrapper" onClick={() => handleZoomClick(selectedImage)}>
               <Image
@@ -48,6 +61,8 @@ export const ProductImageGallery = ({
                 alt="Product"
                 className="main-image"
                 preview={false}
+                onError={() => handleImageError(selectedImage)}
+                fallback="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E"
               />
               <div className="zoom-overlay">
                 <ZoomInOutlined className="zoom-icon" />
@@ -61,6 +76,7 @@ export const ProductImageGallery = ({
                   style={{ display: 'none' }}
                   src={img}
                   alt={`Product ${index + 1}`}
+                  onError={() => handleImageError(img)}
                 />
               ))}
             </Image.PreviewGroup>
@@ -74,20 +90,26 @@ export const ProductImageGallery = ({
 
       {hasImages && allImages.length > 1 && (
         <div className="thumbnail-container">
-          {allImages.map((img, index) => (
-            <div
-              key={index}
-              className={`thumbnail-item ${selectedImage === img ? 'active' : ''}`}
-              onClick={() => handleImageClick(img)}
-            >
-              <Image
-                src={img}
-                alt={`Thumbnail ${index + 1}`}
-                preview={false}
-                className="thumbnail-image"
-              />
-            </div>
-          ))}
+          {allImages.map((img, index) => {
+            // Skip thumbnails that failed to load
+            if (imageErrors.has(img)) return null;
+            return (
+              <div
+                key={index}
+                className={`thumbnail-item ${selectedImage === img ? 'active' : ''}`}
+                onClick={() => handleImageClick(img)}
+              >
+                <Image
+                  src={img}
+                  alt={`Thumbnail ${index + 1}`}
+                  preview={false}
+                  className="thumbnail-image"
+                  onError={() => handleImageError(img)}
+                  fallback="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E"
+                />
+              </div>
+            );
+          })}
         </div>
       )}
 

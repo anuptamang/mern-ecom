@@ -13,6 +13,7 @@ import {
   Typography,
 } from 'antd';
 import { Container } from 'components/UI';
+import { ProductImage } from 'components/ProductImage';
 import { usePageTitle } from 'hooks/usePageTitle';
 import { useEffect, useState } from 'react';
 import { listMyOrdersApi } from 'services/endPoints/orders/ordersEndpoints';
@@ -378,20 +379,13 @@ const OrdersDashboard = (props: TProps) => {
                                 style={{ width: '100%' }}
                               >
                                 <div className="order-item-detail">
-                                  {item.thumbnail ? (
-                                    <Image
-                                      src={item.thumbnail}
-                                      alt={item.title}
-                                      className="order-item-thumbnail"
-                                      width={80}
-                                      height={80}
-                                      preview={false}
-                                    />
-                                  ) : (
-                                    <div className="order-item-thumbnail-placeholder">
-                                      No Image
-                                    </div>
-                                  )}
+                                  <ProductImage
+                                    thumbnail={item.thumbnail}
+                                    title={item.title}
+                                    width={80}
+                                    height={80}
+                                    className="order-item-thumbnail"
+                                  />
                                   <div className="order-item-info">
                                     <div className="order-item-title">
                                       {item.title}

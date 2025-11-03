@@ -23,6 +23,7 @@ import {
   DeleteOutlined,
   EyeOutlined,
 } from '@ant-design/icons';
+import { ProductImage } from 'components/ProductImage';
 import {
   fetchMyProductsApi,
   deleteProductApi,
@@ -332,27 +333,12 @@ const ProductsDashboardPage = (props: Props) => {
                 <List.Item>
                   <Card
                     cover={
-                      item.thumbnail ? (
-                        <Image
-                          src={item.thumbnail}
-                          alt={item.title}
-                          height={200}
-                          style={{ objectFit: 'cover' }}
-                          preview={false}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            height: 200,
-                            background: '#f0f0f0',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          No Image
-                        </div>
-                      )
+                      <ProductImage
+                        thumbnail={item.thumbnail}
+                        title={item.title}
+                        height={200}
+                        style={{ objectFit: 'cover' }}
+                      />
                     }
                     actions={[
                       <Link key="view" to={`/products/${item._id}`}>

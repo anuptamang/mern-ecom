@@ -2,7 +2,7 @@ import { Card, List, Image, Button, Tag, Empty, Spin, Carousel } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { pageRoutes } from 'data/static/pageRoutes';
-import { ProductImagePlaceholder } from 'components/ProductImageGallery/ProductImagePlaceholder';
+import { ProductImage } from 'components/ProductImage';
 import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 import { authSelector } from 'redux/slice';
@@ -77,20 +77,12 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
     <Card
       className="related-product-card"
       cover={
-        item.thumbnail ? (
-          <div className="product-image-wrapper" onClick={() => navigate(`/products/${item._id}`)}>
-            <Image
-              alt={item.title}
-              src={item.thumbnail}
-              preview={false}
-              className="product-image"
-            />
-          </div>
-        ) : (
-          <div className="product-image-wrapper" onClick={() => navigate(`/products/${item._id}`)}>
-            <ProductImagePlaceholder title={item.title || LABELS.COMMON.PRODUCT} />
-          </div>
-        )
+        <div onClick={() => navigate(`/products/${item._id}`)}>
+          <ProductImage
+            thumbnail={item.thumbnail}
+            title={item.title || LABELS.COMMON.PRODUCT}
+          />
+        </div>
       }
       actions={[
           <Button

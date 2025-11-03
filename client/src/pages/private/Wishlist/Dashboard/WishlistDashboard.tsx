@@ -7,7 +7,7 @@ import {
 } from "redux/slice/wishlist/wishlistSlice";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ProductImagePlaceholder } from "components/ProductImageGallery/ProductImagePlaceholder";
+import { ProductImage } from "components/ProductImage";
 import { DeleteOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 import { addToCart, fetchMyCart } from "redux/slice/carts/cartsSlice";
 import "./WishlistDashboard.scss";
@@ -94,26 +94,12 @@ export const WishlistDashboard = () => {
                   <Card
                     className="wishlist-product-card"
                     cover={
-                      thumbnail ? (
-                        <div
-                          className="product-image-wrapper"
-                          onClick={() => navigate(`/products/${productId}`)}
-                        >
-                          <Image
-                            alt={title}
-                            src={thumbnail}
-                            preview={false}
-                            className="product-image"
-                          />
-                        </div>
-                      ) : (
-                        <div
-                          className="product-image-wrapper"
-                          onClick={() => navigate(`/products/${productId}`)}
-                        >
-                          <ProductImagePlaceholder title={title} />
-                        </div>
-                      )
+                      <div onClick={() => navigate(`/products/${productId}`)}>
+                        <ProductImage
+                          thumbnail={thumbnail}
+                          title={title}
+                        />
+                      </div>
                     }
                     actions={[
                       <Button
@@ -177,4 +163,3 @@ export const WishlistDashboard = () => {
     </div>
   );
 };
-

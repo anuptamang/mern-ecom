@@ -2,6 +2,7 @@ import { Card, List, Tag, Spin, Empty, message, Button, Image, Modal, Popconfirm
 import { UploadOutlined, DeleteOutlined as DeleteIcon } from '@ant-design/icons';
 import type { UploadFile } from 'antd';
 import { Container } from 'components/UI';
+import { ProductImage } from 'components/ProductImage';
 import { usePageTitle } from 'hooks/usePageTitle';
 import { useEffect, useState } from 'react';
 import { getMyReturnsApi, cancelReturnApi, createReturnRequestApi } from 'services/endPoints/return';
@@ -626,16 +627,13 @@ const ReturnsDashboard = (props: TProps) => {
                               <Input type="hidden" />
                             </Form.Item>
                             <div className="flex items-center gap-4 mb-2">
-                              {item.thumbnail && (
-                                <Image
-                                  src={item.thumbnail}
-                                  alt={item.title}
-                                  width={60}
-                                  height={60}
-                                  style={{ objectFit: 'cover' }}
-                                  preview={false}
-                                />
-                              )}
+                              <ProductImage
+                                thumbnail={item.thumbnail}
+                                title={item.title}
+                                width={60}
+                                height={60}
+                                style={{ objectFit: 'cover' }}
+                              />
                               <div className="flex-1">
                                 <div className="font-medium">{item.title}</div>
                                 <div className="text-sm text-gray-500">
