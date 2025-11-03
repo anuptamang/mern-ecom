@@ -1,6 +1,107 @@
-// Colors
-$blue: #32a0d9;
-$blue-800: #001529;
-$purple: #8d0fda;
-$white: #fff;
-$black: #333;
+/**
+ * SCSS Variables - Centralized Color Scheme
+ * 
+ * These variables are based on the centralized color scheme configuration.
+ * To update colors globally, modify configs/theme/colorScheme.ts instead.
+ * 
+ * Note: SCSS variables are compile-time constants, so they cannot be
+ * dynamically updated at runtime. For dynamic theme updates, use CSS
+ * variables or the colorScheme.ts configuration.
+ */
+
+// Primary Colors - Apple's signature blue (from centralized color scheme)
+$primary: #0071e3; // Apple's primary blue
+$primary-dark: #0066cc; // Darker blue for hover
+$primary-light: #007aff; // iOS blue variant
+$primary-bg: #f0f8ff; // Very light blue background
+
+// Secondary Colors - Apple's subtle grays
+$secondary: #6e6e73; // Apple's secondary gray
+$secondary-dark: #424245; // Darker gray
+$secondary-light: #86868b; // Lighter gray
+
+// Accent Colors - Apple's accent blue
+$accent: #0071e3; // Same as primary for consistency
+$accent-hover: #007aff; // Lighter on hover
+
+// Semantic Colors - Apple's semantic palette
+$success: #34c759; // Apple green
+$warning: #ff9500; // Apple orange
+$error: #ff3b30; // Apple red
+$info: #0071e3; // Apple blue
+
+// Neutral Colors - Apple's neutral palette
+$white: #ffffff;
+$black: #000000;
+$dark: #1d1d1f; // Apple's dark background
+
+// Gray Scale - Apple's gray scale
+$gray-50: #fafafa; // Very light gray
+$gray-100: #f5f5f5; // Light gray background
+$gray-200: #e5e5e5; // Light border gray
+$gray-300: #d1d1d1; // Medium light gray
+$gray-400: #86868b; // Medium gray
+$gray-500: #6e6e73; // Apple's standard gray
+$gray-600: #424245; // Dark gray text
+$gray-700: #333336; // Darker gray
+$gray-800: #1d1d1f; // Apple's dark gray
+$gray-900: #000000; // Pure black
+
+// Legacy color names (for backward compatibility)
+$blue: $accent;
+$blue-800: $dark;
+$purple: $secondary;
+
+// Background Colors
+$background: $white;
+$background-secondary: $gray-50;
+$background-tertiary: $gray-100;
+
+// Text Colors - Apple's high contrast text
+$text: #1d1d1f; // Apple's primary text color (very dark gray)
+$text-secondary: #6e6e73; // Apple's secondary text
+$text-tertiary: #86868b; // Lighter secondary text
+$text-inverse: $white; // White text for dark backgrounds
+
+// Border Colors - Apple's subtle borders
+$border: #d1d1d1; // Apple's border gray
+$border-light: #e5e5e5; // Lighter border
+$border-dark: #86868b; // Darker border
+
+// Header Colors - Apple's minimal header
+$header-background: $white; // White header
+$header-text: $text; // Dark text
+$header-border: rgba(0, 0, 0, 0.08); // Very subtle border
+
+// Footer Colors - Apple's clean footer
+$footer-background: $gray-100; // Light gray background
+$footer-text: $secondary; // Medium gray text
+$footer-text-secondary: rgba(110, 110, 115, 0.7); // Lighter gray
+$footer-border: rgba(0, 0, 0, 0.08); // Subtle border
+
+// Banner Colors - Apple-inspired banner colors
+$banner-background: $primary; // Apple blue
+$banner-text: $white; // White text
+$banner-offer: $error; // Apple red for offers
+$banner-voucher: $success; // Apple green for vouchers
+$banner-featured: $primary; // Apple blue for featured
+$banner-coming-soon: $warning; // Apple orange
+$banner-flash-sale: $error; // Apple red for flash sales
+
+// Button Colors - Apple's button styles
+$button-primary: $primary; // Apple blue
+$button-primary-hover: $primary-light; // Lighter blue on hover
+$button-secondary: $secondary; // Gray secondary button
+$button-secondary-hover: $secondary-light; // Lighter gray on hover
+$button-danger: $error; // Apple red
+$button-danger-hover: #ff453a; // Slightly lighter red
+
+// Link Colors - Apple's link blue
+$link: $primary; // Apple blue
+$link-hover: $primary-light; // Lighter blue on hover
+
+// Card Colors - Apple's clean card design
+$card-background: $white; // White cards
+$card-border: $gray-200; // Subtle border
+$card-shadow: rgba(0, 0, 0, 0.08); // Apple's subtle shadow
+$card-hover-shadow: rgba(0, 0, 0, 0.12); // Slightly darker on hover
