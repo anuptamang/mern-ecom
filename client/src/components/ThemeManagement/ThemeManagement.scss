@@ -1,0 +1,34 @@
+.theme-management {
+  .theme-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .theme-form {
+    .ant-card {
+      .ant-card-head-title {
+        font-weight: 600;
+      }
+    }
+
+    .ant-input[type="color"] {
+      cursor: pointer;
+      border: 1px solid #d9d9d9;
+      border-radius: 4px;
+      padding: 2px;
+      
+      &:hover {
+        border-color: #40a9ff;
+      }
+
+      &:focus {
+        border-color: #40a9ff;
+        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+      }
+    }
+  }
+}

@@ -1,4 +1,3 @@
-import { ConfigProvider } from 'antd';
 import React, { Suspense, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
@@ -9,7 +8,7 @@ import { debounce, saveState } from 'utils';
 import reportWebVitals from './reportWebVitals';
 
 import './index.css';
-import { theme } from 'assets/styles/antd/theme';
+import { ThemeProvider } from 'components';
 
 import 'antd/dist/reset.css';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
@@ -36,11 +35,11 @@ root.render(
     <Provider store={store}>
       <BrowserRouter>
         <Suspense fallback={null}>
-          <ConfigProvider theme={theme}>
+          <ThemeProvider>
             <HelmetProvider>
               <App />
             </HelmetProvider>
-          </ConfigProvider>
+          </ThemeProvider>
         </Suspense>
       </BrowserRouter>
     </Provider>
