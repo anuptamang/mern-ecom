@@ -1,0 +1,50 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@5
+
+workflows:
+  test_and_deploy:
+    jobs:
+      - test
+      - deploy:
+          requires:
+            - test
+          filters:
+            branches:
+              only: master
+
+jobs:
+  test:
+    docker:
+      - image: cimg/node:18.0
+      - image: circleci/mongo:7.0
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: npm
+      - run:
+          name: Run linter
+          command: |
+            cd client && npm run lint
+            cd ../server && npm run lint
+      - run:
+          name: Run tests
+          command: |
+            cd client && npm test -- --coverage --watchAll=false
+            cd ../server && npm test
+
+  deploy:
+    docker:
+      - image: cimg/node:18.0
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: npm
+      - run:
+          name: Build application
+          command: |
+            cd client && npm run build
+      - deploy:
+          name: Deploy to production
+          command: echo "Configure your deployment here"
