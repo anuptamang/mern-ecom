@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 
 import User from "../models/user.js";
-import * as dotenv from "dotenv";
-dotenv.config();
+// Environment variables are loaded by server/config/index.js
+// No need to load dotenv here - it's already loaded when the server starts
 const PORT = process.env.PORT || 3010;
 import Order from "../models/order.js";
 import Product from "../models/product.js";

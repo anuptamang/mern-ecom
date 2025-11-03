@@ -100,7 +100,12 @@ mongoose
     });
   })
   .catch((error) => {
-    logger.error("MongoDB connection error", { error: error.message });
+    logger.error("MongoDB connection error", { 
+      error: error.message || error.toString(),
+      stack: error.stack,
+      name: error.name,
+      code: error.code
+    });
     process.exit(1);
   });
 

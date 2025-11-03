@@ -10,8 +10,9 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+// Load environment variables from server/.env
+// Server and client have separate .env files for different deployment environments
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const config = {
   // Server Configuration

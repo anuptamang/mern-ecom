@@ -1,9 +1,9 @@
-import * as dotenv from "dotenv";
 import mongoose from "mongoose";
 import Product from "../models/product.js";
 import User from "../models/user.js";
 import { createNotification } from "./notifications.js";
-dotenv.config();
+// Environment variables are loaded by server/config/index.js
+// No need to load dotenv here - it's already loaded when the server starts
 
 const PORT = process.env.PORT || 3010;
 

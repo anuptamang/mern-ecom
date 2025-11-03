@@ -3,10 +3,14 @@ import * as dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import { fileURLToPath } from "url";
 import { resolve as resolvePath } from "path";
+import { dirname } from "path";
 import Product from "../models/product.js";
 import User from "../models/user.js";
 
-dotenv.config();
+// Load environment variables from server/.env
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: resolvePath(__dirname, "../.env") });
 
 async function connect() {
   mongoose.set("strictQuery", false);
@@ -497,9 +501,15 @@ function sampleProducts() {
         price: 24.99,
       },
       categories: ["electronics"],
-      tag: ["mouse", "wireless", "computer"],
+      tag: ["mouse", "wireless", "computer", "flash-sale"],
       slug: "wireless-mouse",
-      thumbnail: "",
+      thumbnail:
+        "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=500&h=500&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1558017487-06bf9f8266a0?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1535551951406-a19828b0a76b?w=800&h=800&fit=crop",
+      ],
       stock: 50,
       price: 24.99,
       estimatedDeliveryDays: 5,
@@ -508,66 +518,109 @@ function sampleProducts() {
       title: "Mechanical Keyboard",
       body: {
         summary: "RGB backlit mechanical keyboard with blue switches",
+        description:
+          "<p>Premium mechanical keyboard featuring RGB backlighting, blue switches for tactile feedback, and programmable keys.</p>",
         price: 79.99,
       },
       categories: ["electronics"],
-      tag: ["keyboard", "mechanical", "rgb"],
+      tag: ["keyboard", "mechanical", "rgb", "flash-sale"],
       slug: "mechanical-keyboard",
-      thumbnail: "",
+      thumbnail:
+        "https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=500&h=500&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1587829741301-dc508b5ade48?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1618384887929-16ec33cab9ef?w=800&h=800&fit=crop",
+      ],
       stock: 30,
       price: 79.99,
+      estimatedDeliveryDays: 4,
     },
     {
       title: "USB-C Hub",
       body: {
         summary: "7-in-1 USB-C hub with HDMI, USB 3.0, and card reader",
+        description:
+          "<p>Expand your connectivity with this versatile 7-in-1 USB-C hub featuring HDMI output, multiple USB 3.0 ports, and SD card reader.</p>",
         price: 39.99,
       },
       categories: ["electronics", "accessories"],
       tag: ["usb-c", "hub", "adapter"],
       slug: "usb-c-hub",
-      thumbnail: "",
+      thumbnail:
+        "https://images.unsplash.com/photo-1617325247661-675ab4b64ae2?w=500&h=500&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1617325247661-675ab4b64ae2?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1625842268584-8f3296236761?w=800&h=800&fit=crop",
+      ],
       stock: 45,
       price: 39.99,
+      estimatedDeliveryDays: 3,
     },
     {
       title: "Wireless Headphones",
       body: {
         summary: "Noise-cancelling wireless headphones with 30-hour battery",
+        description:
+          "<p>Premium wireless headphones with active noise cancellation, 30-hour battery life, and crystal-clear sound quality.</p>",
         price: 129.99,
       },
       categories: ["electronics"],
       tag: ["headphones", "wireless", "audio"],
       slug: "wireless-headphones",
-      thumbnail: "",
+      thumbnail:
+        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1599669454699-248893623440?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&h=800&fit=crop",
+      ],
       stock: 25,
       price: 129.99,
+      estimatedDeliveryDays: 5,
     },
     {
       title: "USB Flash Drive 64GB",
       body: {
         summary: "High-speed USB 3.0 flash drive with 64GB capacity",
+        description:
+          "<p>Compact and reliable USB 3.0 flash drive with 64GB storage capacity, perfect for transferring files quickly.</p>",
         price: 12.99,
       },
       categories: ["electronics"],
-      tag: ["usb", "storage", "flash-drive"],
+      tag: ["usb", "storage", "flash-drive", "flash-sale"],
       slug: "usb-flash-drive-64gb",
-      thumbnail: "",
+      thumbnail:
+        "https://images.unsplash.com/photo-1591488320449-11f483a1c43d?w=500&h=500&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1591488320449-11f483a1c43d?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?w=800&h=800&fit=crop",
+      ],
       stock: 100,
       price: 12.99,
+      estimatedDeliveryDays: 2,
     },
     {
       title: "Webcam HD 1080p",
       body: {
         summary: "Full HD 1080p webcam with built-in microphone",
+        description:
+          "<p>Professional-grade 1080p webcam with built-in noise-cancelling microphone, perfect for video calls and streaming.</p>",
         price: 49.99,
       },
       categories: ["electronics"],
       tag: ["webcam", "camera", "video"],
       slug: "webcam-hd-1080p",
-      thumbnail: "",
+      thumbnail:
+        "https://images.unsplash.com/photo-1587825147138-346c2290b8db?w=500&h=500&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1587825147138-346c2290b8db?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&h=800&fit=crop",
+      ],
       stock: 35,
       price: 49.99,
+      estimatedDeliveryDays: 4,
     },
     // Accessories
     {
@@ -575,13 +628,19 @@ function sampleProducts() {
       body: {
         summary: "Adjustable aluminum laptop stand for better ergonomics",
         description:
-          "<p>Improve your workspace ergonomics with this sturdy aluminum laptop stand.</p>",
+          "<p>Improve your workspace ergonomics with this sturdy aluminum laptop stand. Adjustable height and angle for maximum comfort.</p>",
         price: 29.99,
       },
       categories: ["accessories"],
       tag: ["laptop", "stand", "ergonomic"],
       slug: "laptop-stand",
-      thumbnail: "",
+      thumbnail:
+        "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=500&h=500&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1522143049013-251a16e91605?w=800&h=800&fit=crop",
+      ],
       stock: 40,
       price: 29.99,
       estimatedDeliveryDays: 4,
@@ -591,13 +650,18 @@ function sampleProducts() {
       body: {
         summary: "Protective phone case with shock absorption",
         description:
-          "<p>Keep your phone safe with this durable protective case featuring advanced shock absorption technology.</p>",
+          "<p>Keep your phone safe with this durable protective case featuring advanced shock absorption technology and raised edges for screen protection.</p>",
         price: 19.99,
       },
       categories: ["accessories"],
-      tag: ["phone", "case", "protection"],
+      tag: ["phone", "case", "protection", "flash-sale"],
       slug: "phone-case",
-      thumbnail: "",
+      thumbnail:
+        "https://images.unsplash.com/photo-1556656793-08538906a9f8?w=500&h=500&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1556656793-08538906a9f8?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&h=800&fit=crop",
+      ],
       stock: 80,
       price: 19.99,
       estimatedDeliveryDays: 3,
@@ -607,13 +671,19 @@ function sampleProducts() {
       body: {
         summary: "Water-resistant laptop bag with padded compartment",
         description:
-          "<p>Carry your laptop safely with this water-resistant bag featuring a padded compartment for maximum protection.</p>",
+          "<p>Carry your laptop safely with this water-resistant bag featuring a padded compartment for maximum protection, multiple pockets, and comfortable shoulder straps.</p>",
         price: 59.99,
       },
       categories: ["accessories"],
       tag: ["laptop", "bag", "backpack"],
       slug: "laptop-bag",
-      thumbnail: "",
+      thumbnail:
+        "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&h=500&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=800&h=800&fit=crop",
+      ],
       stock: 20,
       price: 59.99,
       estimatedDeliveryDays: 5,
@@ -624,13 +694,19 @@ function sampleProducts() {
       body: {
         summary: "100% cotton comfortable t-shirt in various colors",
         description:
-          "<p>Soft and comfortable 100% cotton t-shirt available in multiple colors and sizes.</p>",
+          "<p>Soft and comfortable 100% cotton t-shirt available in multiple colors and sizes. Pre-shrunk fabric ensures long-lasting fit.</p>",
         price: 24.99,
       },
       categories: ["clothing"],
-      tag: ["tshirt", "cotton", "apparel"],
+      tag: ["tshirt", "cotton", "apparel", "flash-sale"],
       slug: "cotton-tshirt",
-      thumbnail: "",
+      thumbnail:
+        "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&h=500&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1594938291221-94f98832df97?w=800&h=800&fit=crop",
+      ],
       stock: 150,
       price: 24.99,
       estimatedDeliveryDays: 4,
@@ -640,13 +716,19 @@ function sampleProducts() {
       body: {
         summary: "Classic fit denim jeans in multiple sizes",
         description:
-          "<p>Timeless classic fit denim jeans crafted from premium denim fabric.</p>",
+          "<p>Timeless classic fit denim jeans crafted from premium denim fabric. Available in multiple sizes and washes.</p>",
         price: 49.99,
       },
       categories: ["clothing"],
       tag: ["jeans", "denim", "apparel"],
       slug: "denim-jeans",
-      thumbnail: "",
+      thumbnail:
+        "https://images.unsplash.com/photo-1542272604-787c3835535d?w=500&h=500&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1542272604-787c3835535d?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1582418702059-97ebaf902b0f?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1565084888279-aca607ecce0c?w=800&h=800&fit=crop",
+      ],
       stock: 60,
       price: 49.99,
       estimatedDeliveryDays: 5,
@@ -656,13 +738,20 @@ function sampleProducts() {
       body: {
         summary: "Lightweight running shoes with cushioned sole",
         description:
-          "<p>Perfect for your daily runs, these lightweight shoes feature advanced cushioning technology.</p>",
+          "<p>Perfect for your daily runs, these lightweight shoes feature advanced cushioning technology, breathable mesh upper, and durable rubber outsole.</p>",
         price: 79.99,
       },
       categories: ["clothing", "sports"],
       tag: ["shoes", "running", "sports"],
       slug: "running-shoes",
-      thumbnail: "",
+      thumbnail:
+        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1465453869711-7e174808ace9?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=800&h=800&fit=crop",
+      ],
       stock: 40,
       price: 79.99,
       estimatedDeliveryDays: 6,
@@ -673,13 +762,19 @@ function sampleProducts() {
       body: {
         summary: "Comprehensive guide to modern JavaScript programming",
         description:
-          "<p>A complete reference guide covering modern JavaScript features, ES6+, and best practices.</p>",
+          "<p>A complete reference guide covering modern JavaScript features, ES6+, async/await, modules, and best practices for web development.</p>",
         price: 34.99,
       },
       categories: ["books"],
       tag: ["javascript", "programming", "education"],
       slug: "javascript-guide",
-      thumbnail: "",
+      thumbnail:
+        "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&h=500&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1532619675605-1ede6c7edf48?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=800&fit=crop",
+      ],
       stock: 25,
       price: 34.99,
       estimatedDeliveryDays: 7,
@@ -689,13 +784,19 @@ function sampleProducts() {
       body: {
         summary: "Essential design patterns for software development",
         description:
-          "<p>Learn essential software design patterns and when to apply them in your projects.</p>",
+          "<p>Learn essential software design patterns and when to apply them in your projects. Includes creational, structural, and behavioral patterns with practical examples.</p>",
         price: 39.99,
       },
       categories: ["books"],
       tag: ["design", "patterns", "programming"],
       slug: "design-patterns-book",
-      thumbnail: "",
+      thumbnail:
+        "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500&h=500&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1532619675605-1ede6c7edf48?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=800&fit=crop",
+      ],
       stock: 15,
       price: 39.99,
       estimatedDeliveryDays: 7,
@@ -706,13 +807,19 @@ function sampleProducts() {
       body: {
         summary: "Programmable coffee maker with 12-cup capacity",
         description:
-          "<p>Start your day right with this programmable coffee maker featuring a 12-cup capacity and auto-shutoff.</p>",
+          "<p>Start your day right with this programmable coffee maker featuring a 12-cup capacity, auto-shutoff, and programmable start time.</p>",
         price: 89.99,
       },
       categories: ["home", "kitchen"],
       tag: ["coffee", "maker", "appliance"],
       slug: "coffee-maker",
-      thumbnail: "",
+      thumbnail:
+        "https://images.unsplash.com/photo-1517668808823-6c8b58a1d2b7?w=500&h=500&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1517668808823-6c8b58a1d2b7?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=800&h=800&fit=crop",
+      ],
       stock: 30,
       price: 89.99,
       estimatedDeliveryDays: 5,
@@ -722,13 +829,19 @@ function sampleProducts() {
       body: {
         summary: "Portable Bluetooth speaker with 360-degree sound",
         description:
-          "<p>Enjoy immersive 360-degree sound with this portable Bluetooth speaker perfect for any room.</p>",
+          "<p>Enjoy immersive 360-degree sound with this portable Bluetooth speaker perfect for any room. Water-resistant design and 12-hour battery life.</p>",
         price: 49.99,
       },
       categories: ["electronics", "home"],
-      tag: ["speaker", "bluetooth", "audio"],
+      tag: ["speaker", "bluetooth", "audio", "flash-sale"],
       slug: "bluetooth-speaker",
-      thumbnail: "",
+      thumbnail:
+        "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=500&h=500&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=800&fit=crop",
+      ],
       stock: 50,
       price: 49.99,
       estimatedDeliveryDays: 4,
@@ -739,13 +852,19 @@ function sampleProducts() {
       body: {
         summary: "Classic vintage watch with leather strap",
         description:
-          "<p>A timeless vintage watch featuring a genuine leather strap and classic design elements.</p>",
+          "<p>A timeless vintage watch featuring a genuine leather strap, classic design elements, and precise quartz movement.</p>",
         price: 149.99,
       },
       categories: ["accessories"],
       tag: ["watch", "vintage", "timepiece"],
       slug: "vintage-watch",
-      thumbnail: "",
+      thumbnail:
+        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&h=500&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1434056886845-dac89ffe9b56?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1462329813135-65fc917bc31c?w=800&h=800&fit=crop",
+      ],
       stock: 0,
       price: 149.99,
       estimatedDeliveryDays: 7,
@@ -755,13 +874,20 @@ function sampleProducts() {
       body: {
         summary: "Premium limited edition headphones with wood accents",
         description:
-          "<p>Exclusive limited edition headphones featuring premium wood accents and exceptional sound quality.</p>",
+          "<p>Exclusive limited edition headphones featuring premium wood accents, exceptional sound quality, and handcrafted design. Only 100 units available worldwide.</p>",
         price: 299.99,
       },
       categories: ["electronics"],
       tag: ["headphones", "premium", "limited"],
       slug: "limited-edition-headphones",
-      thumbnail: "",
+      thumbnail:
+        "https://images.unsplash.com/photo-1599669454699-248893623440?w=500&h=500&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1599669454699-248893623440?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=800&fit=crop",
+      ],
       stock: 0,
       price: 299.99,
       estimatedDeliveryDays: 10,
@@ -788,7 +914,8 @@ export async function seedProducts(sellerId) {
     rating: 0, // Will be calculated from ratings array
     ratings: [], // Empty initially - can be populated later
     comments: [], // Empty initially - can be populated later
-    images: [], // Gallery images array - empty initially (can add images via UI)
+    // Preserve images array from product data, or default to empty array
+    images: p.images || [], // Gallery images array from sample data
     status: "published", // Default status
     name: p.title.toLowerCase().replace(/\s+/g, "-"), // Generate name from title
   }));

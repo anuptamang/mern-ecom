@@ -1,6 +1,12 @@
 import mongoose from "mongoose";
 import * as dotenv from "dotenv";
-dotenv.config();
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
+
+// Load environment variables from server/.env
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: resolve(__dirname, '../.env') });
 
 async function connect() {
   mongoose.set("strictQuery", false);
