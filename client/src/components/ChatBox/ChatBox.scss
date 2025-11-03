@@ -1,8 +1,9 @@
 .chat-box-toggle {
   position: fixed;
-  bottom: 20px;
+  bottom: 0;
   right: 20px;
   z-index: 1000;
+  margin-bottom: 20px;
 
   .chat-toggle-button {
     width: 56px;
@@ -19,12 +20,13 @@
 
 .chat-box-container {
   position: fixed;
-  bottom: 20px;
+  bottom: 0;
   right: 20px;
   width: 400px;
   max-height: 600px;
   z-index: 1001;
   transition: all 0.3s ease;
+  margin-bottom: 20px;
 
   &.with-sidebar {
     width: 800px;
@@ -409,8 +411,9 @@
     max-width: none;
     height: calc(100vh - 20px);
     max-height: calc(100vh - 20px);
-    bottom: 10px;
+    bottom: 0;
     right: 10px;
+    margin-bottom: 10px;
 
     &.with-sidebar {
       width: calc(100vw - 20px);
@@ -436,4 +439,3 @@
     }
   }
 }
-

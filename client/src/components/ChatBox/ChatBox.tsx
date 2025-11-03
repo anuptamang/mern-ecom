@@ -166,14 +166,20 @@ const ChatBox: React.FC<ChatBoxProps> = ({
 
       const response = await createOrGetChatApi(payload);
       const newChat = response.data.chat;
-      setChat(newChat);
       chatIdRef.current = newChat._id;
 
-      // Load messages if chat exists
+      // If chat already has messages, use them directly
+      // Otherwise, load messages separately to avoid duplicates
       if (newChat._id) {
-        await loadChatMessages(newChat._id);
-        // Reload chats list to include new chat
-        await loadAllChats();
+        if (newChat.messages && newChat.messages.length > 0) {
+          // Chat already has messages, use them directly
+          setChat(newChat);
+          // Update chat in chats list
+          await loadAllChats();
+        } else {
+          // Load messages if chat exists but has no messages
+          await loadChatMessages(newChat._id);
+        }
       }
     } catch (error: any) {
       console.error('Error opening chat:', error);
@@ -197,25 +203,48 @@ const ChatBox: React.FC<ChatBoxProps> = ({
 
   const loadChatMessages = async (chatId: string) => {
     try {
+      // Skip if already loading or if chat is already loaded
+      if (loading || (chat && chat._id === chatId && chat.messages && chat.messages.length > 0)) {
+        return;
+      }
+
       setLoading(true);
       const response = await getChatByIdApi(chatId);
       const loadedChat = response.data.chat;
-      setChat(loadedChat);
+      
+      // Deduplicate messages by _id to prevent duplicates
+      const existingMessages = chat?.messages || [];
+      const loadedMessages = loadedChat.messages || [];
+      const existingMessageIds = new Set(existingMessages.map((m: Message) => m._id || m.createdAt));
+      const deduplicatedMessages = loadedMessages.filter((m: Message) => {
+        const msgId = m._id || m.createdAt;
+        return !existingMessageIds.has(msgId);
+      });
+      
+      // Merge messages, removing duplicates
+      const mergedMessages = [...existingMessages, ...deduplicatedMessages];
+      const uniqueMessages = mergedMessages.filter((msg, index, self) => {
+        const msgId = msg._id || msg.createdAt;
+        return index === self.findIndex((m) => (m._id || m.createdAt) === msgId);
+      });
+      
+      const updatedChat = {
+        ...loadedChat,
+        messages: uniqueMessages,
+      };
+      
+      setChat(updatedChat);
       chatIdRef.current = chatId;
       
-      // Update chat in chats list and refresh unread counts
-      setChats((prevChats) =>
-        prevChats.map((c) => {
-          if (c._id === chatId) {
-            // Update with new chat data including reset unread count
-            return loadedChat;
-          }
-          return c;
-        })
-      );
-      
-      // Reload chats list to get updated unread counts
-      await loadAllChats();
+      // Update chat in chats list without reloading all chats (to prevent duplicate calls)
+      setChats((prevChats) => {
+        const chatExists = prevChats.some((c) => c._id === chatId);
+        if (chatExists) {
+          return prevChats.map((c) => (c._id === chatId ? updatedChat : c));
+        } else {
+          return [...prevChats, updatedChat];
+        }
+      });
     } catch (error: any) {
       console.error('Error loading chat messages:', error);
       antMessage.error('Failed to load messages');
@@ -252,22 +281,34 @@ const ChatBox: React.FC<ChatBoxProps> = ({
       const response = await sendMessageApi(currentChatId, textToSend);
       // Ensure we have the updated chat with new message
       const updatedChat = response.data.chat;
-      setChat(updatedChat);
+      
+      // Deduplicate messages to prevent duplicates
+      const existingMessages = chat?.messages || [];
+      const newMessages = updatedChat.messages || [];
+      const existingMessageIds = new Set(existingMessages.map((m: Message) => m._id || m.createdAt));
+      const uniqueNewMessages = newMessages.filter((m: Message) => {
+        const msgId = m._id || m.createdAt;
+        return !existingMessageIds.has(msgId);
+      });
+      
+      // Merge messages without duplicates
+      const mergedMessages = [...existingMessages, ...uniqueNewMessages];
+      const uniqueMessages = mergedMessages.filter((msg, index, self) => {
+        const msgId = msg._id || msg.createdAt;
+        return index === self.findIndex((m) => (m._id || m.createdAt) === msgId);
+      });
+      
+      const finalChat = {
+        ...updatedChat,
+        messages: uniqueMessages,
+      };
+      
+      setChat(finalChat);
       
       // Update chat in chats list
       setChats((prevChats) =>
-        prevChats.map((c) => (c._id === currentChatId ? updatedChat : c))
+        prevChats.map((c) => (c._id === currentChatId ? finalChat : c))
       );
-      
-      // Reload chat messages to ensure persistence and get updated seen status
-      setTimeout(() => {
-        loadChatMessages(currentChatId);
-      }, 100);
-      
-      // Refresh chats list to update unread counts
-      setTimeout(() => {
-        loadAllChats();
-      }, 200);
       
       scrollToBottom();
     } catch (error: any) {
