@@ -213,13 +213,19 @@ npm test
 
 ## Environment Variables
 
-Required environment variables (see `.env.example`):
+Required environment variables (see `server/.env.example`):
 
+The server uses its own `.env` file located in the `server/` directory, separate from the client's `.env` file. This allows independent deployment of frontend and backend.
+
+Key variables:
 - `NODE_ENV` - Environment (development/production)
-- `PORT` - Server port
+- `PORT` - Server port (default: 3010)
 - `MONGODB_URI` - MongoDB connection string
 - `JWT_SECRET` - JWT signing secret
 - `CORS_ORIGIN` - Allowed CORS origins
+- `STRIPE_SECRET_KEY` - Stripe API secret key (for payments)
+
+See `server/.env.example` for the complete list of configuration options.
 
 ## Dependencies
 
@@ -241,4 +247,6 @@ Key dependencies:
 4. **Error Handling**: Proper error responses
 5. **Rate Limiting**: Enable rate limiting
 6. **Security**: Enable HTTPS, security headers
+7. **Monitoring**: Set up monitoring and alerts
+
 7. **Monitoring**: Set up monitoring and alerts

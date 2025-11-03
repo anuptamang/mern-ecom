@@ -33,10 +33,17 @@ echo "📦 Installing server dependencies..."
 cd server && npm install && cd ..
 
 # Setup environment files
-if [ ! -f .env ]; then
-  echo "📝 Creating .env file..."
-  cp .env.example .env
-  echo -e "${YELLOW}⚠️  Please update .env file with your configuration${NC}"
+# Client and server have separate .env files for different deployment environments
+if [ ! -f client/.env ]; then
+  echo "📝 Creating client/.env file..."
+  cp client/.env.example client/.env
+  echo -e "${YELLOW}⚠️  Please update client/.env file with your configuration${NC}"
+fi
+
+if [ ! -f server/.env ]; then
+  echo "📝 Creating server/.env file..."
+  cp server/.env.example server/.env
+  echo -e "${YELLOW}⚠️  Please update server/.env file with your configuration${NC}"
 fi
 
 # Setup git hooks
@@ -46,6 +53,8 @@ npx husky install || echo "Husky setup skipped"
 echo -e "${GREEN}✅ Setup complete!${NC}"
 echo ""
 echo "Next steps:"
-echo "1. Update .env file with your configuration"
+echo "1. Update client/.env and server/.env files with your configuration"
 echo "2. Run 'npm run dev' to start development servers"
 echo "3. Run 'docker-compose up -d' for Docker deployment"
+echo ""
+echo "Note: Client and server use separate .env files for independent deployment"
