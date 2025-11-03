@@ -23,18 +23,29 @@ cd ../server && npm install
 ### 2. Configure Environment
 
 ```bash
-# Copy environment file
-cp .env.example .env
+# Copy environment files (client and server use separate .env files)
+cp client/.env.example client/.env
+cp server/.env.example server/.env
 
 # Edit with your configuration
-nano .env  # or use your preferred editor
+nano client/.env  # Frontend configuration
+nano server/.env  # Backend configuration
 ```
 
 **Minimum required configuration:**
+
+**server/.env:**
 ```env
 MONGODB_URI=mongodb://localhost:27017/ecommerce
 JWT_SECRET=your-secret-key-here
 ```
+
+**client/.env:**
+```env
+REACT_APP_BACKEND_API_URL=http://localhost:3010
+```
+
+**Note:** Client and server have separate `.env` files because they will be deployed on different servers in production.
 
 ### 3. Start Development Servers
 
@@ -84,8 +95,15 @@ kill -9 <PID>
 ### Database connection error
 
 - Ensure MongoDB is running
-- Check MongoDB URI in `.env`
+- Check MongoDB URI in `server/.env`
 - Verify database credentials
+
+### Environment variables not loading
+
+- Ensure `client/.env` and `server/.env` files exist (separate files)
+- Check that variables are prefixed correctly:
+  - Client: `REACT_APP_*` prefix required
+  - Server: No prefix needed
 
 ### Module not found
 

@@ -60,8 +60,13 @@
 3. **Configure environment variables**
 
    ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
+   # Client and server use separate .env files for independent deployment
+   cp client/.env.example client/.env
+   cp server/.env.example server/.env
+   
+   # Edit both files with your configuration
+   # - client/.env: Frontend configuration (REACT_APP_* variables)
+   # - server/.env: Backend configuration (MONGODB_URI, JWT_SECRET, etc.)
    ```
 
 4. **Start development servers**
@@ -101,8 +106,8 @@ This will start:
 # Build image
 docker build -t ecommerce-app .
 
-# Run container
-docker run -p 3010:3010 --env-file .env ecommerce-app
+# Run container (using server/.env for backend)
+docker run -p 3010:3010 --env-file server/.env ecommerce-app
 ```
 
 ## 📁 Project Structure
@@ -145,7 +150,11 @@ ecommerce/
 
 ### Environment Variables
 
-Key environment variables (see `.env.example` for complete list):
+**Important:** Client and server use separate `.env` files:
+- `client/.env` - Frontend configuration (REACT_APP_* variables only)
+- `server/.env` - Backend configuration (all server variables)
+
+Key environment variables (see `server/.env.example` and `client/.env.example`):
 
 ```env
 NODE_ENV=development

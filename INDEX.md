@@ -20,8 +20,11 @@ Complete documentation index for the Enterprise E-Commerce Platform.
 ### Deployment & Operations
 
 - **[Deployment Guide](./DEPLOYMENT.md)** - Deploy to various environments
+- **[Deployment Readiness](./DEPLOYMENT_READINESS.md)** - Comprehensive deployment checklist
 - **[Security Guide](./SECURITY.md)** - Security best practices
 - **[Final Checklist](./FINAL_CHECKLIST.md)** - Pre-deployment checklist
+- **[SDLC Workflow](./SDLC_WORKFLOW.md)** - Complete software development lifecycle workflow
+- **[Enterprise Workflow Plan](./ENTERPRISE_WORKFLOW_PLAN.md)** - Battle-tested workflow plan template
 
 ### Template & Customization
 
