@@ -5,12 +5,16 @@
 
 // Determine API URL based on environment
 const getApiUrl = (): string => {
-  // In production, use environment variable
+  // Check for environment variable (supports both naming conventions)
   if (process.env.REACT_APP_API_URL) {
     return process.env.REACT_APP_API_URL;
   }
+  
+  if (process.env.REACT_APP_BACKEND_API_URL) {
+    return process.env.REACT_APP_BACKEND_API_URL;
+  }
 
-  // In development, default to localhost
+  // In development, default to localhost:3010
   if (process.env.NODE_ENV === 'development') {
     return 'http://localhost:3010';
   }
