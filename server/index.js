@@ -2,10 +2,12 @@ import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 import mongoose from "mongoose";
-import * as dotenv from "dotenv";
 import http from "http";
 import { Server, Socket } from "socket.io";
-dotenv.config();
+import config from "./config/index.js";
+import { logger } from "./utils/index.js";
+import { errorHandler } from "./utils/errorHandler.js";
+import { defaultRateLimiter } from "./middlewares/rateLimiter.js";
 
 import productRoutes from "./routes/products.js";
 import userRoutes from "./routes/users.js";
@@ -20,16 +22,32 @@ import returnRoutes from "./routes/return.js";
 import docsRoutes from "./routes/docs.js";
 import payoutRoutes from "./routes/payout.js";
 import bannerRoutes from "./routes/banner.js";
+import healthRoutes from "./routes/health.js";
 
 const app = express();
 
-app.use(bodyParser.json({ limit: "20mb", extended: true }));
-app.use(bodyParser.urlencoded({ limit: "20mb", extended: true }));
+// Body parser middleware
+app.use(bodyParser.json({ limit: config.upload.maxFileSize, extended: true }));
+app.use(bodyParser.urlencoded({ limit: config.upload.maxFileSize, extended: true }));
 
-app.use(cors());
+// CORS middleware
+app.use(cors(config.cors));
 
+// Rate limiting
+app.use('/api/', defaultRateLimiter);
+
+// Static files
 app.use(express.static("public"));
 
+// Request logging (development)
+if (config.server.env === 'development') {
+  app.use((req, res, next) => {
+    logger.info(`${req.method} ${req.path}`, { ip: req.ip });
+    next();
+  });
+}
+
+// API Routes
 app.use("/products", productRoutes);
 app.use("/user", userRoutes);
 app.use("/carts", cartRoutes);
@@ -44,29 +62,47 @@ app.use("/docs", docsRoutes);
 app.use("/payouts", payoutRoutes);
 app.use("/banners", bannerRoutes);
 
-const PORT = process.env.PORT || 3010;
+// Health check endpoint
+app.use("/health", healthRoutes);
 
-const server = app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
+// Error handling middleware (must be last)
+app.use(errorHandler);
+
+const PORT = config.server.port;
+
+const server = app.listen(PORT, () => {
+  logger.info(`Server listening on port: ${PORT}`, {
+    environment: config.server.env,
+    port: PORT,
+  });
+});
 
 server.on('error', (error) => {
   if (error.code === 'EADDRINUSE') {
-    console.error(`\n❌ Port ${PORT} is already in use.`);
-    console.error(`   Please stop the existing server or use a different port.`);
-    console.error(`   You can run: npm run dev:stop\n`);
+    logger.error(`Port ${PORT} is already in use`, {
+      port: PORT,
+      suggestion: 'Please stop the existing server or use a different port',
+    });
     process.exit(1);
   } else {
-    console.error('Server error:', error);
+    logger.error('Server error', { error: error.message, stack: error.stack });
     process.exit(1);
   }
 });
 
+// Database connection
 mongoose.set("strictQuery", false);
 mongoose
-  .connect(process.env.MONGODB)
+  .connect(config.database.uri, config.database.options)
   .then(() => {
-    console.log("MongoDB connected");
+    logger.info("MongoDB connected successfully", {
+      uri: config.database.uri.replace(/\/\/.*@/, '//***@'), // Hide credentials
+    });
   })
-  .catch((error) => console.log(error));
+  .catch((error) => {
+    logger.error("MongoDB connection error", { error: error.message });
+    process.exit(1);
+  });
 
 const chat = express();
 chat.use(cors());
