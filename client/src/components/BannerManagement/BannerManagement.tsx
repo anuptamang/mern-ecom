@@ -135,7 +135,7 @@ const BannerManagement: React.FC = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div>
             <h2>Banner Management</h2>
-            <p style={{ color: '#666' }}>Manage hero banner slides, offers, vouchers, and promotions</p>
+            <p style={{ color: 'var(--theme-text-secondary, #666)' }}>Manage hero banner slides, offers, vouchers, and promotions</p>
           </div>
           <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
             Add Banner Slide

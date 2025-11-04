@@ -378,5 +378,5 @@ sudo systemctl restart ecommerce
 
 For deployment issues, refer to:
 - [Architecture Documentation](./ARCHITECTURE.md)
-- [README](./README.md)
+- [README](./index.md)
 - GitHub Issues

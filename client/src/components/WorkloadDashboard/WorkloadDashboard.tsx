@@ -185,19 +185,19 @@ const WorkloadDashboard: React.FC<IWorkloadDashboardProps> = ({ onUserClick }) =
           <Card size="small">
             <Space direction="vertical" size="small" align="center">
               <Text type="secondary">Available</Text>
-              <Title level={3} style={{ margin: 0, color: '#52c41a' }}>{summary.free}</Title>
+              <Title level={3} style={{ margin: 0, color: 'var(--theme-success, #52c41a)' }}>{summary.free}</Title>
             </Space>
           </Card>
           <Card size="small">
             <Space direction="vertical" size="small" align="center">
               <Text type="secondary">Busy</Text>
-              <Title level={3} style={{ margin: 0, color: '#faad14' }}>{summary.busy}</Title>
+              <Title level={3} style={{ margin: 0, color: 'var(--theme-warning, #faad14)' }}>{summary.busy}</Title>
             </Space>
           </Card>
           <Card size="small">
             <Space direction="vertical" size="small" align="center">
               <Text type="secondary">Occupied</Text>
-              <Title level={3} style={{ margin: 0, color: '#ff4d4f' }}>{summary.occupied}</Title>
+              <Title level={3} style={{ margin: 0, color: 'var(--theme-error, #ff4d4f)' }}>{summary.occupied}</Title>
             </Space>
           </Card>
         </Space>

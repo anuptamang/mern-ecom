@@ -22,6 +22,7 @@ import returnRoutes from "./routes/return.js";
 import docsRoutes from "./routes/docs.js";
 import payoutRoutes from "./routes/payout.js";
 import bannerRoutes from "./routes/banner.js";
+import themeRoutes from "./routes/theme.js";
 import healthRoutes from "./routes/health.js";
 
 const app = express();
@@ -61,6 +62,7 @@ app.use("/chat", chatRoutes);
 app.use("/docs", docsRoutes);
 app.use("/payouts", payoutRoutes);
 app.use("/banners", bannerRoutes);
+app.use("/theme", themeRoutes);
 
 // Health check endpoint
 app.use("/health", healthRoutes);

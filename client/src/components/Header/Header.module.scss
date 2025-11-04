@@ -9,22 +9,66 @@
   max-height: 64px;
   display: flex;
   align-items: center;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  transition: box-shadow 0.3s ease, border-bottom 0.3s ease;
+  // Use CSS variables for dynamic theme support
+  background: var(--theme-header-background, #ffffff) !important;
+  border-bottom: 1px solid var(--theme-header-border, rgba(0, 0, 0, 0.08));
+  transition: box-shadow 0.3s ease, border-bottom 0.3s ease, background 0.3s ease;
   z-index: 1000;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  color: var(--theme-header-text, #1d1d1f);
+  box-shadow: 0 2px 8px var(--theme-card-shadow, rgba(0, 0, 0, 0.1));
 
   &.sticky {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 2px 8px var(--theme-card-hover-shadow, rgba(0, 0, 0, 0.15));
+    border-bottom: 1px solid var(--theme-header-border, rgba(0, 0, 0, 0.08));
   }
-
-  // Ensure text and links are white
-  color: #fff;
+  
+  // Ensure text and links use theme colors
+  color: var(--theme-header-text, #1d1d1f);
   
   a {
-    color: #fff;
+    color: var(--theme-header-text, #1d1d1f);
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: var(--theme-primary, #0071e3);
+    }
+  }
+
+  // Ensure icons in header are visible
+  :global {
+    .anticon {
+      color: var(--theme-header-text, #1d1d1f) !important;
+      transition: color 0.3s ease;
+    }
+    
+    .ant-btn-text {
+      .anticon {
+        color: var(--theme-header-text, #1d1d1f) !important;
+        
+        &:hover {
+          color: var(--theme-primary, #0071e3) !important;
+        }
+      }
+    }
+
+    // Ensure Badge counters are visible
+    .ant-badge {
+      .ant-badge-count {
+        background-color: var(--theme-primary, #0071e3) !important;
+        color: var(--theme-text-inverse, #ffffff) !important;
+        border-color: var(--theme-primary, #0071e3) !important;
+        box-shadow: 0 0 0 1px var(--theme-header-background, #ffffff) !important;
+      }
+    }
+
+    // Ensure Avatar text is visible
+    .ant-avatar {
+      color: var(--theme-text-inverse, #ffffff) !important;
+      font-weight: 500;
+      
+      span {
+        color: var(--theme-text-inverse, #ffffff) !important;
+      }
+    }
   }
 }

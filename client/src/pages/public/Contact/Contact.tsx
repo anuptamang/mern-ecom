@@ -117,25 +117,25 @@ const ContactPage = () => {
 
             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
               <Space>
-                <MailOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+                <MailOutlined style={{ fontSize: 20, color: 'var(--theme-primary, #1890ff)' }} />
                 <Text strong>Email:</Text>
                 <a href={`mailto:${content.email}`}>{content.email}</a>
               </Space>
 
               <Space>
-                <PhoneOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+                <PhoneOutlined style={{ fontSize: 20, color: 'var(--theme-primary, #1890ff)' }} />
                 <Text strong>Phone:</Text>
                 <a href={`tel:${content.phone}`}>{content.phone}</a>
               </Space>
 
               <Space>
-                <ClockCircleOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+                <ClockCircleOutlined style={{ fontSize: 20, color: 'var(--theme-primary, #1890ff)' }} />
                 <Text strong>Support Hours:</Text>
                 <Text>{content.hours}</Text>
               </Space>
 
               <Space>
-                <EnvironmentOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+                <EnvironmentOutlined style={{ fontSize: 20, color: 'var(--theme-primary, #1890ff)' }} />
                 <Text strong>Address:</Text>
                 <Text>123 Commerce Street, Business District, City, State 12345</Text>
               </Space>

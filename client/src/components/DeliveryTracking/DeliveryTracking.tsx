@@ -356,7 +356,7 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
         {userRole === 'warehouse_operator' && selectedStatus === 'out_for_delivery' && (
           <div>
             <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
-              Assign Customer Deliverer <span style={{ color: 'red' }}>*</span>:
+              Assign Customer Deliverer <span style={{ color: 'var(--theme-error, #ff3b30)' }}>*</span>:
             </label>
             <Select
               value={selectedDeliveryPersonId}
@@ -378,7 +378,7 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
         <div>
           <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
             Note {userRole === 'warehouse_operator' && selectedStatus === 'out_for_delivery' ? (
-              <span style={{ color: 'red' }}>*</span>
+              <span style={{ color: 'var(--theme-error, #ff3b30)' }}>*</span>
             ) : '(optional)'}:
           </label>
           <TextArea

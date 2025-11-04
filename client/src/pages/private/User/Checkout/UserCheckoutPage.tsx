@@ -203,13 +203,13 @@ const UserCheckoutPage = () => {
                                   style={{
                                     width: 60,
                                     height: 60,
-                                    backgroundColor: '#f0f0f0',
+                                    backgroundColor: 'var(--theme-background-tertiary, #f0f0f0)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     borderRadius: 4,
                                     fontSize: 10,
-                                    color: '#999',
+                                    color: 'var(--theme-text-secondary, #999)',
                                   }}
                                 >
                                   No Image

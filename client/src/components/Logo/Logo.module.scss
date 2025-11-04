@@ -20,31 +20,47 @@
   .logoIcon {
     width: 48px;
     height: 48px;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, var(--theme-primary, rgba(0, 113, 227, 0.3)) 0%, var(--theme-secondary, rgba(110, 110, 115, 0.3)) 100%);
+    border: 2px solid var(--theme-border-light, rgba(255, 255, 255, 0.2));
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: $white;
+    // Use CSS variables for dynamic theme support
+    color: var(--theme-logo-icon-color, #0071e3);
     font-size: 24px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px var(--theme-card-shadow, rgba(0, 0, 0, 0.2));
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
 
     &:hover {
-      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+      box-shadow: 0 6px 16px var(--theme-card-hover-shadow, rgba(0, 0, 0, 0.3));
       transform: rotate(-5deg);
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.4) 0%, rgba(118, 75, 162, 0.4) 100%);
-      border-color: rgba(255, 255, 255, 0.3);
+      background: linear-gradient(135deg, var(--theme-primary, rgba(0, 113, 227, 0.4)) 0%, var(--theme-secondary, rgba(110, 110, 115, 0.4)) 100%);
+      border-color: var(--theme-border-light, rgba(255, 255, 255, 0.3));
+      color: var(--theme-primary, #0071e3);
+    }
+  }
+
+  .logoImage {
+    height: 48px;
+    width: auto;
+    max-width: 200px;
+    object-fit: contain;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: scale(1.05);
     }
   }
 
   .logoText {
     font-weight: 700;
     font-size: 24px;
-    color: $white;
+    // Use CSS variables for dynamic theme support
+    color: var(--theme-logo-text-color, var(--theme-header-text, #1d1d1f));
     letter-spacing: -0.5px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    text-shadow: none;
+    transition: color 0.3s ease;
   }
 }

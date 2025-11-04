@@ -488,7 +488,7 @@ const ReturnsDashboard = (props: TProps) => {
                   {(selectedReturn.refundAmount || selectedReturn.returnAmount) && (
                     <div>
                       <Text strong>Refund Amount: </Text>
-                      <Text style={{ fontSize: '16px', color: '#1890ff' }}>
+                      <Text style={{ fontSize: '16px', color: 'var(--theme-primary, #1890ff)' }}>
                         ${(((selectedReturn.refundAmount || selectedReturn.returnAmount) || 0) / 100).toFixed(2)} {selectedReturn.orderId?.currency?.toUpperCase() || 'USD'}
                       </Text>
                     </div>
@@ -526,8 +526,8 @@ const ReturnsDashboard = (props: TProps) => {
 
                   {selectedReturn.refundFailureReason && (
                     <div>
-                      <Text strong style={{ color: '#ff4d4f' }}>Refund Failure Reason: </Text>
-                      <Text style={{ color: '#ff4d4f' }}>{selectedReturn.refundFailureReason}</Text>
+                      <Text strong style={{ color: 'var(--theme-error, #ff4d4f)' }}>Refund Failure Reason: </Text>
+                      <Text style={{ color: 'var(--theme-error, #ff4d4f)' }}>{selectedReturn.refundFailureReason}</Text>
                     </div>
                   )}
 

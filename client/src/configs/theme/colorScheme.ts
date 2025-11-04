@@ -113,6 +113,30 @@ export interface ColorScheme {
     shadow: string;
     hoverShadow: string;
   };
+
+  // Navigation/Menu Colors
+  nav: {
+    itemColor: string;
+    itemHoverColor: string;
+    itemActiveColor: string;
+    itemActiveBg: string;
+  };
+
+  // Logo Configuration
+  logo: {
+    imageUrl: string | null;
+    text: string | null;
+    iconColor: string;
+    textColor: string;
+  };
+
+  // Body Text Configuration
+  bodyText: {
+    fontFamily: string;
+    fontSize: number;
+    lineHeight: number;
+    color: string;
+  };
 }
 
 /**
@@ -233,6 +257,30 @@ export const defaultColorScheme: ColorScheme = {
     shadow: 'rgba(0, 0, 0, 0.08)', // Apple's subtle shadow
     hoverShadow: 'rgba(0, 0, 0, 0.12)', // Slightly darker on hover
   },
+
+  // Navigation/Menu Colors
+  nav: {
+    itemColor: '#1d1d1f', // Default nav item color
+    itemHoverColor: '#0071e3', // Hover color (primary)
+    itemActiveColor: '#0071e3', // Active item color (primary)
+    itemActiveBg: 'transparent', // Active item background
+  },
+
+  // Logo Configuration
+  logo: {
+    imageUrl: null as string | null, // Custom logo image URL
+    text: null as string | null, // Custom logo text (null = use site title)
+    iconColor: '#0071e3', // Logo icon color
+    textColor: '#1d1d1f', // Logo text color
+  },
+
+  // Body Text Configuration
+  bodyText: {
+    fontFamily: 'Mulish, sans-serif',
+    fontSize: 16,
+    lineHeight: 1.5,
+    color: '#1d1d1f',
+  },
 };
 
 /**
@@ -265,46 +313,56 @@ let adminColorScheme: Partial<ColorScheme> | null = null;
  * Get current color scheme with fallback mechanism
  *
  * Priority order:
- * 1. Admin color scheme (from backend/admin panel)
- * 2. User preferences (from localStorage)
+ * 1. Database theme (from API - site-wide, affects all users)
+ * 2. Cached theme (from localStorage - temporary cache)
  * 3. Default color scheme (fallback)
  */
 export const getColorScheme = (): ColorScheme => {
   let scheme: ColorScheme = { ...defaultColorScheme };
 
   if (typeof window !== 'undefined') {
-    // Try to load admin color scheme first (highest priority)
-    const adminStored = localStorage.getItem('adminColorScheme');
-    if (adminStored) {
+    // First, try to load from API cache (site-wide theme from database)
+    const cachedTheme = localStorage.getItem('siteTheme');
+    if (cachedTheme) {
       try {
-        adminColorScheme = JSON.parse(adminStored);
-        // Merge admin scheme with defaults (admin values override defaults)
-        scheme = { ...defaultColorScheme, ...adminColorScheme };
+        const parsedTheme = JSON.parse(cachedTheme);
+        // Use cached theme if it's less than 5 minutes old
+        const cacheTime = localStorage.getItem('siteThemeTime');
+        if (cacheTime && Date.now() - parseInt(cacheTime) < 5 * 60 * 1000) {
+          scheme = {
+            ...defaultColorScheme,
+            ...parsedTheme,
+            // Ensure nested objects are properly merged
+            header: parsedTheme.header
+              ? { ...defaultColorScheme.header, ...parsedTheme.header }
+              : defaultColorScheme.header,
+            footer: parsedTheme.footer
+              ? { ...defaultColorScheme.footer, ...parsedTheme.footer }
+              : defaultColorScheme.footer,
+            banner: parsedTheme.banner
+              ? { ...defaultColorScheme.banner, ...parsedTheme.banner }
+              : defaultColorScheme.banner,
+            button: parsedTheme.button
+              ? { ...defaultColorScheme.button, ...parsedTheme.button }
+              : defaultColorScheme.button,
+            card: parsedTheme.card
+              ? { ...defaultColorScheme.card, ...parsedTheme.card }
+              : defaultColorScheme.card,
+            gray: parsedTheme.gray
+              ? { ...defaultColorScheme.gray, ...parsedTheme.gray }
+              : defaultColorScheme.gray,
+          };
+          currentColorScheme = scheme;
+          return scheme;
+        }
       } catch (e) {
-        console.error('Failed to parse admin color scheme, using fallback:', e);
-        // Fall back to defaults if admin scheme is corrupted
-        scheme = { ...defaultColorScheme };
+        console.error('Failed to parse cached theme, fetching from API:', e);
       }
     }
 
-    // If no admin scheme, try user preferences (lower priority)
-    if (!adminColorScheme) {
-      const userStored = localStorage.getItem('userColorScheme');
-      if (userStored) {
-        try {
-          const userScheme = JSON.parse(userStored);
-          // Merge user scheme with defaults
-          scheme = { ...defaultColorScheme, ...userScheme };
-        } catch (e) {
-          console.error(
-            'Failed to parse user color scheme, using fallback:',
-            e
-          );
-          // Fall back to defaults if user scheme is corrupted
-          scheme = { ...defaultColorScheme };
-        }
-      }
-    }
+    // If no valid cache, fetch from API asynchronously (non-blocking)
+    // This ensures we return defaults immediately, then update when API responds
+    fetchThemeFromAPI();
   }
 
   // Ensure all required properties exist (fallback safety)
@@ -328,7 +386,10 @@ export const getColorScheme = (): ColorScheme => {
  * This takes highest priority and overrides user preferences
  */
 export const setAdminColorScheme = (scheme: Partial<ColorScheme>): void => {
-  adminColorScheme = { ...adminColorScheme, ...scheme };
+  // Merge with existing admin scheme (if any) or start fresh
+  adminColorScheme = adminColorScheme
+    ? { ...adminColorScheme, ...scheme }
+    : { ...scheme };
 
   // Save to localStorage with admin prefix
   if (typeof window !== 'undefined') {
@@ -338,10 +399,32 @@ export const setAdminColorScheme = (scheme: Partial<ColorScheme>): void => {
         JSON.stringify(adminColorScheme)
       );
 
-      // Update current scheme
-      currentColorScheme = { ...defaultColorScheme, ...adminColorScheme };
+      // Update current scheme with proper nested object merging
+      currentColorScheme = {
+        ...defaultColorScheme,
+        ...adminColorScheme,
+        // Ensure nested objects are properly merged
+        gray: adminColorScheme.gray
+          ? { ...defaultColorScheme.gray, ...adminColorScheme.gray }
+          : defaultColorScheme.gray,
+        header: adminColorScheme.header
+          ? { ...defaultColorScheme.header, ...adminColorScheme.header }
+          : defaultColorScheme.header,
+        footer: adminColorScheme.footer
+          ? { ...defaultColorScheme.footer, ...adminColorScheme.footer }
+          : defaultColorScheme.footer,
+        banner: adminColorScheme.banner
+          ? { ...defaultColorScheme.banner, ...adminColorScheme.banner }
+          : defaultColorScheme.banner,
+        button: adminColorScheme.button
+          ? { ...defaultColorScheme.button, ...adminColorScheme.button }
+          : defaultColorScheme.button,
+        card: adminColorScheme.card
+          ? { ...defaultColorScheme.card, ...adminColorScheme.card }
+          : defaultColorScheme.card,
+      };
 
-      // Trigger theme update event
+      // Trigger theme update event with updated scheme
       window.dispatchEvent(
         new CustomEvent('theme-updated', { detail: currentColorScheme })
       );
@@ -437,6 +520,77 @@ export const resetColorScheme = (): void => {
     window.dispatchEvent(
       new CustomEvent('theme-updated', { detail: currentColorScheme })
     );
+  }
+};
+
+/**
+ * Fetch theme from API and update cache
+ * This is called asynchronously to load site-wide theme from database
+ */
+const fetchThemeFromAPI = async (): Promise<void> => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    const response = await fetch(`${process.env.REACT_APP_BACKEND_API_URL || 'http://localhost:3010'}/theme/active`);
+    if (response.ok) {
+      const result = await response.json();
+      if (result.success && result.data && result.data.theme) {
+        const themeFromDB = result.data.theme;
+
+        // Convert database theme to ColorScheme format
+        const dbColorScheme: Partial<ColorScheme> = {
+          primary: themeFromDB.primary || defaultColorScheme.primary,
+          primaryLight: themeFromDB.primaryLight || defaultColorScheme.primaryLight,
+          primaryDark: themeFromDB.primaryDark || defaultColorScheme.primaryDark,
+          primaryBg: themeFromDB.primaryBg || defaultColorScheme.primaryBg,
+          secondary: themeFromDB.secondary || defaultColorScheme.secondary,
+          secondaryLight: themeFromDB.secondaryLight || defaultColorScheme.secondaryLight,
+          secondaryDark: themeFromDB.secondaryDark || defaultColorScheme.secondaryDark,
+          success: themeFromDB.success || defaultColorScheme.success,
+          warning: themeFromDB.warning || defaultColorScheme.warning,
+          error: themeFromDB.error || defaultColorScheme.error,
+          info: themeFromDB.info || defaultColorScheme.info,
+          link: themeFromDB.link || defaultColorScheme.link,
+          linkHover: themeFromDB.linkHover || defaultColorScheme.linkHover,
+          text: themeFromDB.text || defaultColorScheme.text,
+          textSecondary: themeFromDB.textSecondary || defaultColorScheme.textSecondary,
+          textTertiary: themeFromDB.textTertiary || defaultColorScheme.textTertiary,
+          textInverse: themeFromDB.textInverse || defaultColorScheme.textInverse,
+          background: themeFromDB.background || defaultColorScheme.background,
+          backgroundSecondary: themeFromDB.backgroundSecondary || defaultColorScheme.backgroundSecondary,
+          backgroundTertiary: themeFromDB.backgroundTertiary || defaultColorScheme.backgroundTertiary,
+          border: themeFromDB.border || defaultColorScheme.border,
+          borderLight: themeFromDB.borderLight || defaultColorScheme.borderLight,
+          borderDark: themeFromDB.borderDark || defaultColorScheme.borderDark,
+          header: themeFromDB.header || defaultColorScheme.header,
+          footer: themeFromDB.footer || defaultColorScheme.footer,
+          banner: themeFromDB.banner || defaultColorScheme.banner,
+          button: themeFromDB.button || defaultColorScheme.button,
+          card: themeFromDB.card || defaultColorScheme.card,
+          nav: themeFromDB.nav || defaultColorScheme.nav,
+          logo: themeFromDB.logo || defaultColorScheme.logo,
+          bodyText: themeFromDB.bodyText || defaultColorScheme.bodyText,
+        };
+
+        // Merge with defaults
+        currentColorScheme = {
+          ...defaultColorScheme,
+          ...dbColorScheme,
+          gray: defaultColorScheme.gray,
+        };
+
+        // Cache the theme
+        localStorage.setItem('siteTheme', JSON.stringify(dbColorScheme));
+        localStorage.setItem('siteThemeTime', Date.now().toString());
+
+        // Trigger theme update event
+        window.dispatchEvent(
+          new CustomEvent('theme-updated', { detail: currentColorScheme })
+        );
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to fetch theme from API, using defaults:', error);
   }
 };
 

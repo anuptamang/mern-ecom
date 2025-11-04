@@ -204,7 +204,7 @@ const HomePage = () => {
             'Track delivery status in real-time',
           ],
           dashboardLink: '/user/delivery-agency',
-          icon: <CarOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+          icon: <CarOutlined style={{ fontSize: 48, color: 'var(--theme-primary, #1890ff)' }} />,
         };
       case 'delivery_person':
         const delivererType = result?.delivererType;
@@ -219,7 +219,7 @@ const HomePage = () => {
               'Re-deliver rejected returns',
             ],
             dashboardLink: '/user/return-deliverer',
-            icon: <CarOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+            icon: <CarOutlined style={{ fontSize: 48, color: 'var(--theme-primary, #1890ff)' }} />,
           };
         }
         return {
@@ -232,7 +232,7 @@ const HomePage = () => {
             'Handle delivery acceptance/rejection',
           ],
           dashboardLink: '/user/delivery-person',
-          icon: <CarOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+          icon: <CarOutlined style={{ fontSize: 48, color: 'var(--theme-primary, #1890ff)' }} />,
         };
       case 'warehouse_operator':
         return {
@@ -245,7 +245,7 @@ const HomePage = () => {
             'Track order processing',
           ],
           dashboardLink: '/user/warehouse-operator',
-          icon: <CheckCircleOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+          icon: <CheckCircleOutlined style={{ fontSize: 48, color: 'var(--theme-primary, #1890ff)' }} />,
         };
       case 'support':
       case 'support_user':
@@ -259,7 +259,7 @@ const HomePage = () => {
             'Coordinate return workflow',
           ],
           dashboardLink: '/user/support',
-          icon: <TeamOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+          icon: <TeamOutlined style={{ fontSize: 48, color: 'var(--theme-primary, #1890ff)' }} />,
         };
       case 'verification_team':
         return {
@@ -272,7 +272,7 @@ const HomePage = () => {
             'Coordinate inspection workflow',
           ],
           dashboardLink: '/user/verification',
-          icon: <SafetyOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+          icon: <SafetyOutlined style={{ fontSize: 48, color: 'var(--theme-primary, #1890ff)' }} />,
         };
       case 'return_inspector':
         return {
@@ -285,7 +285,7 @@ const HomePage = () => {
             'Document inspection findings',
           ],
           dashboardLink: '/user/inspector',
-          icon: <SafetyOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+          icon: <SafetyOutlined style={{ fontSize: 48, color: 'var(--theme-primary, #1890ff)' }} />,
         };
       case 'finance':
         return {
@@ -298,7 +298,7 @@ const HomePage = () => {
             'View refund history',
           ],
           dashboardLink: '/user/finance',
-          icon: <BankOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+          icon: <BankOutlined style={{ fontSize: 48, color: 'var(--theme-primary, #1890ff)' }} />,
         };
       case 'admin':
         return {
@@ -311,7 +311,7 @@ const HomePage = () => {
             'Reset passwords for child users',
           ],
           dashboardLink: '/user/admin',
-          icon: <UserOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+          icon: <UserOutlined style={{ fontSize: 48, color: 'var(--theme-primary, #1890ff)' }} />,
         };
       default:
         return null;

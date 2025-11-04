@@ -8,7 +8,7 @@
   .chat-toggle-button {
     width: 56px;
     height: 56px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px var(--theme-card-shadow, rgba(0, 0, 0, 0.15));
     font-size: 20px;
 
     &:hover {
@@ -55,25 +55,25 @@
     max-height: 600px;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
-    background: white;
+    box-shadow: 0 4px 24px var(--theme-card-hover-shadow, rgba(0, 0, 0, 0.15));
+    background: var(--theme-background, #ffffff);
   }
 
   .chat-sidebar {
     width: 300px;
     flex-shrink: 0;
-    border-right: 1px solid #f0f0f0;
+    border-right: 1px solid var(--theme-border-light, #f0f0f0);
     display: flex;
     flex-direction: column;
-    background: #fafafa;
+    background: var(--theme-background-secondary, #fafafa);
 
     .chat-sidebar-header {
       padding: 12px 16px;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--theme-border-light, #f0f0f0);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: white;
+      background: var(--theme-background, #ffffff);
 
       .ant-typography {
         margin: 0;
@@ -83,40 +83,40 @@
     .chat-sidebar-content {
       flex: 1;
       overflow-y: auto;
-      background: white;
+      background: var(--theme-background, #ffffff);
 
       &::-webkit-scrollbar {
         width: 6px;
       }
 
       &::-webkit-scrollbar-track {
-        background: #f1f1f1;
+        background: var(--theme-background-tertiary, #f1f1f1);
       }
 
       &::-webkit-scrollbar-thumb {
-        background: #888;
+        background: var(--theme-gray-500, #888);
         border-radius: 3px;
 
         &:hover {
-          background: #555;
+          background: var(--theme-gray-700, #555);
         }
       }
 
       .ant-list-item {
         padding: 12px 16px;
         transition: background-color 0.2s;
-        border-bottom: 1px solid #f0f0f0;
+        border-bottom: 1px solid var(--theme-border-light, #f0f0f0);
 
         &:hover {
-          background-color: #f5f5f5;
+          background-color: var(--theme-background-tertiary, #f5f5f5);
         }
 
         &.active {
-          background-color: #e6f7ff;
-          border-left: 3px solid #1890ff;
+          background-color: var(--theme-primary-bg, #e6f7ff);
+          border-left: 3px solid var(--theme-primary, #1890ff);
 
           .ant-list-item-meta-title {
-            color: #1890ff;
+            color: var(--theme-primary, #1890ff);
           }
         }
       }
@@ -136,7 +136,7 @@
 
     .ant-card-head {
       padding: 12px 16px;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--theme-border-light, #f0f0f0);
       min-height: auto;
 
       .ant-card-head-title {
@@ -178,7 +178,7 @@
     .chat-product-context {
       margin-bottom: 12px;
       padding: 12px;
-      background: #f5f5f5;
+      background: var(--theme-background-tertiary, #f5f5f5);
       border-radius: 8px;
 
       .product-card-mini {
@@ -196,13 +196,13 @@
         .product-placeholder {
           width: 60px;
           height: 60px;
-          background: #e0e0e0;
+          background: var(--theme-gray-300, #e0e0e0);
           border-radius: 8px;
           display: flex;
           align-items: center;
           justify-content: center;
           font-size: 10px;
-          color: #999;
+          color: var(--theme-text-secondary, #999);
         }
 
         .product-info-mini {
@@ -212,13 +212,13 @@
             font-weight: 500;
             font-size: 14px;
             margin-bottom: 4px;
-            color: #333;
+            color: var(--theme-text, #333);
           }
 
           .product-price-mini {
             font-size: 16px;
             font-weight: 600;
-            color: #1890ff;
+            color: var(--theme-primary, #1890ff);
           }
         }
       }
@@ -238,16 +238,16 @@
       }
 
       &::-webkit-scrollbar-track {
-        background: #f1f1f1;
+        background: var(--theme-background-tertiary, #f1f1f1);
         border-radius: 3px;
       }
 
       &::-webkit-scrollbar-thumb {
-        background: #888;
+        background: var(--theme-gray-500, #888);
         border-radius: 3px;
 
         &:hover {
-          background: #555;
+          background: var(--theme-gray-700, #555);
         }
       }
 
@@ -267,23 +267,23 @@
           flex-direction: row-reverse;
 
           .message-content {
-            background: #1890ff;
-            color: white;
+            background: var(--theme-primary, #1890ff);
+            color: var(--theme-text-inverse, #ffffff);
 
             .message-text {
-              color: white;
+              color: var(--theme-text-inverse, #ffffff);
             }
 
             .message-time {
-              color: rgba(255, 255, 255, 0.8);
+              color: var(--theme-text-inverse, rgba(255, 255, 255, 0.8));
             }
           }
         }
 
         &.other-message {
           .message-content {
-            background: #f0f0f0;
-            color: #333;
+            background: var(--theme-background-secondary, #f0f0f0);
+            color: var(--theme-text, #333);
           }
         }
 
@@ -296,13 +296,13 @@
           .message-product-info {
             margin-bottom: 8px;
             padding-bottom: 8px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid var(--theme-border-light, rgba(0, 0, 0, 0.1));
 
             .product-card-inline {
               display: flex;
               gap: 8px;
               align-items: center;
-              background: rgba(255, 255, 255, 0.5);
+              background: var(--theme-background, rgba(255, 255, 255, 0.5));
               padding: 8px;
               border-radius: 6px;
 
@@ -316,13 +316,13 @@
               .product-placeholder-small {
                 width: 40px;
                 height: 40px;
-                background: #e0e0e0;
+                background: var(--theme-gray-300, #e0e0e0);
                 border-radius: 4px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 font-size: 8px;
-                color: #999;
+                color: var(--theme-text-secondary, #999);
               }
 
               .product-info-inline {
@@ -337,7 +337,7 @@
                 .product-price-inline {
                   font-size: 14px;
                   font-weight: 600;
-                  color: #1890ff;
+                  color: var(--theme-primary, #1890ff);
                 }
               }
             }
@@ -362,7 +362,7 @@
             .message-read,
             .message-sent {
               font-size: 12px;
-              color: #1890ff;
+              color: var(--theme-primary, #1890ff);
               margin-left: 4px;
             }
 
@@ -384,7 +384,7 @@
       display: flex;
       gap: 8px;
       align-items: flex-end;
-      border-top: 1px solid #f0f0f0;
+      border-top: 1px solid var(--theme-border-light, #f0f0f0);
       padding-top: 12px;
 
       .ant-input {
@@ -399,7 +399,7 @@
     .chat-minimized-content {
       padding: 12px;
       text-align: center;
-      color: #999;
+      color: var(--theme-text-secondary, #999);
       font-size: 12px;
     }
   }

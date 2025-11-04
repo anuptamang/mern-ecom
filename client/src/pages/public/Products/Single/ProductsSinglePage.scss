@@ -25,7 +25,7 @@
           font-size: 28px;
           font-weight: 600;
           margin-bottom: 12px;
-          color: #333;
+          color: var(--theme-text, #333);
         }
 
         .product-meta {
@@ -40,14 +40,14 @@
 
             .rating-value {
               font-size: 16px;
-              color: #666;
+              color: var(--theme-text-secondary, #666);
             }
           }
 
           .product-stats {
             display: flex;
             gap: 16px;
-            color: #666;
+            color: var(--theme-text-secondary, #666);
             font-size: 14px;
 
             .stat-item {
@@ -68,13 +68,13 @@
           .currency {
             font-size: 24px;
             font-weight: 600;
-            color: #1890ff;
+            color: var(--theme-primary, #1890ff);
           }
 
           .amount {
             font-size: 36px;
             font-weight: 700;
-            color: #1890ff;
+            color: var(--theme-primary, #1890ff);
           }
         }
       }
@@ -86,12 +86,12 @@
           font-size: 18px;
           font-weight: 600;
           margin-bottom: 12px;
-          color: #333;
+          color: var(--theme-text, #333);
         }
 
         p {
           line-height: 1.6;
-          color: #666;
+          color: var(--theme-text-secondary, #666);
           white-space: pre-wrap;
         }
       }
@@ -103,7 +103,7 @@
           font-size: 18px;
           font-weight: 600;
           margin-bottom: 12px;
-          color: #333;
+          color: var(--theme-text, #333);
         }
 
         .category-tags {
@@ -120,7 +120,7 @@
           font-size: 18px;
           font-weight: 600;
           margin-bottom: 12px;
-          color: #333;
+          color: var(--theme-text, #333);
         }
 
         .stock-badge {
@@ -129,21 +129,21 @@
           font-weight: 500;
 
           &.in-stock {
-            background: #f6ffed;
-            border: 1px solid #b7eb8f;
-            color: #52c41a;
+            background: var(--theme-success, rgba(52, 199, 89, 0.1));
+            border: 1px solid var(--theme-success, #52c41a);
+            color: var(--theme-success, #52c41a);
           }
 
           &.out-of-stock {
-            background: #fff2f0;
-            border: 1px solid #ffccc7;
-            color: #ff4d4f;
+            background: var(--theme-error, rgba(255, 59, 48, 0.1));
+            border: 1px solid var(--theme-error, #ff4d4f);
+            color: var(--theme-error, #ff4d4f);
           }
 
           &.unknown {
-            background: #fafafa;
-            border: 1px solid #d9d9d9;
-            color: #999;
+            background: var(--theme-background-secondary, #fafafa);
+            border: 1px solid var(--theme-border, #d9d9d9);
+            color: var(--theme-text-secondary, #999);
           }
         }
       }
@@ -155,7 +155,7 @@
           font-size: 18px;
           font-weight: 600;
           margin-bottom: 12px;
-          color: #333;
+          color: var(--theme-text, #333);
         }
 
         .seller-details {
@@ -163,9 +163,9 @@
           align-items: center;
           gap: 16px;
           padding: 16px;
-          background: #fafafa;
+          background: var(--theme-background-secondary, #fafafa);
           border-radius: 8px;
-          border: 1px solid #f0f0f0;
+          border: 1px solid var(--theme-border-light, #f0f0f0);
 
           .seller-avatar {
             flex-shrink: 0;
@@ -177,13 +177,13 @@
             .seller-name {
               font-size: 18px;
               font-weight: 600;
-              color: #333;
+              color: var(--theme-text, #333);
               margin-bottom: 8px;
             }
 
             .seller-email {
               font-size: 14px;
-              color: #666;
+              color: var(--theme-text-secondary, #666);
               display: flex;
               align-items: center;
               gap: 8px;
@@ -197,12 +197,12 @@
           display: flex;
           gap: 12px;
           align-items: center;
-          
+
           .add-to-cart-btn {
             flex: 1;
           }
         }
-        
+
         .add-to-cart-btn {
           width: 100%;
           height: 48px;
@@ -228,7 +228,7 @@
   .rating-summary {
     margin-bottom: 24px;
     padding-bottom: 16px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--theme-border-light, #f0f0f0);
 
     .rating-display {
       display: flex;
@@ -238,12 +238,12 @@
       .rating-value {
         font-size: 48px;
         font-weight: 700;
-        color: #1890ff;
+        color: var(--theme-primary, #1890ff);
       }
 
       .rating-count {
         font-size: 14px;
-        color: #666;
+        color: var(--theme-text-secondary, #666);
       }
     }
   }
@@ -281,12 +281,12 @@
     .no-ratings {
       text-align: center;
       padding: 40px;
-      color: #999;
+      color: var(--theme-text-secondary, #999);
     }
 
     .rating-item {
       padding: 16px 0;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--theme-border-light, #f0f0f0);
 
       &:last-child {
         border-bottom: none;
@@ -307,13 +307,13 @@
 
           .rating-date {
             font-size: 12px;
-            color: #999;
+            color: var(--theme-text-secondary, #999);
           }
         }
       }
 
       .rating-review {
-        color: #666;
+        color: var(--theme-text-secondary, #666);
         line-height: 1.6;
         margin-top: 8px;
       }
@@ -334,9 +334,9 @@
   .login-prompt {
     text-align: center;
     padding: 20px;
-    color: #999;
+    color: var(--theme-text-secondary, #999);
     margin-bottom: 24px;
-    background: #f9f9f9;
+    background: var(--theme-background-secondary, #f9f9f9);
     border-radius: 4px;
   }
 
@@ -344,12 +344,12 @@
     .no-comments {
       text-align: center;
       padding: 40px;
-      color: #999;
+      color: var(--theme-text-secondary, #999);
     }
 
     .comment-item {
       padding: 16px 0;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--theme-border-light, #f0f0f0);
 
       &:last-child {
         border-bottom: none;
@@ -370,13 +370,13 @@
 
           .comment-date {
             font-size: 12px;
-            color: #999;
+            color: var(--theme-text-secondary, #999);
           }
         }
       }
 
       .comment-text {
-        color: #666;
+        color: var(--theme-text-secondary, #666);
         line-height: 1.6;
         margin-bottom: 8px;
         white-space: pre-wrap;

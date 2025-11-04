@@ -4,7 +4,7 @@
   }
 
   .return-card {
-    border: 1px solid #e8e8e8;
+    border: 1px solid var(--theme-border, #e8e8e8);
     border-radius: 8px;
 
     .return-header {
@@ -13,7 +13,7 @@
       align-items: flex-start;
       margin-bottom: 16px;
       padding-bottom: 16px;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--theme-border-light, #f0f0f0);
 
       .return-info {
         flex: 1;
@@ -25,7 +25,7 @@
 
         .return-date,
         .return-order-id {
-          color: #666;
+          color: var(--theme-text-secondary, #666);
           font-size: 14px;
           margin-top: 4px;
         }
@@ -38,14 +38,14 @@
           font-weight: 600;
           font-size: 18px;
           margin-top: 8px;
-          color: #1890ff;
+          color: var(--theme-primary, #1890ff);
         }
       }
     }
 
     .return-reason {
       padding: 12px;
-      background: #f5f5f5;
+      background: var(--theme-background-tertiary, #f5f5f5);
       border-radius: 4px;
       margin-bottom: 16px;
     }
@@ -58,15 +58,15 @@
 
     .return-actions {
       padding-top: 16px;
-      border-top: 1px solid #f0f0f0;
+      border-top: 1px solid var(--theme-border-light, #f0f0f0);
     }
 
     .return-rejection {
       padding: 12px;
-      background: #fff1f0;
-      border: 1px solid #ffccc7;
+      background: var(--theme-error, rgba(255, 59, 48, 0.1));
+      border: 1px solid var(--theme-error, #ff4d4f);
       border-radius: 4px;
-      color: #cf1322;
+      color: var(--theme-error, #cf1322);
     }
   }
 }

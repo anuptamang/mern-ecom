@@ -14,11 +14,11 @@
         margin: 0;
         font-size: 28px;
         font-weight: bold;
-        color: #e74c3c;
+        color: var(--theme-error, #e74c3c);
       }
 
       .shop-all-link {
-        color: #1890ff;
+        color: var(--theme-primary, #1890ff);
         font-weight: 500;
         font-size: 16px;
 

@@ -81,7 +81,7 @@ export const WishlistButton = ({
     <Tooltip title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}>
       <Button
         type="text"
-        icon={isInWishlist ? <HeartFilled style={{ color: "#ff4d4f" }} /> : <HeartOutlined />}
+        icon={isInWishlist ? <HeartFilled style={{ color: "var(--theme-error, #ff4d4f)" }} /> : <HeartOutlined />}
         onClick={handleToggleWishlist}
         loading={loading}
         size={size}
@@ -90,4 +90,3 @@ export const WishlistButton = ({
     </Tooltip>
   );
 };
-

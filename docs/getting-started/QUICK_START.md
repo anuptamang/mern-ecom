@@ -75,7 +75,7 @@ docker-compose down
 
 ## 📚 Next Steps
 
-- Read [README.md](./README.md) for complete documentation
+- Read [README.md](./index.md) for complete documentation
 - Check [ARCHITECTURE.md](./ARCHITECTURE.md) for system design
 - Review [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines
 - See [PROJECT_TEMPLATE.md](./PROJECT_TEMPLATE.md) for customization

@@ -178,7 +178,7 @@ const ChatsDashboard = () => {
                                 </Text>
                               )}
                               {chat.lastMessage?.timestamp && (
-                                <div style={{ marginTop: 4, fontSize: 12, color: '#999' }}>
+                                <div style={{ marginTop: 4, fontSize: 12, color: 'var(--theme-text-secondary, #999)' }}>
                                   {new Date(chat.lastMessage.timestamp).toLocaleString()}
                                 </div>
                               )}
@@ -223,4 +223,3 @@ const ChatsDashboard = () => {
 };
 
 export default ChatsDashboard;
-

@@ -1,13 +1,13 @@
 .banner-management {
   .ant-list-item {
     padding: 16px;
-    border: 1px solid #f0f0f0;
+    border: 1px solid var(--theme-border-light, #f0f0f0);
     border-radius: 8px;
     margin-bottom: 12px;
     transition: all 0.3s ease;
 
     &:hover {
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 8px var(--theme-card-shadow, rgba(0, 0, 0, 0.1));
     }
   }
 

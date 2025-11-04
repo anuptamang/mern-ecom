@@ -720,7 +720,8 @@ const OrdersDashboard = (props: TProps) => {
                         style={{
                           marginBottom: 16,
                           padding: 12,
-                          background: '#f5f5f5',
+                          background:
+                            'var(--theme-background-tertiary, #f5f5f5)',
                           borderRadius: 4,
                         }}
                       >
@@ -729,7 +730,11 @@ const OrdersDashboard = (props: TProps) => {
                         </div>
                         <div>{orderItem.title}</div>
                         <div
-                          style={{ fontSize: 12, color: '#666', marginTop: 4 }}
+                          style={{
+                            fontSize: 12,
+                            color: 'var(--theme-text-secondary, #666)',
+                            marginTop: 4,
+                          }}
                         >
                           ${orderItem.price} × {orderItem.quantity}
                         </div>

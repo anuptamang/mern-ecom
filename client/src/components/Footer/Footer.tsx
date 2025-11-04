@@ -199,7 +199,7 @@ export const Footer = (): JSX.Element => {
           </Col>
         </Row>
 
-        <Divider style={{ borderColor: 'rgba(255, 255, 255, 0.2)' }} />
+        <Divider style={{ borderColor: 'var(--theme-footer-border, rgba(0, 0, 0, 0.08))' }} />
 
         {/* Payment Methods & Verified By */}
         <Row gutter={[16, 16]} align="middle" className={styles.paymentRow}>
@@ -233,7 +233,7 @@ export const Footer = (): JSX.Element => {
           </Col>
         </Row>
 
-        <Divider style={{ borderColor: 'rgba(255, 255, 255, 0.2)' }} />
+        <Divider style={{ borderColor: 'var(--theme-footer-border, rgba(0, 0, 0, 0.08))' }} />
 
         {/* Copyright & Social Row */}
         <Row gutter={[16, 16]} align="middle" className={styles.copyrightRow}>

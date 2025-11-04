@@ -1,18 +1,21 @@
 @import 'assets/styles/variables';
 
 .footer {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
-  color: $white !important;
+  // Use CSS variables for dynamic theme support
+  background: var(--theme-footer-background, #f5f5f5) !important;
+  color: var(--theme-footer-text, #6e6e73) !important;
   padding: 48px 0 24px 0 !important;
   margin-top: 48px;
+  border-top: 1px solid var(--theme-footer-border, rgba(0, 0, 0, 0.08));
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 
   a {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--theme-footer-text, #6e6e73);
     text-decoration: none;
     transition: all 0.3s ease;
 
     &:hover {
-      color: $white;
+      color: var(--theme-primary, #0071e3);
       text-decoration: underline;
     }
   }
@@ -28,7 +31,7 @@
   }
 
   .footerTitle {
-    color: $white;
+    color: var(--theme-footer-text, #6e6e73);
     font-size: 18px;
     font-weight: 700;
     margin-bottom: 20px;
@@ -55,7 +58,7 @@
 
   .mobileApps {
     p {
-      color: rgba(255, 255, 255, 0.7);
+      color: var(--theme-footer-text-secondary, rgba(110, 110, 115, 0.7));
       font-size: 14px;
       margin-bottom: 16px;
     }
@@ -72,16 +75,18 @@
       justify-content: center;
       gap: 8px;
       padding: 12px 20px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: var(--theme-card-background, #ffffff);
+      border: 1px solid var(--theme-border, #e5e5e5);
       border-radius: 8px;
       font-size: 14px;
       font-weight: 600;
+      color: var(--theme-text, #1d1d1f);
       transition: all 0.3s ease;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.2);
-        border-color: rgba(255, 255, 255, 0.3);
+        background: var(--theme-primary, #0071e3);
+        border-color: var(--theme-primary, #0071e3);
+        color: var(--theme-text-inverse, #ffffff);
         transform: translateY(-2px);
         text-decoration: none;
       }
@@ -90,7 +95,7 @@
 
   .socialLinks {
     p {
-      color: rgba(255, 255, 255, 0.7);
+      color: var(--theme-footer-text-secondary, rgba(110, 110, 115, 0.7));
       font-size: 14px;
       margin-bottom: 16px;
     }
@@ -107,15 +112,17 @@
       justify-content: center;
       width: 40px;
       height: 40px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: var(--theme-card-background, #ffffff);
+      border: 1px solid var(--theme-border, #e5e5e5);
       border-radius: 50%;
       font-size: 18px;
+      color: var(--theme-text, #1d1d1f);
       transition: all 0.3s ease;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.2);
-        border-color: rgba(255, 255, 255, 0.4);
+        background: var(--theme-primary, #0071e3);
+        border-color: var(--theme-primary, #0071e3);
+        color: var(--theme-text-inverse, #ffffff);
         transform: translateY(-2px) scale(1.1);
         text-decoration: none;
       }
@@ -134,7 +141,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      color: $white;
+      color: var(--theme-footer-text, #6e6e73);
       font-size: 16px;
       font-weight: 600;
       margin-bottom: 12px;
@@ -153,23 +160,23 @@
       align-items: center;
       gap: 6px;
       padding: 8px 16px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: var(--theme-card-background, #ffffff);
+      border: 1px solid var(--theme-border, #e5e5e5);
       border-radius: 6px;
       font-size: 13px;
       font-weight: 500;
-      color: rgba(255, 255, 255, 0.9);
+      color: var(--theme-text, #1d1d1f);
     }
   }
 
   .copyright {
     p {
       margin: 0;
-      color: rgba(255, 255, 255, 0.7);
+      color: var(--theme-footer-text-secondary, rgba(110, 110, 115, 0.7));
       font-size: 14px;
 
       strong {
-        color: $white;
+        color: var(--theme-footer-text, #6e6e73);
       }
     }
   }
@@ -181,9 +188,10 @@
     flex-wrap: wrap;
     gap: 8px;
     font-size: 14px;
+    color: var(--theme-footer-text, #6e6e73);
 
     .separator {
-      color: rgba(255, 255, 255, 0.3);
+      color: var(--theme-footer-text-secondary, rgba(110, 110, 115, 0.5));
     }
 
     @media (max-width: 768px) {

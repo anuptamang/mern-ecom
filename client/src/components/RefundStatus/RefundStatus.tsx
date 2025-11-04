@@ -108,7 +108,7 @@ export const RefundStatus = ({ orderId, order }: RefundStatusProps) => {
 
       <div className="mb-4">
         <Text strong>Refund Amount: </Text>
-        <Text style={{ fontSize: '16px', color: '#1890ff' }}>
+        <Text style={{ fontSize: '16px', color: 'var(--theme-primary, #1890ff)' }}>
           ${(refundAmount / 100).toFixed(2)} {order?.currency?.toUpperCase() || 'USD'}
         </Text>
       </div>
@@ -237,4 +237,3 @@ export const RefundStatus = ({ orderId, order }: RefundStatusProps) => {
     </Card>
   );
 };
-

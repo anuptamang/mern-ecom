@@ -8,11 +8,13 @@ import {
 } from "redux/slice/notifications/notificationsSlice";
 import { useEffect, useRef, useState } from "react";
 import { NotificationDropdown } from "../NotificationDropdown/NotificationDropdown";
+import { useTheme } from "hooks/useTheme";
 import "./NotificationBell.scss";
 
 export const NotificationBell = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { colorScheme } = useTheme();
   const { unreadCount, notifications } = useAppSelector(
     (state) => state.notifications
   );
@@ -72,13 +74,22 @@ export const NotificationBell = () => {
 
   return (
     <div className="notification-bell-wrapper" ref={dropdownRef}>
-      <Badge count={unreadCount} size="small" offset={[-5, 5]}>
-        <Button
-          type="text"
-          icon={<BellOutlined style={{ fontSize: 20 }} />}
-          onClick={handleBellClick}
-          className="notification-bell-button"
-        />
+      <Badge 
+        count={unreadCount} 
+        size="small" 
+        offset={[-5, 5]}
+        color={colorScheme.primary || '#0071e3'}
+      >
+          <Button
+            type="text"
+            icon={<BellOutlined style={{ 
+              fontSize: 20,
+              color: 'var(--theme-header-text, #1d1d1f)',
+              transition: 'color 0.3s ease'
+            }} />}
+            onClick={handleBellClick}
+            className="notification-bell-button"
+          />
       </Badge>
       {dropdownVisible && (
         <NotificationDropdown

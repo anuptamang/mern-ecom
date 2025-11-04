@@ -10,6 +10,7 @@ const router = express.Router();
 // Public routes (documentation is accessible to all)
 router.get("/list", getDocsList);
 router.get("/search", searchDocs);
-router.get("/:docName", getDoc);
+// Use wildcard route to handle nested paths like "API/README.md"
+router.get("/*", getDoc);
 
 export default router;

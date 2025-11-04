@@ -39,25 +39,25 @@ export const NotificationDropdown = ({
   const getNotificationIcon = (type: INotification["type"]) => {
     switch (type) {
       case "comment":
-        return <CommentOutlined style={{ color: "#1890ff" }} />;
+        return <CommentOutlined style={{ color: "var(--theme-primary, #1890ff)" }} />;
       case "rating":
       case "review":
-        return <StarOutlined style={{ color: "#faad14" }} />;
+        return <StarOutlined style={{ color: "var(--theme-warning, #faad14)" }} />;
       case "reply":
-        return <MessageOutlined style={{ color: "#52c41a" }} />;
+        return <MessageOutlined style={{ color: "var(--theme-success, #52c41a)" }} />;
       case "order":
-        return <ShoppingOutlined style={{ color: "#52c41a" }} />;
+        return <ShoppingOutlined style={{ color: "var(--theme-success, #52c41a)" }} />;
       case "order_cancelled":
-        return <ShoppingCartOutlined style={{ color: "#ff4d4f" }} />;
+        return <ShoppingCartOutlined style={{ color: "var(--theme-error, #ff4d4f)" }} />;
       case "cart_update":
-        return <ShoppingCartOutlined style={{ color: "#722ed1" }} />;
+        return <ShoppingCartOutlined style={{ color: "var(--theme-secondary, #722ed1)" }} />;
       case "product_update":
-        return <InfoCircleOutlined style={{ color: "#1890ff" }} />;
+        return <InfoCircleOutlined style={{ color: "var(--theme-primary, #1890ff)" }} />;
       case "chat":
-        return <MessageOutlined style={{ color: "#1890ff" }} />;
+        return <MessageOutlined style={{ color: "var(--theme-primary, #1890ff)" }} />;
       case "system":
       default:
-        return <InfoCircleOutlined style={{ color: "#595959" }} />;
+        return <InfoCircleOutlined style={{ color: "var(--theme-text-secondary, #595959)" }} />;
     }
   };
 

@@ -183,9 +183,21 @@ npm test
 
 ## 📚 Documentation
 
-- [Architecture Documentation](./ARCHITECTURE.md) - System architecture and design decisions
-- [Contributing Guide](./CONTRIBUTING.md) - Development guidelines
-- [Template Guide](./PROJECT_TEMPLATE.md) - Using this as a template
+Complete documentation is available in the [`docs`](./docs/README.md) folder.
+
+### Quick Links
+- [Getting Started](./docs/getting-started/QUICK_START.md) - Get up and running in 5 minutes
+- [Architecture Documentation](./docs/architecture/ARCHITECTURE.md) - System architecture and design decisions
+- [API Documentation](./docs/API/API.md) - Complete API reference
+- [Development Guide](./docs/development/DEVELOPMENT.md) - Development guidelines
+- [Deployment Guide](./docs/deployment/DEPLOYMENT.md) - Deployment instructions
+- [Security Guide](./docs/security/SECURITY.md) - Security best practices
+- [Contributing Guide](./docs/contribution/CONTRIBUTING.md) - How to contribute
+- [Template Guide](./docs/getting-started/PROJECT_TEMPLATE.md) - Using this as a template
+
+### Documentation Index
+- [Complete Documentation Index](./docs/index/INDEX.md) - Browse all documentation
+- [Documentation Structure](./docs/README.md) - Documentation organization
 
 ## 🔐 Security
 

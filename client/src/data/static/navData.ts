@@ -29,7 +29,7 @@ export const navData: NavDataProps[] = [
   },
   {
     key: '/documentation',
-    label: 'Documentation',
+    label: 'Docs',
     to: '/documentation',
   },
 ];

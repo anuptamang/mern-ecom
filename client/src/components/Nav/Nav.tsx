@@ -80,12 +80,11 @@ const Nav = (): JSX.Element => {
   return (
     <div className={styles.nav}>
       <Menu
-        theme="dark"
         mode="horizontal"
         items={displayItems}
         onClick={onClick}
         selectedKeys={[current]}
-        style={{ justifyContent: 'flex-end', minWidth: '200px' }}
+        style={{ justifyContent: 'flex-end', minWidth: '200px', background: 'transparent', border: 'none' }}
         overflowedIndicator={null}
       />
     </div>

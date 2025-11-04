@@ -22,22 +22,24 @@
       height: 64px !important;
       line-height: 64px !important;
       margin: 0 4px !important;
-      color: rgba(255, 255, 255, 0.8) !important;
+      // Use CSS variables for dynamic theme support
+      color: var(--theme-nav-item-color, #1d1d1f) !important;
       padding: 0 12px !important;
       display: inline-flex !important;
       align-items: center !important;
       border-bottom: none !important;
       margin-bottom: 0 !important;
       top: 0 !important;
+      transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease !important;
 
       &:hover {
-        color: #fff !important;
+        color: var(--theme-nav-item-hover-color, #0071e3) !important;
       }
 
       &.ant-menu-item-selected {
-        color: #fff !important;
-        background: transparent !important;
-        border-bottom: 2px solid #fff !important;
+        color: var(--theme-nav-item-active-color, #0071e3) !important;
+        background: var(--theme-nav-item-active-bg, transparent) !important;
+        border-bottom: 2px solid var(--theme-nav-item-active-color, #0071e3) !important;
         margin-bottom: 0 !important;
         top: 0 !important;
         padding-bottom: 0 !important;

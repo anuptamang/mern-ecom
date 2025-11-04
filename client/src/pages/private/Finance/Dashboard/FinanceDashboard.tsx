@@ -379,7 +379,7 @@ const FinanceDashboard = () => {
                       <div>Customer: {returnRequest.userId.fullName || returnRequest.userId.email}</div>
                       <div>
                         <Text strong>Refund Amount: </Text>
-                        <Text style={{ color: '#52c41a', fontSize: '16px', fontWeight: 'bold' }}>
+                        <Text style={{ color: 'var(--theme-success, #52c41a)', fontSize: '16px', fontWeight: 'bold' }}>
                           ${(returnRequest.returnAmount / 100).toFixed(2)}
                         </Text>
                       </div>
@@ -458,7 +458,7 @@ const FinanceDashboard = () => {
                           </div>
                           <div>
                             <Text strong>Payout Amount: </Text>
-                            <Text style={{ color: '#52c41a', fontSize: '16px', fontWeight: 'bold' }}>
+                            <Text style={{ color: 'var(--theme-success, #52c41a)', fontSize: '16px', fontWeight: 'bold' }}>
                               ${(payout.payoutAmount / 100).toFixed(2)}
                             </Text>
                           </div>
@@ -519,7 +519,7 @@ const FinanceDashboard = () => {
               <div><Text strong>Customer: </Text>{selectedReturn.userId.fullName || selectedReturn.userId.email}</div>
               <div>
                 <Text strong>Refund Amount: </Text>
-                <Text style={{ color: '#52c41a', fontSize: '18px', fontWeight: 'bold' }}>
+                <Text style={{ color: 'var(--theme-success, #52c41a)', fontSize: '18px', fontWeight: 'bold' }}>
                   ${(selectedReturn.returnAmount / 100).toFixed(2)}
                 </Text>
               </div>
@@ -643,7 +643,7 @@ const FinanceDashboard = () => {
                   {selectedPayout.sellerId?.fullName || selectedPayout.sellerId?.email || 'Unknown'}
                 </Descriptions.Item>
                 <Descriptions.Item label="Payout Amount">
-                  <Text style={{ color: '#52c41a', fontSize: '18px', fontWeight: 'bold' }}>
+                  <Text style={{ color: 'var(--theme-success, #52c41a)', fontSize: '18px', fontWeight: 'bold' }}>
                     ${(selectedPayout.payoutAmount / 100).toFixed(2)} {selectedPayout.currency?.toUpperCase()}
                   </Text>
                 </Descriptions.Item>

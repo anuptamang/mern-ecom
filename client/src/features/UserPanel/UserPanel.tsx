@@ -10,6 +10,7 @@ import { getNameInitials } from 'utils';
 import { useEffect } from 'react';
 import { fetchMyCart } from 'redux/slice/carts/cartsSlice';
 import { NotificationBell } from 'components/Notifications/NotificationBell';
+import { useTheme } from 'hooks/useTheme';
 
 const { useToken } = theme;
 
@@ -24,6 +25,7 @@ type Props = {};
 
 export const UserPanel = (props: Props) => {
   const { token } = useToken();
+  const { colorScheme } = useTheme();
   const auth = useAuth();
   const dispatch = useAppDispatch();
   const carts = useAppSelector((state) => state.carts);
@@ -82,9 +84,20 @@ export const UserPanel = (props: Props) => {
             <NotificationBell />
             {!isSeller && !isDeliveryUser && (
               <Link to={`/${pageRoutes.userCarts}`}>
-                <Badge size="small" count={carts.totalCount || 0} color={token.colorPrimaryBg}>
+                <Badge 
+                  size="small" 
+                  count={carts.totalCount || 0} 
+                  color={colorScheme.primary || '#0071e3'}
+                  style={{ 
+                    '--ant-badge-dot-size': '6px',
+                  } as React.CSSProperties}
+                >
                   <ShoppingCartOutlined
-                    style={{ color: 'white', fontSize: '24px' }}
+                    style={{ 
+                      color: 'var(--theme-header-text, #1d1d1f)', 
+                      fontSize: '24px',
+                      transition: 'color 0.3s ease'
+                    }}
                   />
                 </Badge>
               </Link>
@@ -98,8 +111,10 @@ export const UserPanel = (props: Props) => {
               <Avatar
                 src="https://joesch.me/api/v1/random"
                 style={{
-                  backgroundColor: token.colorPrimaryBg,
+                  backgroundColor: colorScheme.primary || token.colorPrimaryBg,
                   cursor: 'pointer',
+                  color: colorScheme.textInverse || '#ffffff',
+                  fontWeight: 500,
                 }}
               >
                 {auth?.result?.fullName &&

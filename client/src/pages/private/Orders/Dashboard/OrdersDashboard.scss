@@ -4,11 +4,11 @@
     padding: 0;
 
     .order-card {
-      border: 1px solid #f0f0f0;
+      border: 1px solid var(--theme-border-light, #f0f0f0);
       transition: all 0.3s ease;
 
       &:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 12px var(--theme-card-shadow, rgba(0, 0, 0, 0.1));
       }
     }
 
@@ -18,7 +18,7 @@
       align-items: flex-start;
       margin-bottom: 16px;
       padding-bottom: 16px;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--theme-border-light, #f0f0f0);
 
       @media (max-width: 768px) {
         flex-direction: column;
@@ -28,11 +28,11 @@
       .order-info {
         .order-id {
           font-size: 14px;
-          color: #666;
+          color: var(--theme-text-secondary, #666);
           margin-bottom: 4px;
 
           strong {
-            color: #333;
+            color: var(--theme-text, #333);
             font-family: monospace;
             font-size: 12px;
           }
@@ -40,7 +40,7 @@
 
         .order-date {
           font-size: 12px;
-          color: #999;
+          color: var(--theme-text-secondary, #999);
         }
       }
 
@@ -57,7 +57,7 @@
         .order-amount {
           font-size: 18px;
           font-weight: 700;
-          color: #1890ff;
+          color: var(--theme-primary, #1890ff);
         }
       }
     }
@@ -69,7 +69,7 @@
         font-size: 16px;
         font-weight: 600;
         margin-bottom: 12px;
-        color: #333;
+        color: var(--theme-text, #333);
       }
 
       .order-product-card {
@@ -90,7 +90,7 @@
             height: 80px;
             object-fit: cover;
             border-radius: 4px;
-            background: #f5f5f5;
+            background: var(--theme-background-tertiary, #f5f5f5);
             flex-shrink: 0;
           }
 
@@ -101,8 +101,8 @@
             align-items: center;
             justify-content: center;
             border-radius: 4px;
-            background: #f5f5f5;
-            color: #999;
+            background: var(--theme-background-tertiary, #f5f5f5);
+            color: var(--theme-text-secondary, #999);
             font-size: 12px;
             flex-shrink: 0;
           }
@@ -113,14 +113,14 @@
 
             .order-item-title {
               font-weight: 500;
-              color: #333;
+              color: var(--theme-text, #333);
               margin-bottom: 4px;
               font-size: 14px;
             }
 
             .order-item-meta {
               font-size: 12px;
-              color: #666;
+              color: var(--theme-text-secondary, #666);
             }
           }
 
@@ -145,7 +145,7 @@
     .order-payment-info {
       margin-top: 16px;
       padding-top: 16px;
-      border-top: 1px solid #f0f0f0;
+      border-top: 1px solid var(--theme-border-light, #f0f0f0);
       text-align: right;
 
       small {

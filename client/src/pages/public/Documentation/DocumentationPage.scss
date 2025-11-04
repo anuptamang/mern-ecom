@@ -5,7 +5,7 @@
     }
 
     pre {
-      background: #f6f8fa;
+      background: var(--theme-background-secondary, #f6f8fa);
       border-radius: 6px;
       padding: 16px;
       overflow-x: auto;
@@ -17,18 +17,32 @@
     }
 
     code {
-      background: #f6f8fa;
+      background: var(--theme-background-secondary, #f6f8fa);
       padding: 2px 6px;
       border-radius: 3px;
       font-size: 0.9em;
-      border: 1px solid #e1e4e8;
+      border: 1px solid var(--theme-border-light, #e1e4e8);
+    }
+    
+    // Ensure Mermaid diagrams are visible
+    .mermaid-container,
+    .mermaid {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      
+      svg {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
     }
 
     blockquote {
-      border-left: 4px solid #dfe2e5;
+      border-left: 4px solid var(--theme-border-light, #dfe2e5);
       padding-left: 16px;
       margin: 16px 0;
-      color: #6a737d;
+      color: var(--theme-text-secondary, #6a737d);
     }
 
     table {
@@ -37,13 +51,13 @@
       margin: 16px 0;
 
       th, td {
-        border: 1px solid #dfe2e5;
+        border: 1px solid var(--theme-border-light, #dfe2e5);
         padding: 8px 12px;
         text-align: left;
       }
 
       th {
-        background: #f6f8fa;
+        background: var(--theme-background-secondary, #f6f8fa);
         font-weight: 600;
       }
     }
@@ -58,7 +72,7 @@
     }
 
     a {
-      color: #0366d6;
+      color: var(--theme-primary, #0366d6);
       text-decoration: none;
 
       &:hover {
@@ -75,7 +89,7 @@
 
     hr {
       border: none;
-      border-top: 1px solid #dfe2e5;
+      border-top: 1px solid var(--theme-border-light, #dfe2e5);
       margin: 24px 0;
     }
   }
@@ -86,19 +100,83 @@
   }
 
   .ant-anchor-link-title {
-    color: #586069;
+    color: var(--theme-text-secondary, #586069);
   }
 
   .ant-anchor-link-active > .ant-anchor-link-title {
-    color: #0366d6;
+    color: var(--theme-primary, #0366d6);
+  }
+
+  .mermaid-container {
+    margin: 24px 0;
+    padding: 16px;
+    background: var(--theme-background-secondary, #f6f8fa);
+    border-radius: 6px;
+    overflow-x: auto;
+    display: block;
+    
+    code {
+      display: none;
+    }
+    
+    // Ensure SVG is visible
+    svg {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      max-width: 100%;
+      height: auto;
+      margin: 0 auto;
+    }
+  }
+
+  .mermaid {
+    display: block !important;
+    margin: 24px 0;
+    padding: 16px;
+    background: var(--theme-background-secondary, #f6f8fa);
+    border-radius: 6px;
+    overflow-x: auto;
+    overflow-y: visible;
+    min-height: 100px;
+    text-align: center;
+    position: relative;
+    
+    // Hide text content when SVG is present
+    &:has(svg) {
+      // Hide text nodes
+      > *:not(svg) {
+        display: none;
+      }
+    }
+    
+    // Show text content before rendering (while loading) - only if no SVG
+    &:not(:has(svg)) {
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--theme-text-secondary, #666);
+    }
+    
+    // Ensure SVG is visible and properly styled
+    svg {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      max-width: 100%;
+      height: auto;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
   }
 
   .search-result-item {
     transition: all 0.3s;
 
     &:hover {
-      background: #f5f5f5;
-      border-color: #1890ff;
+      background: var(--theme-background-tertiary, #f5f5f5);
+      border-color: var(--theme-primary, #1890ff);
     }
   }
 }

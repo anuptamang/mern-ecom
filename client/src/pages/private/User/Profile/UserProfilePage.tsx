@@ -70,7 +70,7 @@ const UserProfilePage = (): JSX.Element => {
           <Progress 
             percent={profileCompletion} 
             status={profileCompletion === 100 ? 'success' : 'active'}
-            strokeColor={profileCompletion === 100 ? '#52c41a' : '#1890ff'}
+            strokeColor={profileCompletion === 100 ? 'var(--theme-success, #52c41a)' : 'var(--theme-primary, #1890ff)'}
           />
         </div>
       )}

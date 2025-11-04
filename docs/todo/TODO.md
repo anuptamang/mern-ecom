@@ -144,6 +144,9 @@ All final TODO items have been completed. The project is now:
 
 ## TODO NEXT
 
+- [ ] while creating product, the estimate delivery days field should also be there
+- [ ] The Description WYSIWYG editor is not working fully to add headings, and other toolbar options
+- [ ] not logged in users should not be able to add ratings & reviews, comments. If they click on write a review or comments they should have popup login modal same as in add to cart for non logged in users.
 - [ ] Update the Readme.md Documentation field and link all .md documents and move those other .md files inside docs folder.
-- [ ] outside only Readme.md
-- [ ] update the new folder/file path everywhere in the project
+- [ ] leave outside only Readme.md
+- [ ] update the new folder/file path everywhere in the project for docs

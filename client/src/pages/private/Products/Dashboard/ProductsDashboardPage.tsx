@@ -995,7 +995,7 @@ const ProductsDashboardPage = (props: Props) => {
                               <div
                                 style={{
                                   height: 200,
-                                  background: '#f0f0f0',
+                                  background: 'var(--theme-background-secondary, #f0f0f0)',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
@@ -1022,7 +1022,7 @@ const ProductsDashboardPage = (props: Props) => {
                                     style={{
                                       fontSize: 16,
                                       fontWeight: 600,
-                                      color: '#1890ff',
+                                      color: 'var(--theme-primary, #1890ff)',
                                     }}
                                   >
                                     ${productPrice.toFixed(2)}
@@ -1036,7 +1036,7 @@ const ProductsDashboardPage = (props: Props) => {
                                   style={{
                                     marginTop: 12,
                                     padding: 8,
-                                    background: '#f5f5f5',
+                                    background: 'var(--theme-background-tertiary, #f5f5f5)',
                                     borderRadius: 4,
                                   }}
                                 >
@@ -1062,7 +1062,7 @@ const ProductsDashboardPage = (props: Props) => {
                                         <div
                                           style={{
                                             fontSize: 12,
-                                            color: '#666',
+                                            color: 'var(--theme-text-secondary, #666)',
                                           }}
                                         >
                                           {userEmail}
@@ -1075,7 +1075,7 @@ const ProductsDashboardPage = (props: Props) => {
                                   style={{
                                     marginTop: 8,
                                     fontSize: 12,
-                                    color: '#999',
+                                    color: 'var(--theme-text-secondary, #999)',
                                   }}
                                 >
                                   Added{' '}
@@ -1149,7 +1149,7 @@ const ProductsDashboardPage = (props: Props) => {
                         style={{
                           marginBottom: 16,
                           padding: 12,
-                          background: '#f5f5f5',
+                          background: 'var(--theme-background-tertiary, #f5f5f5)',
                           borderRadius: 4,
                         }}
                       >
@@ -1158,7 +1158,7 @@ const ProductsDashboardPage = (props: Props) => {
                         </div>
                         <div>{orderItem.title}</div>
                         <div
-                          style={{ fontSize: 12, color: '#666', marginTop: 4 }}
+                          style={{ fontSize: 12, color: 'var(--theme-text-secondary, #666)', marginTop: 4 }}
                         >
                           ${orderItem.price} × {orderItem.quantity}
                         </div>

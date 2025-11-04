@@ -7,6 +7,10 @@ export interface IDocFile {
   filename: string;
   name: string;
   slug: string;
+  category?: string;
+  path?: string; // Full path for nested files
+  isFolder?: boolean;
+  children?: IDocFile[];
 }
 
 export interface IDocContent extends IDocFile {
@@ -22,7 +26,12 @@ export interface ISearchResult extends IDocFile {
   matchCount: number;
 }
 
-export const getDocsListApi = async (): Promise<{ docs: IDocFile[] }> => {
+export interface IDocsListResponse {
+  docs: IDocFile[];
+  hierarchy?: IDocFile[];
+}
+
+export const getDocsListApi = async (): Promise<IDocsListResponse> => {
   const { data } = await axios.get(`${DOCS_API}/list`);
   return data;
 };
