@@ -16,7 +16,7 @@ function useAuth() {
 
 
 
-  let validAuth = {
+  const validAuth = {
     ...auth,
   };
 
