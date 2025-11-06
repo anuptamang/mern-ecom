@@ -1,8 +1,8 @@
 import { Form, message, Spin } from 'antd';
-import { ProfileBody } from 'components';
-import { authSelector } from 'redux/slice';
-import { useAppDispatch, useAppSelector } from 'redux/store';
-import { updateUserProfileThunk, fetchUserProfile } from 'redux/action/auth/authAction';
+import { ProfileBody } from '@/components'
+import { authSelector } from '@/redux/slice';
+import { useAppDispatch, useAppSelector } from '@/redux/store';
+import { updateUserProfileThunk, fetchUserProfile } from '@/redux/action/auth/authAction';
 import { useEffect, useState } from 'react';
 
 export const UserProfileBody = () => {

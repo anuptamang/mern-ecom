@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { BANNERS_API } from 'services/servicesConstants';
-import { getToken } from 'utils/localStorage';
+import { BANNERS_API } from '@/services/servicesConstants';
+import { getToken } from '@/utils/localStorage';
 
 export interface BannerSlide {
   id: string;

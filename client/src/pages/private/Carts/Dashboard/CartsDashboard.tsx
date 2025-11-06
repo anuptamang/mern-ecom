@@ -1,19 +1,21 @@
+'use client';
+
 import { Button, Card, InputNumber, List, Alert, Image, Spin, message } from 'antd';
 import { useEffect, useState } from 'react';
-import { useAppDispatch, useAppSelector } from 'redux/store';
-import { clearCart, fetchMyCart, removeFromCart, updateCartItem } from 'redux/slice/carts/cartsSlice';
-import { Link } from 'react-router-dom';
-import { pageRoutes } from 'data/static/pageRoutes';
-import { authSelector } from 'redux/slice';
-import { getSellerCartItemsApi } from 'services/endPoints/carts/cartsEndpoints';
-import { getToken } from 'utils/localStorage';
-import { useNavigate } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '@/redux/store';
+import { clearCart, fetchMyCart, removeFromCart, updateCartItem } from '@/redux/slice/carts/cartsSlice';
+import Link from 'next/link';
+import { pageRoutes } from '@/data/static/pageRoutes';
+import { authSelector } from '@/redux/slice';
+import { getSellerCartItemsApi } from '@/services/endPoints/carts/cartsEndpoints';
+import { getToken } from '@/utils/localStorage';
+import { useRouter } from 'next/navigation';
 
 type TProps = {};
 
 const CartsDashboard = (props: TProps) => {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
+  const router = useRouter();
   const carts = useAppSelector((s) => s.carts);
   const { result } = useAppSelector(authSelector);
   const isSeller = result?.role === 'seller';
@@ -48,35 +50,30 @@ const CartsDashboard = (props: TProps) => {
         <Spin spinning={loading}>
           {sellerCartItems.length === 0 ? (
             <Alert
-              message="No cart items"
-              description="No products from your store are currently in buyers' shopping carts."
+              message="No items found"
+              description="No products are currently in any buyer's cart."
               type="info"
-              showIcon
             />
           ) : (
             <List
               dataSource={sellerCartItems}
               renderItem={(item: any) => (
-                <List.Item
-                  actions={[
-                    <Button key="view" onClick={() => navigate(`/products/${item.productId}`)}>
-                      View Product
-                    </Button>,
-                  ]}
-                >
+                <List.Item>
                   <List.Item.Meta
                     avatar={
-                      item.thumbnail ? (
-                        <Image src={item.thumbnail} alt={item.title} width={60} height={60} style={{ objectFit: 'cover' }} preview={false} />
-                      ) : null
+                      <Image
+                        src={item.product?.images?.[0] || ''}
+                        alt={item.product?.title}
+                        width={80}
+                        height={80}
+                        style={{ objectFit: 'cover' }}
+                      />
                     }
-                    title={item.title}
+                    title={item.product?.title}
                     description={
                       <div>
-                        <div>Price: ${item.price} x {item.quantity} = ${(item.price * item.quantity).toFixed(2)}</div>
-                        <div className="text-sm text-gray-500">
-                          In cart of: <strong>{item.buyerName}</strong> ({item.buyerEmail})
-                        </div>
+                        <div>Price: ${item.product?.price}</div>
+                        <div>In {item.cartCount} cart(s)</div>
                       </div>
                     }
                   />
@@ -89,65 +86,116 @@ const CartsDashboard = (props: TProps) => {
     );
   }
 
-  return (
-    <Card title="Your Cart" extra={<Button danger onClick={() => dispatch(clearCart())}>Clear</Button>}>
-      <List
-        dataSource={carts.items}
-        renderItem={(item: any) => {
-          const maxStock = item.stock !== undefined ? item.stock : Infinity;
-          const handleQuantityChange = async (value: number | null) => {
-            if (value === null || value < 1) return;
-            try {
-              await dispatch(updateCartItem({ productId: item.productId, quantity: Number(value) })).unwrap();
-            } catch (error: any) {
-              // Extract error message from rejected value (set by rejectWithValue)
-              const errorMessage = typeof error === 'string' ? error : (error?.payload || error?.message || 'Failed to update quantity');
-              message.error(errorMessage);
-              // Refresh cart to get updated values
-              dispatch(fetchMyCart());
-            }
-          };
+  const handleRemove = (productId: string) => {
+    dispatch(removeFromCart({ productId }));
+  };
 
-          return (
-            <List.Item
-              actions={[
-                <InputNumber
-                  key="qty"
-                  min={1}
-                  max={maxStock}
-                  value={item.quantity}
-                  onChange={handleQuantityChange}
-                />,
-                <Button key="rm" danger onClick={() => dispatch(removeFromCart(item.productId))}>Remove</Button>,
-              ]}
-            >
-              <List.Item.Meta
-                avatar={item.thumbnail ? <img src={item.thumbnail} alt={item.title} width={60} /> : null}
-                title={item.title}
-                description={
-                  <div>
-                    <div>Price: ${item.price} x {item.quantity}</div>
-                    {item.stock !== undefined && (
-                      <div className={item.stock <= 0 ? 'text-red-500' : 'text-gray-500'}>
-                        {item.stock <= 0 ? 'Out of Stock' : `Stock: ${item.stock} available`}
+  const handleUpdateQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      handleRemove(productId);
+      return;
+    }
+    dispatch(updateCartItem({ productId, quantity }));
+  };
+
+  const handleClearCart = () => {
+    dispatch(clearCart());
+  };
+
+  const handleCheckout = () => {
+    router.push(`/${pageRoutes.checkout}`);
+  };
+
+  return (
+    <Card
+      title="Shopping Cart"
+      extra={
+        carts.items.length > 0 && (
+          <Button onClick={handleClearCart} danger>
+            Clear Cart
+          </Button>
+        )
+      }
+    >
+      {carts.items.length === 0 ? (
+        <Alert
+          message="Your cart is empty"
+          description={
+            <div>
+              <p>Add some products to your cart to continue shopping.</p>
+              <Link href={`/${pageRoutes.products}`}>
+                <Button type="primary" style={{ marginTop: 16 }}>
+                  Browse Products
+                </Button>
+              </Link>
+            </div>
+          }
+          type="info"
+        />
+      ) : (
+        <>
+          <List
+            dataSource={carts.items}
+            renderItem={(item: any) => (
+              <List.Item
+                actions={[
+                  <Button
+                    key="remove"
+                    danger
+                    onClick={() => handleRemove(item.productId)}
+                  >
+                    Remove
+                  </Button>,
+                ]}
+              >
+                <List.Item.Meta
+                  avatar={
+                    <Image
+                      src={item.product?.images?.[0] || ''}
+                      alt={item.product?.title}
+                      width={80}
+                      height={80}
+                      style={{ objectFit: 'cover' }}
+                    />
+                  }
+                  title={
+                    <Link href={`/${pageRoutes.products}/${item.productId}`}>
+                      {item.product?.title}
+                    </Link>
+                  }
+                  description={
+                    <div>
+                      <div>Price: ${item.product?.price}</div>
+                      <div>
+                        Quantity:{' '}
+                        <InputNumber
+                          min={1}
+                          max={item.product?.stock || 1}
+                          value={item.quantity}
+                          onChange={(value) =>
+                            handleUpdateQuantity(item.productId, value || 1)
+                          }
+                        />
                       </div>
-                    )}
-                  </div>
-                }
-              />
-            </List.Item>
-          );
-        }}
-      />
-      <div className="flex justify-between mt-4">
-        <div>Total Items: {carts.totalCount}</div>
-        <div>Total: ${carts.totalPrice}</div>
-      </div>
-      <div className="text-right mt-4">
-        <Link to={`/${pageRoutes.user}/checkout`}>
-          <Button type="primary">Proceed to Checkout</Button>
-        </Link>
-      </div>
+                      <div>
+                        Subtotal: ${(item.product?.price * item.quantity).toFixed(2)}
+                      </div>
+                    </div>
+                  }
+                />
+              </List.Item>
+            )}
+          />
+          <div style={{ marginTop: 24, textAlign: 'right' }}>
+            <div style={{ fontSize: 18, marginBottom: 16 }}>
+              <strong>Total: ${carts.totalPrice.toFixed(2)}</strong>
+            </div>
+            <Button type="primary" size="large" onClick={handleCheckout}>
+              Proceed to Checkout
+            </Button>
+          </div>
+        </>
+      )}
     </Card>
   );
 };

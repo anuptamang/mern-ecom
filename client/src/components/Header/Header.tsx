@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Col, Row } from 'antd';
-import { Logo, Nav } from 'components';
-import { Container, HeaderLayout } from 'components/UI';
-import { UserPanel } from 'features/UserPanel/UserPanel';
+import { Logo, Nav } from '@/components';
+import { Container, HeaderLayout } from '@/components/UI';
+import { UserPanel } from '@/features/UserPanel/UserPanel';
 import styles from './Header.module.scss';
 
 /**

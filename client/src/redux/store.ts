@@ -3,7 +3,7 @@ import { useDispatch, TypedUseSelectorHook, useSelector } from 'react-redux'
 import { productsFilterSlice, productsSlice, authSlice, notificationsReducer } from './slice';
 import { cartsSlice } from './slice/carts/cartsSlice';
 import wishlistReducer from './slice/wishlist/wishlistSlice';
-import { loadState } from 'utils';
+import { loadState } from '@/utils';
 
 const store = configureStore({
   reducer: {

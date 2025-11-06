@@ -23,27 +23,28 @@ import {
   DeleteOutlined,
   EyeOutlined,
 } from '@ant-design/icons';
-import { ProductImage } from 'components/ProductImage';
+import { ProductImage } from '@/components/ProductImage';
 import {
   fetchMyProductsApi,
   deleteProductApi,
-} from 'services/endPoints/products/productsEndpoints';
-import { getSellerOrdersApi } from 'services/endPoints/orders/ordersEndpoints';
-import { getDeliveryTrackingApi } from 'services/endPoints/delivery';
+} from '@/services/endPoints/products/productsEndpoints';
+import { getSellerOrdersApi } from '@/services/endPoints/orders/ordersEndpoints';
+import { getDeliveryTrackingApi } from '@/services/endPoints/delivery';
 import {
   getSellerReturnsApi,
   approveReturnApi,
   rejectReturnApi,
-} from 'services/endPoints/return';
-import { DeliveryTracking } from 'components';
-import { getSellerCartItemsApi } from 'services/endPoints/carts/cartsEndpoints';
-import { getUserStatsApi } from 'services/endPoints/user/userEndpoints';
-import { getSellerWishlistApi } from 'services/endPoints/wishlist';
-import { ProductForm } from 'components';
-import { getToken } from 'utils/localStorage';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { usePageTitle } from 'hooks/usePageTitle';
-import { Container } from 'components/UI';
+} from '@/services/endPoints/return';
+import { DeliveryTracking } from '@/components';
+import { getSellerCartItemsApi } from '@/services/endPoints/carts/cartsEndpoints';
+import { getUserStatsApi } from '@/services/endPoints/user/userEndpoints';
+import { getSellerWishlistApi } from '@/services/endPoints/wishlist';
+import { ProductForm } from '@/components';
+import { getToken } from '@/utils/localStorage';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { Container } from '@/components/UI';
 import dayjs from 'dayjs';
 import './ProductsDashboardPage.scss';
 
@@ -53,8 +54,8 @@ type Props = {};
 
 const ProductsDashboardPage = (props: Props) => {
   const title = usePageTitle();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [cartItems, setCartItems] = useState<any[]>([]);
@@ -341,7 +342,7 @@ const ProductsDashboardPage = (props: Props) => {
                       />
                     }
                     actions={[
-                      <Link key="view" to={`/products/${item._id}`}>
+                      <Link key="view" href={`/products/${item._id}`}>
                         <EyeOutlined /> View
                       </Link>,
                       <Button
@@ -565,7 +566,7 @@ const ProductsDashboardPage = (props: Props) => {
                                 type="link"
                                 size="small"
                                 onClick={() =>
-                                  navigate(`/products/${item.productId}`)
+                                  router.push(`/products/${item.productId}`)
                                 }
                               >
                                 View Product
@@ -1006,7 +1007,7 @@ const ProductsDashboardPage = (props: Props) => {
                             )
                           }
                           actions={[
-                            <Link key="view" to={`/products/${productId}`}>
+                            <Link key="view" href={`/products/${productId}`}>
                               <EyeOutlined /> View Product
                             </Link>,
                           ]}

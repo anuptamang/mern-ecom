@@ -1,11 +1,11 @@
 import { message, Spin } from 'antd';
-import { ProfileCover } from 'components';
-import { getToken } from 'utils/localStorage';
-import { authSelector } from 'redux/slice';
-import { useAppSelector, useAppDispatch } from 'redux/store';
+import { ProfileCover } from '@/components'
+import { getToken } from '@/utils/localStorage';
+import { authSelector } from '@/redux/slice';
+import { useAppSelector, useAppDispatch } from '@/redux/store';
 import axios from 'axios';
-import { AUTH_API } from 'services/servicesConstants';
-import { fetchUserProfile } from 'redux/action/auth/authAction';
+import { AUTH_API } from '@/services/servicesConstants';
+import { fetchUserProfile } from '@/redux/action/auth/authAction';
 import { useState } from 'react';
 
 export const UserProfileCover = () => {

@@ -5,8 +5,8 @@ import {
   getMyWishlistApi,
   checkWishlistStatusApi,
   getSellerWishlistApi,
-} from "services/endPoints/wishlist";
-import { IWishlistState, IWishlistItem } from "types/store/wishlist/wishlistTypes";
+} from "@/services/endPoints/wishlist";
+import { IWishlistState, IWishlistItem } from "@/types/store/wishlist/wishlistTypes";
 
 const initialState: IWishlistState = {
   wishlist: [],

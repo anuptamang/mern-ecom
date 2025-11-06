@@ -3,7 +3,7 @@
  * Site-wide theme management
  */
 
-import apiClient from 'utils/apiClient';
+import apiClient from '@/utils/apiClient';
 
 export const getActiveThemeApi = () => {
   return apiClient.get('/theme/active');

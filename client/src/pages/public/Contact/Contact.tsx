@@ -1,10 +1,12 @@
-import styles from 'assets/styles/Common.module.scss';
-import { Container } from 'components/UI';
-import { usePageTitle } from 'hooks/usePageTitle';
+'use client';
+
+import styles from '@/assets/styles/Common.module.scss';
+import { Container } from '@/components/UI';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { Card, Typography, Space, Divider } from 'antd';
 import { MailOutlined, PhoneOutlined, EnvironmentOutlined, ClockCircleOutlined } from '@ant-design/icons';
-import { useAppSelector } from 'redux/store';
-import { authSelector } from 'redux/slice';
+import { useAppSelector } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
 
 const { Title, Paragraph, Text } = Typography;
 

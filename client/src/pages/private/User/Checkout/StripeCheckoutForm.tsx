@@ -1,13 +1,13 @@
 import { Alert, Button } from 'antd';
 import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { useEffect, useState } from 'react';
-import { createPaymentIntentApi } from 'services/endPoints/checkout/checkoutEndpoints';
-import { getToken } from 'utils/localStorage';
-import { createOrderApi } from 'services/endPoints/orders/ordersEndpoints';
-import { useAppSelector, useAppDispatch } from 'redux/store';
-import { fetchMyCart } from 'redux/slice/carts/cartsSlice';
+import { createPaymentIntentApi } from '@/services/endPoints/checkout/checkoutEndpoints';
+import { getToken } from '@/utils/localStorage';
+import { createOrderApi } from '@/services/endPoints/orders/ordersEndpoints';
+import { useAppSelector, useAppDispatch } from '@/redux/store';
+import { fetchMyCart } from '@/redux/slice/carts/cartsSlice';
 
-import { IAddress } from 'types/user/userType';
+import { IAddress } from '@/types/user/userType';
 
 interface IDeliveryAddress extends IAddress {
   addressType?: 'primary' | 'secondary';

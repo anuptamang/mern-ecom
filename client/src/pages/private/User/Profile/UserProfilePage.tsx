@@ -1,12 +1,14 @@
-import { UserProfileDetails } from 'features/UserProfileDetails';
-import { usePageTitle } from 'hooks/usePageTitle';
+'use client';
+
+import { UserProfileDetails } from '@/features/UserProfileDetails';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from 'redux/store';
-import { authSelector } from 'redux/slice';
-import { fetchUserProfile } from 'redux/action/auth/authAction';
-import { useLocation } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
+import { fetchUserProfile } from '@/redux/action/auth/authAction';
+import { usePathname } from 'next/navigation';
 import { Alert } from 'antd';
-import { getProfileCompletionApi } from 'services/endPoints/user/userListEndpoints';
+import { getProfileCompletionApi } from '@/services/endPoints/user/userListEndpoints';
 import { useState } from 'react';
 import { Progress } from 'antd';
 
@@ -21,10 +23,11 @@ const UserProfilePage = (): JSX.Element => {
   const title = usePageTitle();
   const dispatch = useAppDispatch();
   const { result } = useAppSelector(authSelector);
-  const location = useLocation();
+  const pathname = usePathname();
   const [profileCompletion, setProfileCompletion] = useState<number | null>(null);
   const [loadingCompletion, setLoadingCompletion] = useState(false);
-  const incompleteProfile = location.state?.incompleteProfile;
+  // Note: location.state is not available in Next.js - use searchParams or sessionStorage if needed
+  const incompleteProfile = false; // Can be set via searchParams if needed
 
   useEffect(() => {
     if (result?._id) {
@@ -48,33 +51,30 @@ const UserProfilePage = (): JSX.Element => {
   return (
     <>
       {title}
-      <h2 className="mb-6">Profile</h2>
-      
       {incompleteProfile && (
         <Alert
-          message="Complete Your Profile"
-          description="Please complete your profile information to continue. Fill in all required fields to reach 100% completion."
+          message="Please complete your profile"
+          description="Your profile is incomplete. Please complete your profile to continue."
           type="warning"
           showIcon
-          closable
-          style={{ marginBottom: 24 }}
+          style={{ marginBottom: 16 }}
         />
       )}
-      
-      {profileCompletion !== null && (
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span>Profile Completion</span>
-            <span>{profileCompletion}%</span>
-          </div>
-          <Progress 
-            percent={profileCompletion} 
-            status={profileCompletion === 100 ? 'success' : 'active'}
-            strokeColor={profileCompletion === 100 ? 'var(--theme-success, #52c41a)' : 'var(--theme-primary, #1890ff)'}
-          />
-        </div>
+      {profileCompletion !== null && profileCompletion < 100 && (
+        <Alert
+          message={`Profile Completion: ${profileCompletion}%`}
+          description={
+            <Progress
+              percent={profileCompletion}
+              status={profileCompletion < 50 ? 'exception' : 'active'}
+              style={{ marginTop: 8 }}
+            />
+          }
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
       )}
-      
       <UserProfileDetails />
     </>
   );

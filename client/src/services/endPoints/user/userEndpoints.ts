@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AUTH_API } from 'services/servicesConstants';
+import { AUTH_API } from '@/services/servicesConstants';
 
 export const getUserApi = async (token: string, id: string) => {
   return axios.get(`${AUTH_API}/${id}`, { headers: { Authorization: `Bearer ${token}` } });

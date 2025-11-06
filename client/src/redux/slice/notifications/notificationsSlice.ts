@@ -5,8 +5,8 @@ import {
   markAsReadApi,
   markAllAsReadApi,
   deleteNotificationApi,
-} from "services/endPoints/notifications";
-import { INotificationState, INotification } from "types/store/notifications/notificationTypes";
+} from "@/services/endPoints/notifications";
+import { INotificationState, INotification } from "@/types/store/notifications/notificationTypes";
 
 const initialState: INotificationState = {
   notifications: [],

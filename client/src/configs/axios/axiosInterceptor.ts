@@ -1,7 +1,7 @@
 import axios from 'axios';
-import store from 'redux/store';
-import { signOut } from 'redux/slice';
-import { getToken, removeToken } from 'utils/localStorage';
+import store from '@/redux/store';
+import { signOut } from '@/redux/slice';
+import { getToken, removeToken } from '@/utils/localStorage';
 import { message } from 'antd';
 
 // Set up axios interceptor for handling 401 responses and auto-logout
@@ -95,7 +95,7 @@ export const startTokenValidation = () => {
     
     // Check if token is expired
     try {
-      const { isTokenValid } = await import('utils/isTokenValid');
+      const { isTokenValid } = await import('@/utils/isTokenValid');
       if (!isTokenValid(token)) {
         // Token is expired, logout
         if (!isLoggingOut) {
@@ -116,7 +116,7 @@ export const startTokenValidation = () => {
       }
       
       // Validate token with backend by making a lightweight request
-      const { AUTH_API } = await import('services/servicesConstants');
+      const { AUTH_API } = await import('@/services/servicesConstants');
       const currentUser = store.getState().auth.result;
       
       if (currentUser?._id) {

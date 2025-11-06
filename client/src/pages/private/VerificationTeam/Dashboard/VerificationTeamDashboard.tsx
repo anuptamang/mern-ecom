@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { Card, List, Tag, Button, message, Empty, Spin, Typography, Space, Modal, Select, Form, Input } from 'antd';
 import { 
@@ -9,19 +11,19 @@ import {
   UserAddOutlined, 
   EyeOutlined 
 } from '@ant-design/icons';
-import { useAuth } from 'hooks';
-import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/hooks';
+import { useSearchParams } from 'next/navigation';
 import {
   getReturnRequestApi,
-} from 'services/endPoints/return';
+} from '@/services/endPoints/return';
 import {
   getVerificationTeamReturnsApi,
   assignReturnInspectorApi,
   reassignInspectorApi,
   rejectReturnAssignmentApi,
-} from 'services/endPoints/return/returnWorkflowEndpoints';
-import { getUsersApi, createUserApi, resetPasswordAdminApi } from 'services/endPoints/user/userListEndpoints';
-import { WorkloadDashboard } from 'components';
+} from '@/services/endPoints/return/returnWorkflowEndpoints';
+import { getUsersApi, createUserApi, resetPasswordAdminApi } from '@/services/endPoints/user/userListEndpoints';
+import { WorkloadDashboard } from '@/components';
 import './VerificationTeamDashboard.scss';
 
 const { Text, Title } = Typography;
@@ -41,7 +43,7 @@ interface IReturn {
 
 const VerificationTeamDashboard = () => {
   const auth = useAuth();
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const [returns, setReturns] = useState<IReturn[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReturn, setSelectedReturn] = useState<IReturn | null>(null);

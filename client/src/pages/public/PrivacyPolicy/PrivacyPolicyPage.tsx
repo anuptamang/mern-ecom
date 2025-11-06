@@ -1,9 +1,11 @@
-import { Container } from 'components/UI';
+'use client';
+
+import { Container } from '@/components/UI';
 import { Helmet } from 'react-helmet-async';
 import { Card, Typography, Space, Divider } from 'antd';
-import { useAppSelector } from 'redux/store';
-import { authSelector } from 'redux/slice';
-import styles from 'assets/styles/Common.module.scss';
+import { useAppSelector } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
+import styles from '@/assets/styles/Common.module.scss';
 
 const { Title, Paragraph, Text } = Typography;
 

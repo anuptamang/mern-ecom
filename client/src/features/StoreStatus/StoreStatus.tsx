@@ -1,10 +1,12 @@
+'use client';
+
 import { Card, Statistic } from 'antd';
-import { ContentSkeleton } from 'components';
-import { pageRoutes } from 'data/static/pageRoutes';
-import { Link } from 'react-router-dom';
+import { ContentSkeleton } from '@/components';
+import { pageRoutes } from '@/data/static/pageRoutes';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { getUserStatsApi } from 'services/endPoints/user/userEndpoints';
-import { getToken } from 'utils/localStorage';
+import { getUserStatsApi } from '@/services/endPoints/user/userEndpoints';
+import { getToken } from '@/utils/localStorage';
 
 export const StoreStatus = () => {
   const [loading, setLoading] = useState(true);
@@ -32,7 +34,7 @@ export const StoreStatus = () => {
       <Statistic title="Your Products" value={stats.totalProducts} />
       <Statistic title="Your Sales" value={stats.totalSales} />
       <div className="text-center">
-        <Link className="underline" to={`/${pageRoutes.userProducts}`}>
+        <Link className="underline" href={`/${pageRoutes.userProducts}`}>
           Manage Store
         </Link>
       </div>

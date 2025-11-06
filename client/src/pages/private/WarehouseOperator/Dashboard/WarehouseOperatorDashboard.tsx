@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { Card, List, Tag, Button, message, Empty, Spin, Typography, Space, Modal } from 'antd';
 import { 
@@ -6,13 +8,13 @@ import {
   CarOutlined,
   EyeOutlined,
 } from '@ant-design/icons';
-import { useAuth } from 'hooks';
-import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/hooks';
+import { useSearchParams } from 'next/navigation';
 import { 
   getWarehouseOperatorDeliveriesApi,
   getDeliveryTrackingApi,
-} from 'services/endPoints/delivery';
-import { DeliveryTracking } from 'components';
+} from '@/services/endPoints/delivery';
+import { DeliveryTracking } from '@/components';
 import './WarehouseOperatorDashboard.scss';
 
 const { Text, Title } = Typography;
@@ -39,7 +41,7 @@ interface IDelivery {
 
 const WarehouseOperatorDashboard = () => {
   const auth = useAuth();
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const [deliveries, setDeliveries] = useState<IDelivery[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDelivery, setSelectedDelivery] = useState<IDelivery | null>(null);

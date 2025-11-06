@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { Form, Input, Button, Upload, message, Select, InputNumber, Spin } from 'antd';
 import { Editor } from 'react-draft-wysiwyg';
@@ -5,9 +7,9 @@ import { EditorState, convertToRaw, ContentState } from 'draft-js';
 import draftToHtml from 'draftjs-to-html';
 import htmlToDraft from 'html-to-draftjs';
 import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
-import { getToken } from 'utils/localStorage';
-import { PRODUCTS_API } from 'services/servicesConstants';
-import { fetchAllTagsApi } from 'services/endPoints/products/productsEndpoints';
+import { getToken } from '@/utils/localStorage';
+import { PRODUCTS_API } from '@/services/servicesConstants';
+import { fetchAllTagsApi } from '@/services/endPoints/products/productsEndpoints';
 import axios from 'axios';
 import type { UploadFile } from 'antd';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';

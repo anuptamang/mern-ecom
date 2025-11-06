@@ -1,6 +1,6 @@
 import axios from "axios";
-import { AUTH_API } from "services/servicesConstants";
-import { getToken } from "utils/localStorage";
+import { AUTH_API } from "@/services/servicesConstants";
+import { getToken } from "@/utils/localStorage";
 
 export const getUsersApi = async (filters?: { role?: string }) => {
   const token = getToken() || "";

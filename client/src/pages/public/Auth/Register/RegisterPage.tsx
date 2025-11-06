@@ -1,29 +1,30 @@
+'use client';
+
 import { Col, Row } from 'antd';
-import { Container } from 'components/UI';
-import { pageRoutes } from 'data/static/pageRoutes';
-import { RegisterForm } from 'features/RegisterForm';
-import { useAuth } from 'hooks';
-import { usePageTitle } from 'hooks/usePageTitle';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Container } from '@/components/UI';
+import { pageRoutes } from '@/data/static/pageRoutes';
+import { RegisterForm } from '@/features/RegisterForm';
+import { useAuth } from '@/hooks';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 const RegisterPage = () => {
-  let auth = useAuth();
-  let location = useLocation();
+  const auth = useAuth();
+  const router = useRouter();
   const title = usePageTitle();
 
+  useEffect(() => {
+    if (auth?.tokenStatus === 'valid') {
+      // Redirect them to the dashboard
+      router.replace(`/${pageRoutes.userDashboard}`);
+    }
+  }, [auth?.tokenStatus, router]);
+
   if (auth?.tokenStatus === 'valid') {
-    // Redirect them to the /login page, but save the current location they were
-    // trying to go to when they were redirected. This allows us to send them
-    // along to that page after they login, which is a nicer user experience
-    // than dropping them off on the home page.
-    return (
-      <Navigate
-        to={`/${pageRoutes.userDashboard}`}
-        state={{ from: location }}
-        replace
-      />
-    );
+    return null; // Will redirect in useEffect
   }
+
   return (
     <>
       {title}

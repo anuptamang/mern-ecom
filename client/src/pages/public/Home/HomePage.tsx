@@ -1,19 +1,21 @@
-import { Container } from 'components/UI';
-import { AuthModal, HeroBanner } from 'components';
-import { usePageTitle } from 'hooks/usePageTitle';
+'use client';
+
+import { Container } from '@/components/UI';
+import { AuthModal, HeroBanner } from '@/components';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { ReactNode, useEffect, useState } from 'react';
-import { fetchProducts } from 'redux/action/products';
-import { productsSelector } from 'redux/slice';
-import { useAppSelector, useAppDispatch } from 'redux/store';
+import { fetchProducts } from '@/redux/action/products';
+import { productsSelector } from '@/redux/slice';
+import { useAppSelector, useAppDispatch } from '@/redux/store';
 import { Button, Card, List, Image, message, Tag, Tabs, Spin, Typography, Space } from 'antd';
-import { useNavigate } from 'react-router-dom';
-import { pageRoutes } from 'data/static/pageRoutes';
-import { ProductImage } from 'components/ProductImage';
-import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
-import { authSelector } from 'redux/slice';
-import { WishlistButton } from 'components/WishlistButton';
-import { ROLES, canSeeHeroBanner, LABELS } from '../../../constants';
-import styles from 'assets/styles/Common.module.scss';
+import { useRouter } from 'next/navigation';
+import { pageRoutes } from '@/data/static/pageRoutes';
+import { ProductImage } from '@/components/ProductImage';
+import { addToCart, fetchMyCart } from '@/redux/slice/carts/cartsSlice';
+import { authSelector } from '@/redux/slice';
+import { WishlistButton } from '@/components/WishlistButton';
+import { ROLES, canSeeHeroBanner, LABELS } from '@/constants';
+import styles from '@/assets/styles/Common.module.scss';
 import './HomePage.scss';
 import { FireOutlined } from '@ant-design/icons';
 import { 
@@ -32,7 +34,7 @@ const { Title, Paragraph, Text } = Typography;
 
 const HomePage = () => {
   const title: ReactNode = usePageTitle();
-  const navigate = useNavigate();
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const { productList, status } = useAppSelector(productsSelector);
   const { result, token } = useAppSelector(authSelector);
@@ -101,7 +103,7 @@ const HomePage = () => {
     ) {
       return;
     }
-    navigate(`/products/${productId}`);
+    router.push(`/products/${productId}`);
   };
 
   const [authModalVisible, setAuthModalVisible] = useState(false);
@@ -347,7 +349,7 @@ const HomePage = () => {
                   type="primary"
                   size="large"
                   icon={<DashboardOutlined />}
-                  onClick={() => navigate(roleContent.dashboardLink)}
+                  onClick={() => router.push(roleContent.dashboardLink)}
                   style={{ marginTop: '20px' }}
                 >
                   Go to Dashboard
@@ -377,7 +379,7 @@ const HomePage = () => {
                 <Button
                   type="link"
                   className="shop-all-link"
-                  onClick={() => navigate('/products?tag=flash-sale')}
+                  onClick={() => router.push('/products?tag=flash-sale')}
                 >
                   Shop All Products →
                 </Button>
@@ -400,7 +402,7 @@ const HomePage = () => {
                           type="link"
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate(`/products/${item._id}`);
+                            router.push(`/products/${item._id}`);
                           }}
                         >
                           View
@@ -518,7 +520,7 @@ const HomePage = () => {
                               type="link"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/products/${item._id}`);
+                                router.push(`/products/${item._id}`);
                               }}
                             >
                               View

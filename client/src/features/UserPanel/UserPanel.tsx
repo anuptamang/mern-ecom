@@ -1,16 +1,18 @@
+'use client';
+
 import { ShoppingCartOutlined } from '@ant-design/icons';
 import { Avatar, Badge, Button, Dropdown, MenuProps, theme } from 'antd';
-import { LinkButton, List } from 'components/UI';
-import { pageRoutes } from 'data/static/pageRoutes';
-import { useAuth } from 'hooks';
-import { Link } from 'react-router-dom';
-import { signOut } from 'redux/slice';
-import { useAppDispatch, useAppSelector } from 'redux/store';
-import { getNameInitials } from 'utils';
+import { LinkButton, List } from '@/components/UI';
+import { pageRoutes } from '@/data/static/pageRoutes';
+import { useAuth } from '@/hooks';
+import Link from 'next/link';
+import { signOut } from '@/redux/slice';
+import { useAppDispatch, useAppSelector } from '@/redux/store';
+import { getNameInitials } from '@/utils';
 import { useEffect } from 'react';
-import { fetchMyCart } from 'redux/slice/carts/cartsSlice';
-import { NotificationBell } from 'components/Notifications/NotificationBell';
-import { useTheme } from 'hooks/useTheme';
+import { fetchMyCart } from '@/redux/slice/carts/cartsSlice';
+import { NotificationBell } from '@/components/Notifications/NotificationBell';
+import { useTheme } from '@/hooks/useTheme';
 
 const { useToken } = theme;
 
@@ -54,15 +56,15 @@ export const UserPanel = (props: Props) => {
   const items: MenuProps['items'] = [
     {
       key: '1',
-      label: <Link to={`/${pageRoutes.userDashboard}`}>Dashboard</Link>,
+      label: <Link href={`/${pageRoutes.userDashboard}`}>Dashboard</Link>,
     },
     {
       key: '2',
-      label: <Link to={`/${pageRoutes.userProfile}`}>Profile</Link>,
+      label: <Link href={`/${pageRoutes.userProfile}`}>Profile</Link>,
     },
     {
       key: '3',
-      label: <Link to={`/${pageRoutes.userSettings}`}>Settings</Link>,
+      label: <Link href={`/${pageRoutes.userSettings}`}>Settings</Link>,
     },
     {
       key: '4',
@@ -83,7 +85,7 @@ export const UserPanel = (props: Props) => {
           <li style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
             <NotificationBell />
             {!isSeller && !isDeliveryUser && (
-              <Link to={`/${pageRoutes.userCarts}`}>
+              <Link href={`/${pageRoutes.userCarts}`}>
                 <Badge 
                   size="small" 
                   count={carts.totalCount || 0} 

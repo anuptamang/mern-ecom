@@ -6,12 +6,11 @@ function debounce<T extends (...args: any[]) => void>(
   let timeout: ReturnType<typeof setTimeout> | null;
 
   return function <U>(this: U, ...args: Parameters<typeof callback>) {
-    const context = this;
     const later = () => {
       timeout = null;
 
       if (!immediate) {
-        callback.apply(context, args);
+        callback.apply(this, args);
       }
     };
     const callNow = immediate && !timeout;
@@ -23,7 +22,7 @@ function debounce<T extends (...args: any[]) => void>(
     timeout = setTimeout(later, wait);
 
     if (callNow) {
-      callback.apply(context, args);
+      callback.apply(this, args);
     }
   };
 }

@@ -1,9 +1,9 @@
-import { usePageTitle } from 'hooks/usePageTitle';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { Card, Typography, Space } from 'antd';
-import { Container } from 'components/UI';
-import { useAppSelector } from 'redux/store';
-import { authSelector } from 'redux/slice';
-import styles from 'assets/styles/Common.module.scss';
+import { Container } from '@/components/UI';
+import { useAppSelector } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
+import styles from '@/assets/styles/Common.module.scss';
 
 const { Title, Paragraph, Text } = Typography;
 

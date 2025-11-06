@@ -13,9 +13,9 @@ import {
   getChatByIdApi,
   sendMessageApi,
   getMyChatsApi,
-} from 'services/endPoints/chat/chatEndpoints';
-import { useAppSelector } from 'redux/store';
-import { authSelector } from 'redux/slice';
+} from '@/services/endPoints/chat/chatEndpoints';
+import { useAppSelector } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
 import './ChatBox.scss';
 
 interface Message {

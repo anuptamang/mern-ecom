@@ -1,15 +1,17 @@
+'use client';
+
 import { Card, List, Image, Button, Tag, Empty, Spin, Carousel } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
-import { pageRoutes } from 'data/static/pageRoutes';
-import { ProductImage } from 'components/ProductImage';
-import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
-import { useAppDispatch, useAppSelector } from 'redux/store';
-import { authSelector } from 'redux/slice';
+import { useRouter } from 'next/navigation';
+import { pageRoutes } from '@/data/static/pageRoutes';
+import { ProductImage } from '@/components/ProductImage';
+import { addToCart, fetchMyCart } from '@/redux/slice/carts/cartsSlice';
+import { useAppDispatch, useAppSelector } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
 import { message } from 'antd';
 import { useState, useRef } from 'react';
-import { AuthModal } from 'components/AuthModal';
-import { MESSAGES, LABELS, ROLES } from '../../constants';
+import { AuthModal } from '@/components/AuthModal';
+import { MESSAGES, LABELS, ROLES } from '@/constants';
 import './RelatedProducts.scss';
 
 type RelatedProductsProps = {
@@ -18,7 +20,7 @@ type RelatedProductsProps = {
 };
 
 export const RelatedProducts = ({ products, loading = false }: RelatedProductsProps) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const { result } = useAppSelector(authSelector);
   const isSeller = result?.role === ROLES.SELLER;
@@ -77,7 +79,7 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
     <Card
       className="related-product-card"
       cover={
-        <div onClick={() => navigate(`/products/${item._id}`)}>
+        <div onClick={() => router.push(`/products/${item._id}`)}>
           <ProductImage
             thumbnail={item.thumbnail}
             title={item.title || LABELS.COMMON.PRODUCT}
@@ -88,7 +90,7 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
           <Button
             key="view"
             type="link"
-            onClick={() => navigate(`/products/${item._id}`)}
+            onClick={() => router.push(`/products/${item._id}`)}
           >
             {LABELS.BUTTON.VIEW_DETAILS}
           </Button>,
@@ -102,29 +104,36 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
             >
               {LABELS.BUTTON.ADD_TO_CART}
             </Button>
+          ) : !result ? (
+            <Button
+              key="cart"
+              type="primary"
+              size="small"
+              disabled={(item.stock || 0) <= 0}
+              onClick={() => {
+                setPendingProductId(item._id);
+                setPendingProductTitle(item.title);
+                setAuthModalVisible(true);
+              }}
+            >
+              {LABELS.BUTTON.ADD_TO_CART}
+            </Button>
           ) : null,
-      ].filter(Boolean)}
+        ]}
       hoverable
     >
       <Card.Meta
-        title={
-          <div onClick={() => navigate(`/products/${item._id}`)} style={{ cursor: 'pointer' }}>
-            {item.title}
-          </div>
-        }
+        title={item.title}
         description={
-          <div className="related-product-meta">
-            {item.body?.summary || item.description || ''}
-            {item.price && (
-              <div className="related-product-price">${item.price.toFixed(2)}</div>
-            )}
-            <div className="related-product-stock">
-              {item.stock !== undefined ? (
-                <span className={item.stock > 0 ? 'stock-available' : 'stock-out'}>
-                  {item.stock > 0 ? `${LABELS.COMMON.IN_STOCK} (${item.stock})` : LABELS.COMMON.OUT_OF_STOCK}
-                </span>
-              ) : null}
+          <div>
+            <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#0071e3' }}>
+              ${item.price}
             </div>
+            {item.stock !== undefined && (
+              <Tag color={item.stock > 0 ? 'green' : 'red'}>
+                {item.stock > 0 ? `${LABELS.COMMON.IN_STOCK} (${item.stock})` : LABELS.COMMON.OUT_OF_STOCK}
+              </Tag>
+            )}
           </div>
         }
       />
@@ -133,92 +142,78 @@ export const RelatedProducts = ({ products, loading = false }: RelatedProductsPr
 
   if (loading) {
     return (
-      <div className="related-products">
-        <Card title={LABELS.COMMON.RELATED_PRODUCTS} className="related-products-card">
-          <Spin tip={MESSAGES.INFO.LOADING} />
-        </Card>
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" />
       </div>
     );
   }
 
-  if (products.length === 0) {
-    return null;
-  }
-
-  // If more than 4 products, use carousel/swiper
-  const useCarousel = products.length > 4;
-
-  // Group products into slides of 4
-  const slides: any[][] = [];
-  if (useCarousel) {
-    for (let i = 0; i < products.length; i += 4) {
-      slides.push(products.slice(i, i + 4));
-    }
+  if (!products || products.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Empty description="No related products found" />
+      </div>
+    );
   }
 
   return (
-    <div className="related-products">
-      <Card 
-        title={LABELS.COMMON.RELATED_PRODUCTS} 
-        className="related-products-card"
-        extra={
-          useCarousel && (
-            <div className="carousel-controls">
-              <Button
-                type="text"
-                icon={<LeftOutlined />}
-                onClick={() => carouselRef.current?.prev()}
-                disabled={currentSlide === 0}
-              />
-              <Button
-                type="text"
-                icon={<RightOutlined />}
-                onClick={() => carouselRef.current?.next()}
-                disabled={currentSlide >= slides.length - 1}
-              />
-            </div>
-          )
-        }
-      >
-        {useCarousel ? (
+    <>
+      <div className="related-products-section">
+        <h2>Related Products</h2>
+        <div className="related-products-carousel">
           <Carousel
             ref={carouselRef}
             dots={false}
-            beforeChange={(_, next) => setCurrentSlide(next)}
-            className="related-products-carousel"
+            arrows={true}
+            prevArrow={<LeftOutlined />}
+            nextArrow={<RightOutlined />}
+            slidesToShow={4}
+            slidesToScroll={4}
+            responsive={[
+              {
+                breakpoint: 1024,
+                settings: {
+                  slidesToShow: 3,
+                  slidesToScroll: 3,
+                },
+              },
+              {
+                breakpoint: 768,
+                settings: {
+                  slidesToShow: 2,
+                  slidesToScroll: 2,
+                },
+              },
+              {
+                breakpoint: 480,
+                settings: {
+                  slidesToShow: 1,
+                  slidesToScroll: 1,
+                },
+              },
+            ]}
+            beforeChange={(current, next) => setCurrentSlide(next)}
           >
-            {slides.map((slideProducts, slideIndex) => (
-              <div key={slideIndex} className="carousel-slide">
-                <div className="products-grid">
-                  {slideProducts.map((item: any) => (
-                    <div key={item._id} className="product-grid-item">
-                      {renderProductCard(item)}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </Carousel>
-        ) : (
-          <div className="products-grid">
             {products.map((item: any) => (
-              <div key={item._id} className="product-grid-item">
+              <div key={item._id} style={{ padding: '0 8px' }}>
                 {renderProductCard(item)}
               </div>
             ))}
-          </div>
-        )}
-      </Card>
+          </Carousel>
+        </div>
+      </div>
 
       <AuthModal
-        open={authModalVisible}
+        visible={authModalVisible}
         onClose={() => {
           setAuthModalVisible(false);
           setPendingProductId(null);
           setPendingProductTitle('');
         }}
         onSuccess={handleAuthSuccess}
+        productId={pendingProductId}
+        productTitle={pendingProductTitle}
       />
-    </div>
+    </>
   );
 };

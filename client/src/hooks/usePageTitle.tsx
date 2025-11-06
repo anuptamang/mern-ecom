@@ -1,25 +1,24 @@
-import { siteData } from 'configs/site';
+'use client';
+
+import { siteData } from '@/configs/site';
 import { Helmet } from 'react-helmet-async';
-import { useLocation, useParams } from 'react-router-dom';
-import { capitalizeText } from 'utils';
+import { usePathname } from 'next/navigation';
+import { capitalizeText } from '@/utils';
 
 export const usePageTitle = () => {
-  const { id } = useParams();
-  const location = useLocation();
+  const pathname = usePathname();
 
-  let pathname: string = location.pathname.split('/')[1];
+  let pageName: string = pathname.split('/').filter(Boolean)[0] || 'home';
 
-  if (!pathname) {
-    pathname = 'Home';
+  if (!pageName) {
+    pageName = 'Home';
   }
 
-  if (pathname !== id) {
-    pathname = capitalizeText(pathname);
-  }
+  pageName = capitalizeText(pageName);
 
   return (
     <Helmet>
-      <title>{`${pathname} | ${siteData.site.title}`}</title>
+      <title>{`${pageName} | ${siteData.site.title}`}</title>
     </Helmet>
   );
 };

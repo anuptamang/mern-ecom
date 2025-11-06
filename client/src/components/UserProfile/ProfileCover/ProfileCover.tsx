@@ -1,6 +1,6 @@
 import { UploadOutlined } from '@ant-design/icons';
 import { Button, Upload, UploadProps } from 'antd';
-import { CoverPhoto } from 'components/UI/CoverPhoto';
+import { CoverPhoto } from '@/components/UI/CoverPhoto';
 
 type TProfileCover = {
   onCoverPhotoChange: (file: File) => void;

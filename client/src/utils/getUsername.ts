@@ -6,7 +6,7 @@
  */
 
 export const getUserName = (email: string): string => {
-  let index = email.indexOf('@');
-  let result = email.slice(0, index);
+  const index = email.indexOf('@');
+  const result = email.slice(0, index);
   return result;
 };

@@ -1,11 +1,13 @@
+'use client';
+
 import { Helmet } from 'react-helmet-async';
 import { Card, Form, Input, Button, message, Space } from 'antd';
 import { useState } from 'react';
-import { useAppSelector } from 'redux/store';
-import { authSelector } from 'redux/slice';
-import { Container } from 'components/UI';
-import { usePageTitle } from 'hooks/usePageTitle';
-import { changePasswordApi } from 'services/endPoints/user/userListEndpoints';
+import { useAppSelector } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
+import { Container } from '@/components/UI';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { changePasswordApi } from '@/services/endPoints/user/userListEndpoints';
 import { LockOutlined } from '@ant-design/icons';
 
 export const UserSettingsPage = () => {

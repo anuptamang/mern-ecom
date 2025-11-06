@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { Card, List, Tag, Button, Modal, Upload, message, Empty, Spin, Typography, Space, Input, Image } from 'antd';
 import { 
@@ -8,14 +10,14 @@ import {
   CheckOutlined,
   CameraOutlined,
 } from '@ant-design/icons';
-import { useAuth } from 'hooks';
-import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/hooks';
+import { useSearchParams } from 'next/navigation';
 import { 
   getPersonDeliveriesApi,
   getDeliveryTrackingApi,
   markAsDeliveredApi,
-} from 'services/endPoints/delivery';
-import { DeliveryTracking } from 'components';
+} from '@/services/endPoints/delivery';
+import { DeliveryTracking } from '@/components';
 import type { UploadFile } from 'antd/es/upload/interface';
 import './DeliveryPersonDashboard.scss';
 
@@ -46,7 +48,7 @@ interface IDelivery {
 const DeliveryPersonDashboard = () => {
   const auth = useAuth();
   const { result: user } = auth;
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const [deliveries, setDeliveries] = useState<IDelivery[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDelivery, setSelectedDelivery] = useState<IDelivery | null>(null);

@@ -1,11 +1,13 @@
+'use client';
+
 import { Menu, MenuProps } from 'antd';
-import { navData } from 'data/static/navData';
+import { navData } from '@/data/static/navData';
 import { useEffect, useState, useMemo } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useAppSelector } from 'redux/store';
-import { authSelector } from 'redux/slice';
-import { pageRoutes } from 'data/static/pageRoutes';
-import { isDeliveryRole } from '../../constants';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAppSelector } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
+import { pageRoutes } from '@/data/static/pageRoutes';
+import { isDeliveryRole } from '@/constants';
 import styles from './Nav.module.scss';
 
 /**
@@ -16,20 +18,20 @@ import styles from './Nav.module.scss';
  */
 
 const Nav = (): JSX.Element => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [current, setCurrent] = useState(location?.pathname);
+  const router = useRouter();
+  const pathname = usePathname();
+  const [current, setCurrent] = useState(pathname);
   const { result } = useAppSelector(authSelector);
   const userRole = result?.role;
 
   const onClick: MenuProps['onClick'] = (e) => {
-    navigate(e.key);
-    setCurrent(e.key);
+    router.push(e.key as string);
+    setCurrent(e.key as string);
   };
 
   useEffect(() => {
-    setCurrent(location.pathname);
-  }, [location.pathname]);
+    setCurrent(pathname);
+  }, [pathname]);
 
   // Filter navigation items based on user role
   // Products link should only be visible to buyers, sellers, and unauthenticated users

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { BACKEND_API } from "configs/api";
+import { BACKEND_API } from "@/configs/api";
 
 export const createOrderApi = async (
   token: string,

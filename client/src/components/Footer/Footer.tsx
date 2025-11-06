@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Col, Row, Divider } from 'antd';
 import {
@@ -16,9 +18,9 @@ import {
   SafetyOutlined,
   GlobalOutlined,
 } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
-import { FooterLayout } from 'components/UI/Layout/Layout';
-import { siteData } from 'data/static/siteData';
+import Link from 'next/link';
+import { FooterLayout } from '@/components/UI/Layout/Layout';
+import { siteData } from '@/data/static/siteData';
 import styles from './Footer.module.scss';
 
 /**
@@ -64,7 +66,7 @@ export const Footer = (): JSX.Element => {
             <ul className={styles.footerList}>
               {data.footerLinks.customerCare.map((item, index) => (
                 <li key={index}>
-                  <Link to={item.link}>
+                  <Link href={item.link}>
                     {getIcon(item.icon)} {item.label}
                   </Link>
                 </li>
@@ -88,7 +90,7 @@ export const Footer = (): JSX.Element => {
             <ul className={styles.footerList}>
               {data.footerLinks.information.map((item, index) => (
                 <li key={index}>
-                  <Link to={item.link}>{item.label}</Link>
+                  <Link href={item.link}>{item.label}</Link>
                 </li>
               ))}
             </ul>
@@ -249,7 +251,7 @@ export const Footer = (): JSX.Element => {
               {data.footerLinks.copyright.map((item, index) => (
                 <React.Fragment key={index}>
                   {index > 0 && <span className={styles.separator}>|</span>}
-                  <Link to={item.link}>{item.label}</Link>
+                  <Link href={item.link}>{item.label}</Link>
                 </React.Fragment>
               ))}
             </div>

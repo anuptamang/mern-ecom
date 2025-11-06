@@ -1,8 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { changePassword, fetchUserProfile, login, register, updateUserProfileThunk, validateUser } from "redux/action/auth/authAction";
-import { IAuthSlice } from "types/store/auth/authSliceTypes";
-import { removeToken, setToken } from "utils/localStorage";
-import { startTokenValidation, stopTokenValidation } from "configs/axios/axiosInterceptor";
+import { changePassword, fetchUserProfile, login, register, updateUserProfileThunk, validateUser } from "@/redux/action/auth/authAction";
+import { IAuthSlice } from "@/types/store/auth/authSliceTypes";
+import { removeToken, setToken } from "@/utils/localStorage";
+import { startTokenValidation, stopTokenValidation } from "@/configs/axios/axiosInterceptor";
 
 const initialState: IAuthSlice = {
   result: {

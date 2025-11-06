@@ -1,11 +1,13 @@
-import { Container } from 'components/UI';
-import { usePageTitle } from 'hooks/usePageTitle';
+'use client';
+
+import { Container } from '@/components/UI';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { ReactNode } from 'react';
-import styles from 'assets/styles/Common.module.scss';
+import styles from '@/assets/styles/Common.module.scss';
 import { Card, Typography, Space, Divider, List } from 'antd';
 import { ShoppingOutlined, ShopOutlined, CarOutlined, TeamOutlined, BankOutlined, SafetyOutlined } from '@ant-design/icons';
-import { useAppSelector } from 'redux/store';
-import { authSelector } from 'redux/slice';
+import { useAppSelector } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
 
 const { Title, Paragraph, Text } = Typography;
 

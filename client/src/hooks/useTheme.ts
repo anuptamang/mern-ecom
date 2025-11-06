@@ -9,8 +9,8 @@ import {
   resetUserColorScheme,
   ColorScheme,
   defaultColorScheme,
-} from 'configs/theme/colorScheme';
-import { getTheme, ThemeConfig } from 'assets/styles/antd/theme';
+} from '@/configs/theme/colorScheme';
+import { getTheme, ThemeConfig } from '@/assets/styles/antd/theme';
 
 /**
  * React Hook for Theme Management

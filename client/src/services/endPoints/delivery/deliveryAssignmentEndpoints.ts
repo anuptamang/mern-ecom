@@ -1,6 +1,6 @@
 import axios from "axios";
-import { BACKEND_API } from "configs/api";
-import { getToken } from "utils/localStorage";
+import { BACKEND_API } from "@/configs/api";
+import { getToken } from "@/utils/localStorage";
 
 // DELIVERY_API is already exported from deliveryEndpoints.ts, so we don't export it again
 

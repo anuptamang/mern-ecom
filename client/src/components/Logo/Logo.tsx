@@ -1,9 +1,11 @@
-import { pageRoutes } from 'data/static/pageRoutes';
-import { Link } from 'react-router-dom';
+'use client';
+
+import { pageRoutes } from '@/data/static/pageRoutes';
+import Link from 'next/link';
 import { ShoppingOutlined } from '@ant-design/icons';
 import styles from './Logo.module.scss';
-import { siteData } from 'data/static/siteData';
-import { useTheme } from 'hooks/useTheme';
+import { siteData } from '@/data/static/siteData';
+import { useTheme } from '@/hooks/useTheme';
 
 /**
  * Component - Logo
@@ -21,7 +23,7 @@ const Logo = (): JSX.Element => {
 
   return (
     <div className={styles.logo}>
-      <Link to={pageRoutes.home} className={styles.logoLink}>
+      <Link href={pageRoutes.home} className={styles.logoLink}>
         {hasCustomLogo && colorScheme.logo.imageUrl ? (
           <img 
             src={colorScheme.logo.imageUrl} 

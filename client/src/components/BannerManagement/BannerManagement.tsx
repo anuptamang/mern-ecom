@@ -32,7 +32,7 @@ import {
   deleteBannerSlideApi,
   reorderBannerSlidesApi,
   BannerSlide,
-} from 'services/endPoints/banner';
+} from '@/services/endPoints/banner';
 import { BANNER_CONFIG } from '../../constants/banner';
 import { LABELS, MESSAGES } from '../../constants';
 import './BannerManagement.scss';

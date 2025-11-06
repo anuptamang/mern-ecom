@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from "axios"
-import { AUTH_API } from "services/servicesConstants"
-import { ILogin, IRegister } from "types/store/auth/authSliceTypes"
+import { AUTH_API } from "@/services/servicesConstants"
+import { ILogin, IRegister } from "@/types/store/auth/authSliceTypes"
 
 
 export const loginApi = async (payload: ILogin): Promise<AxiosResponse> => {

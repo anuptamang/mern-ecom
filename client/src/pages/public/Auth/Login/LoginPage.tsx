@@ -1,44 +1,44 @@
+'use client';
+
 import { Col, Row } from 'antd';
-import { Container } from 'components/UI';
-import { pageRoutes } from 'data/static/pageRoutes';
-import { LoginForm } from 'features';
-import { useAuth } from 'hooks';
-import { usePageTitle } from 'hooks/usePageTitle';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Container } from '@/components/UI';
+import { pageRoutes } from '@/data/static/pageRoutes';
+import { LoginForm } from '@/features';
+import { useAuth } from '@/hooks';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 const LoginPage = () => {
-  let auth = useAuth();
-  let location = useLocation();
+  const auth = useAuth();
+  const router = useRouter();
   const title = usePageTitle();
 
-  if (auth?.tokenStatus === 'valid') {
-    // Check profile completion - redirect to profile if incomplete
-    const profileCompleted = auth?.result?.profileCompleted;
-    const profileCompletion = auth?.result?.profileCompletion;
-    
-    if (!profileCompleted && profileCompletion !== undefined && profileCompletion < 100) {
-      // Redirect to profile page to complete profile
-      return (
-        <Navigate
-          to={`/${pageRoutes.user}/profile`}
-          state={{ from: location, incompleteProfile: true }}
-          replace
-        />
-      );
+  useEffect(() => {
+    if (auth?.tokenStatus === 'valid') {
+      // Check profile completion - redirect to profile if incomplete
+      const profileCompleted = auth?.result?.profileCompleted;
+      const profileCompletion = auth?.result?.profileCompletion;
+
+      if (
+        !profileCompleted &&
+        profileCompletion !== undefined &&
+        profileCompletion < 100
+      ) {
+        // Redirect to profile page to complete profile
+        router.replace(`/${pageRoutes.user}/profile`);
+        return;
+      }
+
+      // Redirect them to the dashboard
+      router.replace(`/${pageRoutes.userDashboard}`);
     }
-    
-    // Redirect them to the dashboard, but save the current location they were
-    // trying to go to when they were redirected. This allows us to send them
-    // along to that page after they login, which is a nicer user experience
-    // than dropping them off on the home page.
-    return (
-      <Navigate
-        to={`/${pageRoutes.userDashboard}`}
-        state={{ from: location }}
-        replace
-      />
-    );
+  }, [auth?.tokenStatus, auth?.result, router]);
+
+  if (auth?.tokenStatus === 'valid') {
+    return null; // Will redirect in useEffect
   }
+
   return (
     <>
       {title}

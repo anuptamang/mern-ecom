@@ -7,7 +7,7 @@ import {
   ExclamationCircleOutlined,
 } from '@ant-design/icons';
 import { useEffect, useState } from 'react';
-import { getRefundStatusApi } from 'services/endPoints/delivery';
+import { getRefundStatusApi } from '@/services/endPoints/delivery';
 
 const { Text, Title } = Typography;
 

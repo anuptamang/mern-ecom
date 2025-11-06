@@ -1,9 +1,10 @@
+'use client';
+
 import { Layout } from 'antd';
-import { Header, Footer } from 'components';
-import { ContentLayout } from 'components/UI';
+import { Header, Footer } from '@/components';
+import { ContentLayout } from '@/components/UI';
 import { ReactElement } from 'react';
 import { ToastContainer } from 'react-toastify';
-import { Outlet } from 'react-router-dom';
 
 type Iprops = {
   children?: ReactElement;
@@ -36,7 +37,7 @@ const GeneralLayout = ({ children }: Iprops) => {
             overflowX: 'hidden',
           }}
         >
-          {children || <Outlet />}
+          {children}
         </ContentLayout>
         <Footer />
         <ToastContainer />

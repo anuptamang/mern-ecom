@@ -1,9 +1,11 @@
+'use client';
+
 import { Card } from 'antd';
-import { ContentSkeleton } from 'components';
-import { pageRoutes } from 'data/static/pageRoutes';
-import { Link } from 'react-router-dom';
-import { useAppSelector } from 'redux/store';
-import { authSelector } from 'redux/slice';
+import { ContentSkeleton } from '@/components';
+import { pageRoutes } from '@/data/static/pageRoutes';
+import Link from 'next/link';
+import { useAppSelector } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
 
 export const SettingsStatus = () => {
   const { result } = useAppSelector(authSelector);
@@ -21,7 +23,7 @@ export const SettingsStatus = () => {
           <strong className="text-purple">{result?.email || 'N/A'}</strong>
         </div>
         <div className="text-center">
-          <Link className="underline" to={`/${pageRoutes.userSettings}`}>
+          <Link className="underline" href={`/${pageRoutes.userSettings}`}>
             Manage Settings
           </Link>
         </div>

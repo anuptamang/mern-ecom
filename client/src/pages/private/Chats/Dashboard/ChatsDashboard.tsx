@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Card, List, Avatar, Badge, Empty, Spin, Typography, Button, Space } from 'antd';
 import { MessageOutlined, UserOutlined } from '@ant-design/icons';
-import { usePageTitle } from 'hooks/usePageTitle';
-import { Container } from 'components/UI';
-import { getMyChatsApi } from 'services/endPoints/chat/chatEndpoints';
-import { useAppSelector } from 'redux/store';
-import { authSelector } from 'redux/slice';
-import { ChatBox } from 'components';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { Container } from '@/components/UI';
+import { getMyChatsApi } from '@/services/endPoints/chat/chatEndpoints';
+import { useAppSelector } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
+import { ChatBox } from '@/components'
 import './ChatsDashboard.scss';
 
 const { Text, Title } = Typography;

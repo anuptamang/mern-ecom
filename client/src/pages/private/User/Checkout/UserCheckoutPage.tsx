@@ -1,17 +1,17 @@
 import { Button, Card, Result, Alert, Collapse, Divider, Checkbox, List, Image, InputNumber, message } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Container } from 'components/UI';
-import { pageRoutes } from 'data/static/pageRoutes';
-import { usePageTitle } from 'hooks/usePageTitle';
+import { Container } from '@/components/UI';
+import { pageRoutes } from '@/data/static/pageRoutes';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { useState, useEffect, useMemo } from 'react';
-import { useAppSelector, useAppDispatch } from 'redux/store';
-import { authSelector } from 'redux/slice';
+import { useAppSelector, useAppDispatch } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import { StripeCheckoutForm } from './StripeCheckoutForm';
-import { fetchMyCart, updateCartItem } from 'redux/slice/carts/cartsSlice';
-import { AddressSelect } from 'components/AddressSelect';
-import { IAddress } from 'types/user/userType';
+import { fetchMyCart, updateCartItem } from '@/redux/slice/carts/cartsSlice';
+import { AddressSelect } from '@/components/AddressSelect';
+import { IAddress } from '@/types/user/userType';
 
 const { Panel } = Collapse;
 

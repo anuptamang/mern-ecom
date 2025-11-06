@@ -1,20 +1,22 @@
+'use client';
+
 import { Card, List, Image, Button, Empty, Spin, message, Space } from "antd";
-import { useAppDispatch, useAppSelector } from "redux/store";
-import { authSelector } from "redux/slice";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { authSelector } from "@/redux/slice";
 import {
   fetchMyWishlist,
   removeFromWishlist,
-} from "redux/slice/wishlist/wishlistSlice";
+} from "@/redux/slice/wishlist/wishlistSlice";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { ProductImage } from "components/ProductImage";
+import { useRouter } from "next/navigation";
+import { ProductImage } from "@/components/ProductImage";
 import { DeleteOutlined, ShoppingCartOutlined } from "@ant-design/icons";
-import { addToCart, fetchMyCart } from "redux/slice/carts/cartsSlice";
+import { addToCart, fetchMyCart } from "@/redux/slice/carts/cartsSlice";
 import "./WishlistDashboard.scss";
 
 export const WishlistDashboard = () => {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
+  const router = useRouter();
   const { wishlist, count, status } = useAppSelector((state) => state.wishlist);
   const { result } = useAppSelector(authSelector);
 
@@ -71,7 +73,7 @@ export const WishlistDashboard = () => {
             description="Your wishlist is empty"
             style={{ padding: "50px 0" }}
           >
-            <Button type="primary" onClick={() => navigate("/")}>
+            <Button type="primary" onClick={() => router.push("/")}>
               Browse Products
             </Button>
           </Empty>
@@ -94,7 +96,7 @@ export const WishlistDashboard = () => {
                   <Card
                     className="wishlist-product-card"
                     cover={
-                      <div onClick={() => navigate(`/products/${productId}`)}>
+                      <div onClick={() => router.push(`/products/${productId}`)}>
                         <ProductImage
                           thumbnail={thumbnail}
                           title={title}
@@ -105,7 +107,7 @@ export const WishlistDashboard = () => {
                       <Button
                         key="view"
                         type="link"
-                        onClick={() => navigate(`/products/${productId}`)}
+                        onClick={() => router.push(`/products/${productId}`)}
                       >
                         View
                       </Button>,
@@ -132,7 +134,7 @@ export const WishlistDashboard = () => {
                     <Card.Meta
                       title={
                         <div
-                          onClick={() => navigate(`/products/${productId}`)}
+                          onClick={() => router.push(`/products/${productId}`)}
                           style={{ cursor: "pointer" }}
                         >
                           {title}

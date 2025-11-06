@@ -1,4 +1,4 @@
-import { IStatus } from "types/status/statusTypes";
+import { IStatus } from "@/types/status/statusTypes";
 
 export interface IProduct {
   id: number;

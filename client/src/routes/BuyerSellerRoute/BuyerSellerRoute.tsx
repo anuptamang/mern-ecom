@@ -1,6 +1,9 @@
-import { useAuth } from 'hooks';
-import { Navigate } from 'react-router-dom';
-import { pageRoutes } from 'data/static/pageRoutes';
+'use client';
+
+import { useAuth } from '@/hooks';
+import { useRouter } from 'next/navigation';
+import { pageRoutes } from '@/data/static/pageRoutes';
+import { useEffect } from 'react';
 
 interface IProps {
   children: JSX.Element;
@@ -12,12 +15,8 @@ interface IProps {
  */
 function BuyerSellerRoute({ children }: IProps): JSX.Element | null {
   const auth = useAuth();
+  const router = useRouter();
   
-  // Allow unauthenticated users (public access)
-  if (auth?.tokenStatus !== 'valid') {
-    return children;
-  }
-
   // Block delivery users, finance, support, verification, inspector, and admin from accessing products
   const blockedRoles = [
     'delivery_agency', 
@@ -32,31 +31,45 @@ function BuyerSellerRoute({ children }: IProps): JSX.Element | null {
     'admin'
   ];
   
-  if (auth?.result?.role && blockedRoles.includes(auth.result.role)) {
-    // Redirect to their respective dashboard
-    if (auth.result.role === 'admin') {
-      return <Navigate to="/user/admin" replace />;
-    } else if (auth.result.role === 'delivery_agency') {
-      return <Navigate to="/user/delivery-agency" replace />;
-    } else if (auth.result.role === 'delivery_person') {
-      // Check if it's a return deliverer
-      if (auth.result.delivererType === 'customer_return') {
-        return <Navigate to="/user/return-deliverer" replace />;
+  // Always call hooks at the top level
+  useEffect(() => {
+    if (auth?.result?.role && blockedRoles.includes(auth.result.role)) {
+      // Redirect to their respective dashboard
+      if (auth.result.role === 'admin') {
+        router.replace('/user/admin');
+      } else if (auth.result.role === 'delivery_agency') {
+        router.replace('/user/delivery-agency');
+      } else if (auth.result.role === 'delivery_person') {
+        // Check if it's a return deliverer
+        if (auth.result.delivererType === 'customer_return') {
+          router.replace('/user/return-deliverer');
+        } else {
+          router.replace('/user/delivery-person');
+        }
+      } else if (auth.result.role === 'warehouse_operator') {
+        router.replace('/user/warehouse-operator');
+      } else if (auth.result.role === 'finance') {
+        router.replace('/user/finance');
+      } else if (auth.result.role === 'support' || auth.result.role === 'support_user') {
+        router.replace('/user/support');
+      } else if (auth.result.role === 'verification_team') {
+        router.replace('/user/verification');
+      } else if (auth.result.role === 'return_inspector') {
+        router.replace('/user/inspector');
+      } else if (auth.result.role === 'return_deliverer') {
+        router.replace('/user/return-deliverer');
       }
-      return <Navigate to="/user/delivery-person" replace />;
-    } else if (auth.result.role === 'warehouse_operator') {
-      return <Navigate to="/user/warehouse-operator" replace />;
-    } else if (auth.result.role === 'finance') {
-      return <Navigate to="/user/finance" replace />;
-    } else if (auth.result.role === 'support' || auth.result.role === 'support_user') {
-      return <Navigate to="/user/support" replace />;
-    } else if (auth.result.role === 'verification_team') {
-      return <Navigate to="/user/verification" replace />;
-    } else if (auth.result.role === 'return_inspector') {
-      return <Navigate to="/user/inspector" replace />;
-    } else if (auth.result.role === 'return_deliverer') {
-      return <Navigate to="/user/return-deliverer" replace />;
     }
+  }, [auth?.result?.role, auth?.result?.delivererType, router, blockedRoles]);
+  
+  // Allow unauthenticated users (public access)
+  if (auth?.tokenStatus !== 'valid') {
+    return children;
+  }
+
+  // If user has blocked role, don't render children (redirect will happen)
+  if (auth?.result?.role && blockedRoles.includes(auth.result.role)) {
+    return null;
   }
 
   // Allow buyers, sellers, and unauthenticated users

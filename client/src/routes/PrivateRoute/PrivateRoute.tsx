@@ -1,28 +1,30 @@
-import { pageRoutes } from 'data/static/pageRoutes';
-import { useAuth } from 'hooks';
-import { PrivateLayout } from 'layouts';
-import { JSXElementConstructor, ReactElement } from 'react';
-import { Navigate, Outlet, useLocation } from 'react-router';
+'use client';
 
-interface Iprops {
-  children?: ReactElement<any, string | JSXElementConstructor<any>> | undefined;
+import { useAuth } from '@/hooks';
+import { PrivateLayout } from '@/layouts';
+import { useRouter } from 'next/navigation';
+import { useEffect, ReactNode } from 'react';
+
+interface Props {
+  children: ReactNode;
   redirect?: string;
 }
 
-function PrivateRoute({ children, redirect = `/${pageRoutes.login}` }: Iprops) {
-  let auth = useAuth();
-  let location = useLocation();
+function PrivateRoute({ children, redirect = '/login' }: Props) {
+  const auth = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (auth?.tokenStatus === 'not set') {
+      router.push(redirect);
+    }
+  }, [auth?.tokenStatus, router, redirect]);
 
   if (auth?.tokenStatus === 'not set') {
-    // Redirect them to the /login page, but save the current location they were
-    // trying to go to when they were redirected. This allows us to send them
-    // along to that page after they login, which is a nicer user experience
-    // than dropping them off on the home page.
-
-    return <Navigate to={redirect} state={{ from: location }} replace />;
+    return null; // Or a loading spinner
   }
 
-  return <PrivateLayout>{children ? children : <Outlet />}</PrivateLayout>;
+  return <PrivateLayout>{children}</PrivateLayout>;
 }
 
 export { PrivateRoute };

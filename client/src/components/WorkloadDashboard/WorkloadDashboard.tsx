@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, List, Tag, Button, message, Empty, Spin, Typography, Space, Table, Badge } from 'antd';
 import { CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
-import { getWorkloadDashboardApi } from 'services/endPoints/user/userListEndpoints';
+import { getWorkloadDashboardApi } from '@/services/endPoints/user/userListEndpoints';
 import { MESSAGES } from '../../constants';
 import './WorkloadDashboard.scss';
 

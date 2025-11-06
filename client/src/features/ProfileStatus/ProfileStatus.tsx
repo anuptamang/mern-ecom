@@ -1,9 +1,11 @@
+'use client';
+
 import { Card, Progress, theme } from 'antd';
-import { ContentSkeleton } from 'components';
-import { pageRoutes } from 'data/static/pageRoutes';
-import { Link } from 'react-router-dom';
-import { useAppSelector } from 'redux/store';
-import { authSelector } from 'redux/slice';
+import { ContentSkeleton } from '@/components';
+import { pageRoutes } from '@/data/static/pageRoutes';
+import Link from 'next/link';
+import { useAppSelector } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
 
 export const ProfileStatus = () => {
   const { result } = useAppSelector(authSelector);
@@ -34,7 +36,7 @@ export const ProfileStatus = () => {
           }}
         />
         <div className="text-center">
-          <Link className="underline" to={`/${pageRoutes.userProfile}#update`}>
+          <Link className="underline" href={`/${pageRoutes.userProfile}#update`}>
             Complete Now
           </Link>
         </div>

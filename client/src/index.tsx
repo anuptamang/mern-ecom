@@ -3,12 +3,12 @@ import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
 import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
-import store from 'redux/store';
-import { debounce, saveState } from 'utils';
+import store from '@/redux/store';
+import { debounce, saveState } from '@/utils';
 import reportWebVitals from './reportWebVitals';
 
 import './index.css';
-import { ThemeProvider } from 'components';
+import { ThemeProvider } from '@/components'
 
 import 'antd/dist/reset.css';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';

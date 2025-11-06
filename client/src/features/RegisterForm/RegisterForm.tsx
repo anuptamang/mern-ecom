@@ -1,8 +1,10 @@
+'use client';
+
 import { Button, Checkbox, Form, Input, Select } from 'antd';
-import { Link } from 'react-router-dom';
-import { register } from 'redux/action/auth/authAction';
-import { authSelector } from 'redux/slice';
-import { useAppDispatch, useAppSelector } from 'redux/store';
+import Link from 'next/link';
+import { register } from '@/redux/action/auth/authAction';
+import { authSelector } from '@/redux/slice';
+import { useAppDispatch, useAppSelector } from '@/redux/store';
 
 const { Option } = Select;
 
@@ -168,7 +170,7 @@ const RegisterForm = () => {
           {...tailFormItemLayout}
         >
           <Checkbox>
-            I have read the <Link to={'/'}>agreement</Link>
+            I have read the <Link href={'/'}>agreement</Link>
           </Checkbox>
         </Form.Item>
 

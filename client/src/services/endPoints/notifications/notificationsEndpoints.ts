@@ -1,6 +1,6 @@
 import axios from "axios";
-import { BACKEND_API } from "configs/api";
-import { getToken } from "utils/localStorage";
+import { BACKEND_API } from "@/configs/api";
+import { getToken } from "@/utils/localStorage";
 
 const NOTIFICATIONS_API = `${BACKEND_API}/notifications`;
 

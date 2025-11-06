@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { ICartSlice } from 'types/store/carts/cartSliceTypes';
-import { addCartItemApi, clearCartApi, getMyCartApi, removeCartItemApi, updateCartItemApi } from 'services/endPoints/carts/cartsEndpoints';
-import { getToken } from 'utils/localStorage';
+import { ICartSlice } from '@/types/store/carts/cartSliceTypes';
+import { addCartItemApi, clearCartApi, getMyCartApi, removeCartItemApi, updateCartItemApi } from '@/services/endPoints/carts/cartsEndpoints';
+import { getToken } from '@/utils/localStorage';
 
 export const fetchMyCart = createAsyncThunk('carts/fetchMyCart', async () => {
   const token = getToken();

@@ -1,0 +1,189 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e5]:
+    - link "shopping My Shop" [ref=e8] [cursor=pointer]:
+      - /url: /
+      - img "shopping" [ref=e10]:
+        - img [ref=e11]
+      - generic [ref=e13]: My Shop
+    - generic [ref=e15]:
+      - menu [ref=e17]:
+        - menuitem "Home" [ref=e18]:
+          - generic [ref=e19]: Home
+        - menuitem "Products" [ref=e20]:
+          - generic [ref=e21]: Products
+        - menuitem "About" [ref=e22]:
+          - generic [ref=e23]: About
+        - menuitem "Contact" [ref=e24]:
+          - generic [ref=e25]: Contact
+        - menuitem "Docs" [ref=e26]:
+          - generic [ref=e27]: Docs
+        - listitem
+      - list [ref=e28]:
+        - listitem [ref=e29]:
+          - button "Login" [ref=e30]
+  - main [ref=e32]:
+    - generic [ref=e36]:
+      - generic [ref=e42]:
+        - img "user" [ref=e44]:
+          - img [ref=e45]
+        - textbox "Email" [ref=e47]
+      - generic [ref=e53]:
+        - img "lock" [ref=e55]:
+          - img [ref=e56]
+        - textbox "Password" [ref=e58]
+      - generic [ref=e63]:
+        - generic [ref=e64]:
+          - checkbox "Remember me" [checked] [ref=e66]
+          - text: Remember me
+        - link "Forgot Password!" [ref=e67] [cursor=pointer]:
+          - /url: /forgot-password
+      - generic [ref=e72]:
+        - button "Login" [ref=e73]
+        - text: Or
+        - link "Register Now!" [ref=e74] [cursor=pointer]:
+          - /url: /register
+  - generic [ref=e76]:
+    - generic [ref=e77]:
+      - generic [ref=e78]:
+        - heading "Customer Care" [level=3] [ref=e79]
+        - list [ref=e80]:
+          - listitem [ref=e81]:
+            - link "question-circle Help Center" [ref=e82] [cursor=pointer]:
+              - /url: /contact
+              - img "question-circle" [ref=e83]:
+                - img [ref=e84]
+              - text: Help Center
+          - listitem [ref=e87]:
+            - link "message Contact Us" [ref=e88] [cursor=pointer]:
+              - /url: /contact
+              - img "message" [ref=e89]:
+                - img [ref=e90]
+              - text: Contact Us
+          - listitem [ref=e92]:
+            - link "Returns & Refunds" [ref=e93] [cursor=pointer]:
+              - /url: /user/returns
+          - listitem [ref=e94]:
+            - link "FAQ" [ref=e95] [cursor=pointer]:
+              - /url: /faq
+          - listitem [ref=e96]:
+            - link "phone +1 (234) 567-890" [ref=e97] [cursor=pointer]:
+              - /url: tel:+1 (234) 567-890
+              - img "phone" [ref=e98]:
+                - img [ref=e99]
+              - text: +1 (234) 567-890
+          - listitem [ref=e101]:
+            - link "mail support@myshop.com" [ref=e102] [cursor=pointer]:
+              - /url: mailto:support@myshop.com
+              - img "mail" [ref=e103]:
+                - img [ref=e104]
+              - text: support@myshop.com
+      - generic [ref=e106]:
+        - heading "Information" [level=3] [ref=e107]
+        - list [ref=e108]:
+          - listitem [ref=e109]:
+            - link "About Us" [ref=e110] [cursor=pointer]:
+              - /url: /about
+          - listitem [ref=e111]:
+            - link "Privacy Policy" [ref=e112] [cursor=pointer]:
+              - /url: /privacy-policy
+          - listitem [ref=e113]:
+            - link "Terms & Conditions" [ref=e114] [cursor=pointer]:
+              - /url: /terms
+          - listitem [ref=e115]:
+            - link "Shipping Policy" [ref=e116] [cursor=pointer]:
+              - /url: /shipping
+          - listitem [ref=e117]:
+            - link "Cancellation Policy" [ref=e118] [cursor=pointer]:
+              - /url: /cancellation
+          - listitem [ref=e119]:
+            - link "Careers" [ref=e120] [cursor=pointer]:
+              - /url: /careers
+      - generic [ref=e121]:
+        - heading "Mobile App" [level=3] [ref=e122]
+        - generic [ref=e123]:
+          - paragraph [ref=e124]: Download our app for the best shopping experience
+          - generic [ref=e125]:
+            - link "apple App Store" [ref=e126] [cursor=pointer]:
+              - /url: "#"
+              - img "apple" [ref=e127]:
+                - img [ref=e128]
+              - text: App Store
+            - link "android Google Play" [ref=e130] [cursor=pointer]:
+              - /url: "#"
+              - img "android" [ref=e131]:
+                - img [ref=e132]
+              - text: Google Play
+      - generic [ref=e134]:
+        - heading "Follow Us" [level=3] [ref=e135]
+        - generic [ref=e136]:
+          - paragraph [ref=e137]: Connect with us on social media
+          - generic [ref=e138]:
+            - link "Facebook" [ref=e139] [cursor=pointer]:
+              - /url: "#"
+              - img "facebook" [ref=e140]:
+                - img [ref=e141]
+            - link "Twitter" [ref=e143] [cursor=pointer]:
+              - /url: "#"
+              - img "twitter" [ref=e144]:
+                - img [ref=e145]
+            - link "Instagram" [ref=e147] [cursor=pointer]:
+              - /url: "#"
+              - img "instagram" [ref=e148]:
+                - img [ref=e149]
+            - link "LinkedIn" [ref=e151] [cursor=pointer]:
+              - /url: "#"
+              - img "linkedin" [ref=e152]:
+                - img [ref=e153]
+            - link "YouTube" [ref=e155] [cursor=pointer]:
+              - /url: "#"
+              - img "youtube" [ref=e156]:
+                - img [ref=e157]
+    - separator
+    - generic [ref=e159]:
+      - generic [ref=e161]:
+        - heading "credit-card We Accept" [level=4] [ref=e162]:
+          - img "credit-card" [ref=e163]:
+            - img [ref=e164]
+          - text: We Accept
+        - generic [ref=e166]:
+          - generic [ref=e167]: Visa
+          - generic [ref=e168]: Mastercard
+          - generic [ref=e169]: American Express
+          - generic [ref=e170]: PayPal
+          - generic [ref=e171]: Stripe
+          - generic [ref=e172]: Apple Pay
+          - generic [ref=e173]: Google Pay
+      - generic [ref=e175]:
+        - heading "safety Verified By" [level=4] [ref=e176]:
+          - img "safety" [ref=e177]:
+            - img [ref=e178]
+          - text: Verified By
+        - generic [ref=e181]:
+          - generic [ref=e182]:
+            - img "global" [ref=e183]:
+              - img [ref=e184]
+            - text: SSL Secured
+          - generic [ref=e186]:
+            - img "safety" [ref=e187]:
+              - img [ref=e188]
+            - text: Trusted Site
+          - generic [ref=e191]: GDPR Compliant
+    - separator
+    - generic [ref=e192]:
+      - paragraph [ref=e195]:
+        - text: © 2025
+        - strong [ref=e196]: My Shop
+        - text: . All rights reserved.
+      - generic [ref=e198]:
+        - link "Privacy Policy" [ref=e199] [cursor=pointer]:
+          - /url: /privacy-policy
+        - generic [ref=e200]: "|"
+        - link "Terms of Service" [ref=e201] [cursor=pointer]:
+          - /url: /terms
+        - generic [ref=e202]: "|"
+        - link "Cookie Policy" [ref=e203] [cursor=pointer]:
+          - /url: /cookie
+```

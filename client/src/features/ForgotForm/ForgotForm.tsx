@@ -1,12 +1,14 @@
+'use client';
+
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Form, Input } from 'antd';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { changePassword, validateUser } from 'redux/action/auth';
-import { authSelector } from 'redux/slice';
-import { useAppDispatch, useAppSelector } from 'redux/store';
-import { ILogin } from 'types';
-import { notify } from 'utils';
+import { useRouter } from 'next/navigation';
+import { changePassword, validateUser } from '@/redux/action/auth';
+import { authSelector } from '@/redux/slice';
+import { useAppDispatch, useAppSelector } from '@/redux/store';
+import { ILogin } from '@/types';
+import { notify } from '@/utils';
 
 /**
  * This is the forgot password form, which takes email as an input and sends a submit request to the server.
@@ -19,7 +21,7 @@ const ForgotForm = () => {
   // const [loading, setLoading] = useState(false);
   const dispatch = useAppDispatch();
   const { result, status } = useAppSelector(authSelector);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const onFinish = async (values: ILogin) => {
     if (result?.email) {
@@ -27,7 +29,7 @@ const ForgotForm = () => {
         changePassword({ email: result?.email, password: values.password })
       );
       await console.log('password changed!');
-      await navigate('/login');
+      await router.push('/login');
     } else {
       dispatch(validateUser({ email: values.email }));
     }

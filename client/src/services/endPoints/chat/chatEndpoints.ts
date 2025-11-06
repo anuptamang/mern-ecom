@@ -1,6 +1,6 @@
 import axios from "axios";
-import { BACKEND_API } from "configs/api";
-import { getToken } from "utils/localStorage";
+import { BACKEND_API } from "@/configs/api";
+import { getToken } from "@/utils/localStorage";
 
 export const CHAT_API = `${BACKEND_API}/chat`;
 

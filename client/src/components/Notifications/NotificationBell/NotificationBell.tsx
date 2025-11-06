@@ -1,19 +1,21 @@
+'use client';
+
 import { BellOutlined } from "@ant-design/icons";
 import { Badge, Button } from "antd";
-import { useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "redux/store";
+import { useRouter } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   fetchNotifications,
   fetchUnreadCount,
-} from "redux/slice/notifications/notificationsSlice";
+} from "@/redux/slice/notifications/notificationsSlice";
 import { useEffect, useRef, useState } from "react";
 import { NotificationDropdown } from "../NotificationDropdown/NotificationDropdown";
-import { useTheme } from "hooks/useTheme";
+import { useTheme } from "@/hooks/useTheme";
 import "./NotificationBell.scss";
 
 export const NotificationBell = () => {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
+  const router = useRouter();
   const { colorScheme } = useTheme();
   const { unreadCount, notifications } = useAppSelector(
     (state) => state.notifications
@@ -50,78 +52,60 @@ export const NotificationBell = () => {
     }
   };
 
-  const handleClickOutside = (event: MouseEvent) => {
-    if (
-      dropdownRef.current &&
-      !dropdownRef.current.contains(event.target as Node)
-    ) {
-      setDropdownVisible(false);
-    }
-  };
-
+  // Close dropdown when clicking outside
   useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownVisible(false);
+      }
+    };
+
     if (dropdownVisible) {
       document.addEventListener("mousedown", handleClickOutside);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-      };
     }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, [dropdownVisible]);
 
+  const handleNotificationClick = (notification: any) => {
+    // Navigate based on notification type
+    if (notification.type === "return" && notification.returnId) {
+      router.push(`/user/returns?returnId=${notification.returnId}`);
+    } else if (notification.type === "order" && notification.orderId) {
+      router.push(`/user/orders?orderId=${notification.orderId}`);
+    } else if (notification.type === "delivery" && notification.deliveryId) {
+      router.push(`/user/delivery-person?deliveryId=${notification.deliveryId}`);
+    }
+    setDropdownVisible(false);
+  };
+
   if (!result?._id) {
-    return null; // Don't show notifications for unauthenticated users
+    return null;
   }
 
   return (
-    <div className="notification-bell-wrapper" ref={dropdownRef}>
-      <Badge 
-        count={unreadCount} 
-        size="small" 
-        offset={[-5, 5]}
-        color={colorScheme.primary || '#0071e3'}
-      >
-          <Button
-            type="text"
-            icon={<BellOutlined style={{ 
-              fontSize: 20,
-              color: 'var(--theme-header-text, #1d1d1f)',
-              transition: 'color 0.3s ease'
-            }} />}
-            onClick={handleBellClick}
-            className="notification-bell-button"
-          />
+    <div ref={dropdownRef} style={{ position: "relative" }}>
+      <Badge count={unreadCount} size="small">
+        <Button
+          type="text"
+          icon={<BellOutlined />}
+          onClick={handleBellClick}
+          style={{
+            color: "var(--theme-header-text, #1d1d1f)",
+            fontSize: "24px",
+          }}
+        />
       </Badge>
       {dropdownVisible && (
         <NotificationDropdown
+          notifications={notifications}
+          onNotificationClick={handleNotificationClick}
           onClose={() => setDropdownVisible(false)}
-          onNavigate={(url) => {
-            setDropdownVisible(false);
-            
-            // Split URL, query params, and hash
-            const [pathAndQuery, hash] = url.split('#');
-            const [path, query] = pathAndQuery.split('?');
-            
-            // Build final URL preserving query params and hash
-            let finalUrl = path;
-            if (query) {
-              finalUrl += `?${query}`;
-            }
-            if (hash) {
-              finalUrl += `#${hash}`;
-            }
-            
-            // Navigate to the final URL
-            navigate(finalUrl);
-            
-            // Also set hash directly after navigation (React Router may not preserve it)
-            if (hash) {
-              setTimeout(() => {
-                window.location.hash = hash;
-                // Trigger a hashchange event
-                window.dispatchEvent(new HashChangeEvent('hashchange'));
-              }, 100);
-            }
-          }}
         />
       )}
     </div>

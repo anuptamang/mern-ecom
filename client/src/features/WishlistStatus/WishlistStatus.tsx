@@ -1,11 +1,13 @@
+'use client';
+
 import { Card, Statistic } from 'antd';
-import { ContentSkeleton } from 'components';
-import { pageRoutes } from 'data/static/pageRoutes';
-import { Link } from 'react-router-dom';
+import { ContentSkeleton } from '@/components';
+import { pageRoutes } from '@/data/static/pageRoutes';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useAppSelector } from 'redux/store';
-import { authSelector } from 'redux/slice';
-import { getMyWishlistApi } from 'services/endPoints/wishlist';
+import { useAppSelector } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
+import { getMyWishlistApi } from '@/services/endPoints/wishlist';
 
 export const WishlistStatus = () => {
   const [loading, setLoading] = useState(true);
@@ -39,11 +41,10 @@ export const WishlistStatus = () => {
       <ContentSkeleton loading={loading} />
       <Statistic title="Items in Wishlist" value={count} />
       <div className="text-center">
-        <Link className="underline" to={`/${pageRoutes.user}/wishlist`}>
+        <Link className="underline" href={`/${pageRoutes.user}/wishlist`}>
           View Wishlist
         </Link>
       </div>
     </Card>
   );
 };
-

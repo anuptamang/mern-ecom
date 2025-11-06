@@ -1,6 +1,9 @@
-import { useAuth } from 'hooks';
-import { Navigate } from 'react-router-dom';
-import { pageRoutes } from 'data/static/pageRoutes';
+'use client';
+
+import { useAuth } from '@/hooks';
+import { useRouter, usePathname } from 'next/navigation';
+import { pageRoutes } from '@/data/static/pageRoutes';
+import { useEffect } from 'react';
 
 interface IProps {
   children: JSX.Element;
@@ -11,13 +14,23 @@ interface IProps {
  */
 function AdminRoute({ children }: IProps): JSX.Element | null {
   const auth = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
   
-  if (auth?.tokenStatus !== 'valid') {
-    return <Navigate to={`/${pageRoutes.login}`} replace />;
-  }
+  useEffect(() => {
+    if (auth?.tokenStatus !== 'valid') {
+      router.replace(`/${pageRoutes.login}?from=${pathname}`);
+      return;
+    }
 
-  if (auth?.result?.role !== 'admin') {
-    return <Navigate to="/user/dashboard" replace />;
+    if (auth?.result?.role !== 'admin') {
+      router.replace('/user/dashboard');
+      return;
+    }
+  }, [auth?.tokenStatus, auth?.result?.role, router, pathname]);
+
+  if (auth?.tokenStatus !== 'valid' || auth?.result?.role !== 'admin') {
+    return null;
   }
 
   return children;

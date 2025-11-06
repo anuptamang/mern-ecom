@@ -1,5 +1,5 @@
 import { ThemeConfig } from "antd";
-import { getColorScheme } from "configs/theme/colorScheme";
+import { getColorScheme } from "@/configs/theme/colorScheme";
 
 /**
  * Ant Design Theme Configuration

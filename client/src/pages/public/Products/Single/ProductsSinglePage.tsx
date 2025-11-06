@@ -1,18 +1,20 @@
+'use client';
+
 import { Button, Card, Spin, message, Rate, Divider, Tag, Avatar } from 'antd';
 import { UserOutlined, MailOutlined } from '@ant-design/icons';
-import { Container } from 'components/UI';
-import { usePageTitle } from 'hooks/usePageTitle';
+import { Container } from '@/components/UI';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { ReactNode, useEffect, useState } from 'react';
-import styles from 'assets/styles/Common.module.scss';
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { pageRoutes } from 'data/static/pageRoutes';
-import { useAppDispatch, useAppSelector } from 'redux/store';
-import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
-import { authSelector } from 'redux/slice';
+import styles from '@/assets/styles/Common.module.scss';
+import { useRouter, usePathname } from 'next/navigation';
+import { pageRoutes } from '@/data/static/pageRoutes';
+import { useAppDispatch, useAppSelector } from '@/redux/store';
+import { addToCart, fetchMyCart } from '@/redux/slice/carts/cartsSlice';
+import { authSelector } from '@/redux/slice';
 import {
   fetchProductByIdApi,
   fetchRelatedProductsApi,
-} from 'services/endPoints/products/productsEndpoints';
+} from '@/services/endPoints/products/productsEndpoints';
 import {
   ProductImageGallery,
   ProductRatings,
@@ -21,11 +23,13 @@ import {
   WishlistButton,
   ChatBox,
   AuthModal,
-} from 'components';
+} from '@/components';
 import { EyeOutlined, LikeOutlined, ShoppingCartOutlined, MessageOutlined } from '@ant-design/icons';
 import './ProductsSinglePage.scss';
 
-type Props = {};
+type Props = {
+  productId?: string;
+};
 
 const ProductsSinglePage = (props: Props) => {
   const title: ReactNode = usePageTitle();
@@ -34,7 +38,7 @@ const ProductsSinglePage = (props: Props) => {
     <>
       {title}
       <Container className={styles.pageContainer}>
-        <ProductDetails />
+        <ProductDetails productId={props.productId} />
       </Container>
     </>
   );
@@ -42,10 +46,11 @@ const ProductsSinglePage = (props: Props) => {
 
 export { ProductsSinglePage };
 
-const ProductDetails = () => {
-  const { id } = useParams();
-  const location = useLocation();
-  const navigate = useNavigate();
+const ProductDetails = ({ productId }: { productId?: string }) => {
+  const router = useRouter();
+  const pathname = usePathname();
+  // Extract ID from URL path if not provided as prop
+  const id = productId || pathname.split('/').pop() || '';
   const [product, setProduct] = useState<any>(null);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,10 +70,9 @@ const ProductDetails = () => {
     if (!product || loading) return;
 
     const scrollToHash = () => {
-      // Check both location.hash (React Router) and window.location.hash (browser)
-      const hashFromLocation = location.hash.replace('#', '');
+      // Check window.location.hash (browser)
       const hashFromWindow = window.location.hash.replace('#', '');
-      const hash = hashFromWindow || hashFromLocation;
+      const hash = hashFromWindow;
 
       if (!hash) return;
 
@@ -100,386 +104,248 @@ const ProductDetails = () => {
         }
       };
 
-      // Start trying after a short initial delay to ensure DOM is ready
-      setTimeout(() => tryScroll(), 200);
+      tryScroll();
     };
 
-    scrollToHash();
-  }, [product, loading, location.hash]);
+    // Small delay to ensure DOM is ready
+    setTimeout(scrollToHash, 100);
+  }, [product, loading]);
 
-  // Also listen for hash changes on window
+  // Fetch product data
   useEffect(() => {
-    const handleHashChange = () => {
-      if (!product || loading) return;
-      const hash = window.location.hash.replace('#', '');
-      if (hash) {
-        setTimeout(() => {
-          const element = document.getElementById(hash);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            setTimeout(() => {
-              const rect = element.getBoundingClientRect();
-              const scrollTop =
-                window.pageYOffset || document.documentElement.scrollTop;
-              window.scrollTo({
-                top: scrollTop + rect.top - 80,
-                behavior: 'smooth',
-              });
-            }, 50);
-          }
-        }, 200);
+    const loadProduct = async () => {
+      if (!id) {
+        setError('Product ID is required');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        const { data } = await fetchProductByIdApi(id);
+        setProduct(data);
+      } catch (err: any) {
+        setError(err?.response?.data?.message || 'Failed to load product');
+        message.error(err?.response?.data?.message || 'Failed to load product');
+      } finally {
+        setLoading(false);
       }
     };
 
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [product, loading]);
+    loadProduct();
+  }, [id]);
 
+  // Fetch related products
   useEffect(() => {
-    if (!id) {
-      setError('Product ID is required');
-      setLoading(false);
+    const loadRelatedProducts = async () => {
+      if (!product?._id) return;
+
+      try {
+        setLoadingRelated(true);
+        const { data } = await fetchRelatedProductsApi(product._id);
+        setRelatedProducts(data.products || []);
+      } catch (err: any) {
+        console.error('Failed to load related products:', err);
+      } finally {
+        setLoadingRelated(false);
+      }
+    };
+
+    loadRelatedProducts();
+  }, [product?._id]);
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!product) return;
+
+    if (!result) {
+      setPendingProductId(product._id);
+      setPendingProductTitle(product.title);
+      setAuthModalVisible(true);
       return;
     }
 
-    let isMounted = true;
-    setLoading(true);
-    setError(null);
+    if (product.stock <= 0) {
+      message.warning('Product is out of stock');
+      return;
+    }
 
-    fetchProductByIdApi(id)
-      .then((res) => {
-        if (isMounted) {
-          setProduct(res.data);
-          setLoading(false);
+    try {
+      const quantity = 1;
+      await dispatch(
+        addToCart({
+          productId: product._id,
+          quantity,
+        })
+      ).unwrap();
+      dispatch(fetchMyCart());
+      message.success('Product added to cart');
+    } catch (err: any) {
+      message.error(err?.response?.data?.message || 'Failed to add product to cart');
+    }
+  };
 
-          // Fetch related products
-          setLoadingRelated(true);
-          fetchRelatedProductsApi(id, 4)
-            .then((relatedRes) => {
-              if (isMounted) {
-                setRelatedProducts(relatedRes.data || []);
-              }
-            })
-            .catch(() => {
-              // Silently fail for related products
-            })
-            .finally(() => {
-              if (isMounted) {
-                setLoadingRelated(false);
-              }
-            });
-        }
-      })
-      .catch((err: any) => {
-        if (isMounted) {
-          setError(err?.response?.data?.message || 'Failed to load product');
-          setLoading(false);
-          message.error('Failed to load product details');
-        }
-      });
+  const handleChatClick = () => {
+    if (!result) {
+      setPendingProductId(product?._id || null);
+      setPendingProductTitle(product?.title || '');
+      setAuthModalVisible(true);
+      return;
+    }
+    setShowChat(!showChat);
+  };
 
-    return () => {
-      isMounted = false;
-    };
-  }, [id]);
+  const handleAuthSuccess = () => {
+    setAuthModalVisible(false);
+    if (pendingProductId) {
+      // After successful auth, add to cart or open chat
+      if (showChat) {
+        setShowChat(true);
+      } else {
+        handleAddToCart({} as React.MouseEvent);
+      }
+    }
+  };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <Spin size="large" tip="Loading product details..." />
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" />
       </div>
     );
   }
 
   if (error || !product) {
     return (
-      <Card>
-        <div className="text-center py-8">
-          <p className="text-red-500">{error || 'Product not found'}</p>
-        </div>
-      </Card>
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <p>{error || 'Product not found'}</p>
+        <Button onClick={() => router.push(`/${pageRoutes.products}`)}>
+          Back to Products
+        </Button>
+      </div>
     );
   }
 
   return (
-    <div className="product-detail-page">
-      {/* Top Section: Image Gallery (Left) and Product Info (Right) */}
-      <div className="product-detail-top">
-        <div className="product-image-section">
-          <ProductImageGallery
-            thumbnail={product.thumbnail}
-            images={product.images || []}
-            productTitle={product.title}
-          />
+    <>
+      <div style={{ marginBottom: '24px' }}>
+        <Button onClick={() => router.push(`/${pageRoutes.products}`)}>
+          ← Back to Products
+        </Button>
+      </div>
+
+      <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+        {/* Product Image Gallery */}
+        <div style={{ flex: '1', minWidth: '300px' }}>
+          <ProductImageGallery images={product.images || []} />
         </div>
 
-        <div className="product-info-section">
+        {/* Product Details */}
+        <div style={{ flex: '1', minWidth: '300px' }}>
           <Card>
-            <div className="product-header">
-              <h1 className="product-title">{product.title}</h1>
-              <div className="product-meta">
-                {product.rating > 0 && (
-                  <div className="product-rating">
-                    <Rate disabled value={product.rating} allowHalf />
-                    <span className="rating-value">
-                      ({product.rating.toFixed(1)})
-                    </span>
-                  </div>
-                )}
-                <div className="product-stats">
-                  {product.views > 0 && (
-                    <span className="stat-item">
-                      <EyeOutlined /> {product.views} views
-                    </span>
-                  )}
-                  {product.likes > 0 && (
-                    <span className="stat-item">
-                      <LikeOutlined /> {product.likes} likes
-                    </span>
-                  )}
-                </div>
-              </div>
+            <h1 style={{ fontSize: '28px', marginBottom: '16px' }}>{product.title}</h1>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <ProductRatings productId={product._id} />
             </div>
 
-            <Divider />
-
-            <div className="product-price-section">
-              {product.price && (
-                <div className="product-price">
-                  <span className="currency">$</span>
-                  <span className="amount">{product.price.toFixed(2)}</span>
-                </div>
-              )}
-            </div>
-
-            {product.estimatedDeliveryDays && (
-              <div className="product-delivery-info" style={{ marginTop: 16 }}>
-                <Tag color="blue">
-                  Estimated Delivery: {product.estimatedDeliveryDays} {product.estimatedDeliveryDays === 1 ? 'day' : 'days'}
-                </Tag>
-              </div>
-            )}
-
-            <Divider />
-
-            <div className="product-description">
-              <h3>Description</h3>
-              <p>
-                {product.body?.summary ||
-                  product.body?.full ||
-                  product.description ||
-                  'No description available.'}
-              </p>
-            </div>
-
-            {product.categories && product.categories.length > 0 && (
-              <div className="product-categories">
-                <h3>Categories</h3>
-                <div className="category-tags">
-                  {product.categories.map((cat: string, index: number) => (
-                    <Tag key={index} color="blue">
-                      {cat}
-                    </Tag>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {product.userID && (
-              <>
-                <Divider />
-                <div className="product-seller-info">
-                  <h3>Seller Information</h3>
-                  <div className="seller-details">
-                    <Avatar
-                      src={(product.userID as any)?.profilePhoto}
-                      icon={<UserOutlined />}
-                      size={64}
-                      className="seller-avatar"
-                    />
-                    <div className="seller-info">
-                      <div className="seller-name">
-                        {(product.userID as any)?.fullName || 'Unknown Seller'}
-                      </div>
-                      {(product.userID as any)?.email && (
-                        <div className="seller-email">
-                          <MailOutlined /> {(product.userID as any)?.email}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {!isSeller && isBuyer && (
-                    <div className="seller-chat-button" style={{ marginTop: 16 }}>
-                      <Button
-                        type="primary"
-                        icon={<MessageOutlined />}
-                        onClick={() => setShowChat(true)}
-                        size="large"
-                        block
-                      >
-                        Chat with Seller
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-
-            <Divider />
-
-            <div className="product-stock-info">
-              <h3>Availability</h3>
-              {product.stock !== undefined ? (
-                <div
-                  className={`stock-badge ${
-                    product.stock > 0 ? 'in-stock' : 'out-of-stock'
-                  }`}
+            <div style={{ marginBottom: '16px' }}>
+              <span style={{ fontSize: '32px', fontWeight: 'bold', color: '#0071e3' }}>
+                ${product.price}
+              </span>
+              {product.originalPrice && product.originalPrice > product.price && (
+                <span
+                  style={{
+                    marginLeft: '12px',
+                    fontSize: '18px',
+                    textDecoration: 'line-through',
+                    color: '#999',
+                  }}
                 >
-                  {product.stock > 0 ? (
-                    <span>✓ In Stock ({product.stock} available)</span>
-                  ) : (
-                    <span>✗ Out of Stock</span>
-                  )}
-                </div>
-              ) : (
-                <div className="stock-badge unknown">
-                  <span>Stock information unavailable</span>
-                </div>
+                  ${product.originalPrice}
+                </span>
+              )}
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <Tag color={product.stock > 0 ? 'green' : 'red'}>
+                {product.stock > 0 ? `In Stock (${product.stock})` : 'Out of Stock'}
+              </Tag>
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <p style={{ fontSize: '16px', lineHeight: '1.6' }}>{product.description}</p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+              <Button
+                type="primary"
+                size="large"
+                icon={<ShoppingCartOutlined />}
+                onClick={handleAddToCart}
+                disabled={product.stock <= 0}
+              >
+                Add to Cart
+              </Button>
+              <WishlistButton productId={product._id} />
+              {isBuyer && !isSeller && (
+                <Button
+                  icon={<MessageOutlined />}
+                  onClick={handleChatClick}
+                >
+                  Chat with Seller
+                </Button>
               )}
             </div>
 
             <Divider />
 
-            <div className="product-actions">
-              {!isSeller && result && (
-                <div className="action-buttons">
-                  {(product.stock || 0) <= 0 ? (
-                    <>
-                      <Button
-                        type="default"
-                        size="large"
-                        disabled
-                        className="add-to-cart-btn"
-                      >
-                        Out of Stock
-                      </Button>
-                      <WishlistButton
-                        productId={product._id}
-                        productTitle={product.title}
-                        size="large"
-                      />
-                    </>
-                  ) : (
-                    <Button
-                      type="primary"
-                      size="large"
-                      icon={<ShoppingCartOutlined />}
-                      onClick={() => {
-                        if (!result) {
-                          setPendingProductId(product._id);
-                          setPendingProductTitle(product.title);
-                          setAuthModalVisible(true);
-                          return;
-                        }
-                        dispatch(addToCart({ productId: product._id }))
-                          .unwrap()
-                          .then(() => {
-                            message.success('Product added to cart');
-                            dispatch(fetchMyCart());
-                          })
-                          .catch((error: any) => {
-                            // If error is about needing to log in, open auth modal instead of showing error
-                            const errorMessage = error?.message || error?.payload || String(error);
-                            if (errorMessage.includes('log in') || errorMessage.includes('Please log in')) {
-                              setPendingProductId(product._id);
-                              setPendingProductTitle(product.title);
-                              setAuthModalVisible(true);
-                            } else if (error?.response?.status !== 401) {
-                              message.error(
-                                errorMessage || 'Failed to add product to cart'
-                              );
-                            }
-                          });
-                      }}
-                      className="add-to-cart-btn"
-                    >
-                      Add to Cart
-                    </Button>
-                  )}
-                </div>
-              )}
-              {isSeller && (
-                <div className="seller-notice">
-                  <p className="text-gray-500 italic">
-                    Sellers cannot purchase products
-                  </p>
-                </div>
-              )}
-              {!result && (
-                <div className="login-notice">
-                  <p className="text-gray-500 italic">
-                    Please log in to add items to cart
-                  </p>
-                </div>
-              )}
+            <div>
+              <h3>Product Information</h3>
+              <ul>
+                <li>Category: {product.category}</li>
+                <li>Brand: {product.brand || 'N/A'}</li>
+                <li>SKU: {product.sku || 'N/A'}</li>
+              </ul>
             </div>
           </Card>
         </div>
       </div>
 
-      {/* Bottom Section: Ratings & Reviews */}
-      <div id="product-ratings-section" className="product-detail-bottom">
-        <ProductRatings
-          productId={product._id}
-          productRating={product.rating}
-        />
-      </div>
-
-      {/* Comments Section */}
-      <div id="product-comments-section" className="product-detail-bottom">
+      {/* Product Comments Section */}
+      <div style={{ marginTop: '48px' }} id="comments">
         <ProductComments productId={product._id} />
       </div>
 
-      {/* Related Products Section */}
-      <div className="product-detail-bottom">
-        <RelatedProducts products={relatedProducts} loading={loadingRelated} />
-      </div>
+      {/* Related Products */}
+      {relatedProducts.length > 0 && (
+        <div style={{ marginTop: '48px' }}>
+          <RelatedProducts products={relatedProducts} loading={loadingRelated} />
+        </div>
+      )}
 
       {/* Chat Box */}
-      {showChat && (
+      {showChat && product && (
         <ChatBox
           productId={product._id}
-          productTitle={product.title}
-          productThumbnail={product.thumbnail}
-          productPrice={product.price}
-          productSlug={product.slug || product._id}
-          sellerId={(product.userID as any)?._id || (product.userID as any)}
+          sellerId={product.seller?._id}
           onClose={() => setShowChat(false)}
         />
       )}
 
       {/* Auth Modal */}
       <AuthModal
-        open={authModalVisible}
+        visible={authModalVisible}
         onClose={() => {
           setAuthModalVisible(false);
           setPendingProductId(null);
           setPendingProductTitle('');
         }}
-        onSuccess={async () => {
-          if (pendingProductId) {
-            try {
-              await dispatch(addToCart({ productId: pendingProductId })).unwrap();
-              message.success(`${pendingProductTitle || 'Product'} added to cart`);
-              dispatch(fetchMyCart());
-              setPendingProductId(null);
-              setPendingProductTitle('');
-            } catch (error: any) {
-              message.error(error?.message || 'Failed to add product to cart');
-            }
-          }
-        }}
+        onSuccess={handleAuthSuccess}
+        productId={pendingProductId}
+        productTitle={pendingProductTitle}
       />
-    </div>
+    </>
   );
 };

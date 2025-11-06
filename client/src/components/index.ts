@@ -1,11 +1,13 @@
-export * from './App';
+// App component is not needed in Next.js (replaced by app/layout.tsx)
+// export * from './App';
 export * from './DashboardSummary';
 export * from './Footer';
 export * from './Header';
 export * from './Logo';
 export * from './Nav';
 export * from './Notifications';
-export * from './ProductForm';
+// ProductForm is client-only and should be dynamically imported when needed
+// export * from './ProductForm';
 export * from './ProductImageGallery';
 export * from './ProductImage';
 export * from './ThemeManagement';

@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ConfigProvider } from 'antd';
-import { useTheme } from 'hooks/useTheme';
+import { useTheme } from '@/hooks/useTheme';
 
 interface ThemeProviderProps {
   children: React.ReactNode;
@@ -149,7 +149,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       injectCSSVariables(updatedScheme);
       
       // Get updated theme when color scheme changes
-      import('assets/styles/antd/theme').then(({ getTheme }) => {
+      import('@/assets/styles/antd/theme').then(({ getTheme }) => {
         const updatedTheme = getTheme();
         setCurrentTheme(updatedTheme);
       });

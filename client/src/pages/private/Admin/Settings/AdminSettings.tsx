@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Tabs, Typography, Space } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';
-import { BannerManagement, ThemeManagement } from 'components';
+import { BannerManagement, ThemeManagement } from '@/components'
 import './AdminSettings.scss';
 
 const { Title, Text } = Typography;

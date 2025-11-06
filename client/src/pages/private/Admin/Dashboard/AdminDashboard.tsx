@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Card, List, Button, message, Empty, Spin, Typography, Space, Modal, Form, Input, Select, Tabs, Tag } from 'antd';
 import { UserAddOutlined, TeamOutlined, EyeOutlined, DeleteOutlined, LockOutlined } from '@ant-design/icons';
-import { useAuth } from 'hooks';
-import { getUsersApi, createUserApi, resetPasswordAdminApi } from 'services/endPoints/user/userListEndpoints';
-import { WorkloadDashboard } from 'components';
+import { useAuth } from '@/hooks';
+import { getUsersApi, createUserApi, resetPasswordAdminApi } from '@/services/endPoints/user/userListEndpoints';
+import { WorkloadDashboard } from '@/components'
 import './AdminDashboard.scss';
 
 const { Text, Title } = Typography;

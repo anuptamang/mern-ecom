@@ -1,15 +1,17 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { Card, List, Tag, Button, message, Empty, Spin, Typography, Space, Modal, Input, Upload } from 'antd';
 import { CarOutlined, CheckCircleOutlined, EyeOutlined, UploadOutlined } from '@ant-design/icons';
-import { useAuth } from 'hooks';
-import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/hooks';
+import { useSearchParams } from 'next/navigation';
 import {
   getReturnRequestApi,
   markReturnPickedUpApi,
   getReturnDelivererReturnsApi,
-} from 'services/endPoints/return';
-import { submitToSupportApi, markReturnDeliveredApi } from 'services/endPoints/return/returnWorkflowEndpoints';
-import { getToken } from 'utils/localStorage';
+} from '@/services/endPoints/return';
+import { submitToSupportApi, markReturnDeliveredApi } from '@/services/endPoints/return/returnWorkflowEndpoints';
+import { getToken } from '@/utils/localStorage';
 import type { UploadFile } from 'antd';
 import './ReturnDelivererDashboard.scss';
 
@@ -42,7 +44,7 @@ interface IReturn {
 
 const ReturnDelivererDashboard = () => {
   const auth = useAuth();
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const [returns, setReturns] = useState<IReturn[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReturn, setSelectedReturn] = useState<IReturn | null>(null);

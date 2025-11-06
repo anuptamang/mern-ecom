@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import {
   Layout,
@@ -24,7 +26,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeRaw from 'rehype-raw';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   getDocsListApi,
   getDocApi,
@@ -33,8 +35,8 @@ import {
   IDocContent,
   ISearchResult,
   IDocsListResponse,
-} from 'services/endPoints/docs/docsEndpoints';
-import { useTheme } from 'hooks/useTheme';
+} from '@/services/endPoints/docs/docsEndpoints';
+import { useTheme } from '@/hooks/useTheme';
 import mermaid from 'mermaid';
 import 'highlight.js/styles/github.css';
 import './DocumentationPage.scss';
@@ -44,8 +46,8 @@ const { Text, Title } = Typography;
 const { Search } = Input;
 
 const DocumentationPage: React.FC = () => {
-  const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { colorScheme } = useTheme();
   const [docs, setDocs] = useState<IDocFile[]>([]);
   const [hierarchy, setHierarchy] = useState<IDocFile[]>([]);
@@ -460,7 +462,11 @@ const DocumentationPage: React.FC = () => {
       // Update URL without reload - use the actual slug from the doc
       // This ensures nested README files use their full path slug (e.g., "diagrams-readme" not just "readme")
       const slug = doc.slug || doc.filename.replace(/\.md$/, '').replace(/\//g, '-').toLowerCase();
-      setSearchParams({ doc: slug });
+      
+      // Update URL using Next.js router
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('doc', slug);
+      router.push(`/documentation?${params.toString()}`);
     } catch (error: any) {
       message.error(
         error?.response?.data?.message || 'Failed to load documentation'
@@ -670,7 +676,7 @@ const DocumentationPage: React.FC = () => {
                 href="/"
                 onClick={(e) => {
                   e.preventDefault();
-                  navigate('/');
+                  router.push('/');
                 }}
                 style={{
                   cursor: 'pointer',

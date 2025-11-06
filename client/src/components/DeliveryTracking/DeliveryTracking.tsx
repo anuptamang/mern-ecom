@@ -8,12 +8,12 @@ import {
   CloseCircleOutlined,
   EditOutlined,
 } from '@ant-design/icons';
-import { IDeliveryTracking } from 'types/delivery/deliveryTypes';
-import { updateDeliveryStatusApi } from 'services/endPoints/delivery';
-import { getAgencyPersonsApi } from 'services/endPoints/delivery/deliveryAssignmentEndpoints';
-import { getToken } from 'utils/localStorage';
-import { useAppSelector } from 'redux/store';
-import { authSelector } from 'redux/slice';
+import { IDeliveryTracking } from '@/types/delivery/deliveryTypes';
+import { updateDeliveryStatusApi } from '@/services/endPoints/delivery';
+import { getAgencyPersonsApi } from '@/services/endPoints/delivery/deliveryAssignmentEndpoints';
+import { getToken } from '@/utils/localStorage';
+import { useAppSelector } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
 import { MESSAGES } from '../../constants';
 
 const { Text } = Typography;
@@ -200,7 +200,7 @@ export const DeliveryTracking = ({ delivery, order, isSeller = false, onStatusUp
       
       // Reload tracking data from API to get the latest status
       try {
-        const { getDeliveryTrackingApi } = await import('services/endPoints/delivery');
+        const { getDeliveryTrackingApi } = await import('@/services/endPoints/delivery');
         const { data } = await getDeliveryTrackingApi(order._id);
         if (data.deliveries) {
           const updatedDelivery = data.deliveries.find(

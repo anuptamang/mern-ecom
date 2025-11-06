@@ -9,14 +9,14 @@ import {
   InfoCircleOutlined,
 } from "@ant-design/icons";
 import { List, Button, Empty, Spin, Space, Divider, Typography } from "antd";
-import { useAppDispatch, useAppSelector } from "redux/store";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
   deleteNotification,
   fetchNotifications,
-} from "redux/slice/notifications/notificationsSlice";
-import { INotification } from "types/store/notifications/notificationTypes";
+} from "@/redux/slice/notifications/notificationsSlice";
+import { INotification } from "@/types/store/notifications/notificationTypes";
 import moment from "moment";
 import "./NotificationDropdown.scss";
 

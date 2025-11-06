@@ -1,4 +1,4 @@
-import { TError } from "redux/action/auth";
+import { TError } from "@/redux/action/auth";
 
 export interface IStatus {
   loading: boolean;

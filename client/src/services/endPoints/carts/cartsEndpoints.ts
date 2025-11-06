@@ -1,5 +1,5 @@
 import axios from "axios";
-import { CARTS_API } from "services/servicesConstants";
+import { CARTS_API } from "@/services/servicesConstants";
 
 export const getMyCartApi = async (token: string) => {
   return axios.get(`${CARTS_API}/me`, { headers: { Authorization: `Bearer ${token}` } });

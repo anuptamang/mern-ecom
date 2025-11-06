@@ -1,16 +1,19 @@
+'use client';
+
 import { Button, Card, List, Image, message } from 'antd';
-import { Container } from 'components/UI';
-import { usePageTitle } from 'hooks/usePageTitle';
-import styles from 'assets/styles/Common.module.scss';
+import { Container } from '@/components/UI';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import styles from '@/assets/styles/Common.module.scss';
 import { useEffect, useState } from 'react';
-import { useAppDispatch, useAppSelector } from 'redux/store';
-import { fetchProducts } from 'redux/action/products';
-import { Link, useNavigate } from 'react-router-dom';
-import { pageRoutes } from 'data/static/pageRoutes';
-import { ProductImage } from 'components/ProductImage';
-import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
-import { authSelector } from 'redux/slice';
-import { AuthModal } from 'components/AuthModal';
+import { useAppDispatch, useAppSelector } from '@/redux/store';
+import { fetchProducts } from '@/redux/action/products';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { pageRoutes } from '@/data/static/pageRoutes';
+import { ProductImage } from '@/components/ProductImage';
+import { addToCart, fetchMyCart } from '@/redux/slice/carts/cartsSlice';
+import { authSelector } from '@/redux/slice';
+import { AuthModal } from '@/components/AuthModal';
 import './ProductsHome.scss';
 
 type TProps = {};
@@ -33,7 +36,7 @@ export { ProductsHome };
 
 const ProductsList = () => {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
+  const router = useRouter();
   const { productList } = useAppSelector((s) => s.products);
   const { result } = useAppSelector(authSelector);
   const isSeller = result?.role === 'seller';
@@ -54,7 +57,7 @@ const ProductsList = () => {
     ) {
       return;
     }
-    navigate(`/products/${productId}`);
+    router.push(`/products/${productId}`);
   };
 
   const handleAddToCart = (productId: string, stock: number, e: React.MouseEvent) => {
@@ -98,105 +101,93 @@ const ProductsList = () => {
 
   const handleAuthSuccess = async () => {
     if (pendingProductId) {
-      try {
-        await dispatch(addToCart({ productId: pendingProductId })).unwrap();
-        message.success('Product added to cart');
-        dispatch(fetchMyCart());
-        setPendingProductId(null);
-      } catch (error: any) {
-        message.error(error?.message || 'Failed to add product to cart');
+      // After successful auth, try to add to cart again
+      const product = productList.find((p: any) => p._id === pendingProductId);
+      if (product) {
+        const mockEvent = { preventDefault: () => {}, stopPropagation: () => {} } as React.MouseEvent;
+        await handleAddToCart(pendingProductId, product.stock, mockEvent);
       }
+      setPendingProductId(null);
     }
+    setAuthModalVisible(false);
   };
 
   return (
     <>
-    <List
-      grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4, xl: 4 }}
-      dataSource={productList?.data || []}
-      renderItem={(item: any) => (
-        <List.Item>
-          <Card
-            className="product-card"
-            onClick={(e) => handleCardClick(item._id, e)}
-            cover={
-              <ProductImage
-                thumbnail={item.thumbnail}
-                title={item.title || 'Product'}
-              />
-            }
-            actions={[
-              <div key="view" className="product-card-actions">
-                <Button
-                  type="link"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/products/${item._id}`);
-                  }}
+      <List
+        grid={{
+          gutter: 16,
+          xs: 1,
+          sm: 2,
+          md: 3,
+          lg: 4,
+          xl: 4,
+          xxl: 4,
+        }}
+        dataSource={productList}
+        renderItem={(product: any) => (
+          <List.Item>
+            <Card
+              hoverable
+              className="product-card"
+              cover={
+                <div
+                  onClick={(e) => handleCardClick(product._id, e)}
+                  style={{ cursor: 'pointer' }}
                 >
-                  View
-                </Button>
-              </div>,
-              <div key="cart" className="product-card-actions">
-                {!isSeller && result ? (
-                  <Button
-                    type="primary"
-                    size="small"
-                    disabled={(item.stock || 0) <= 0}
-                    onClick={(e) => handleAddToCart(item._id, item.stock || 0, e)}
-                  >
-                    Add to Cart
-                  </Button>
-                ) : !result ? (
-                  <Button
-                    type="primary"
-                    size="small"
-                    disabled={(item.stock || 0) <= 0}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPendingProductId(item._id);
-                      setAuthModalVisible(true);
-                    }}
-                  >
-                    Add to Cart
-                  </Button>
-                ) : null}
-              </div>,
-            ]}
-            hoverable
-          >
-            <Card.Meta
-              title={item.title}
-              description={
-                <div className="product-meta">
-                  {item.body?.summary || item.description || 'No description available.'}
-                  {item.price && (
-                    <div className="product-price">${item.price.toFixed(2)}</div>
-                  )}
-                  <div className="product-stock">
-                    {item.stock !== undefined ? (
-                      <span className={item.stock > 0 ? 'stock-available' : 'stock-out'}>
-                        {item.stock > 0 ? `In Stock (${item.stock})` : 'Out of Stock'}
-                      </span>
-                    ) : (
-                      <span className="stock-unknown">Stock information unavailable</span>
-                    )}
-                  </div>
+                  <ProductImage
+                    src={product.images?.[0] || ''}
+                    alt={product.title}
+                    style={{ height: '200px', objectFit: 'cover' }}
+                  />
                 </div>
               }
-            />
-          </Card>
-        </List.Item>
-      )}
-    />
-    <AuthModal
-      open={authModalVisible}
-      onClose={() => {
-        setAuthModalVisible(false);
-        setPendingProductId(null);
-      }}
-      onSuccess={handleAuthSuccess}
-    />
-  </>
+              actions={[
+                <div key="actions" className="product-card-actions">
+                  <Button
+                    type="primary"
+                    onClick={(e) => handleAddToCart(product._id, product.stock, e)}
+                    disabled={product.stock <= 0 || isSeller}
+                  >
+                    Add to Cart
+                  </Button>
+                  <Link href={`/products/${product._id}`}>
+                    <Button>View Details</Button>
+                  </Link>
+                </div>,
+              ]}
+            >
+              <Card.Meta
+                title={
+                  <Link href={`/products/${product._id}`} style={{ color: 'inherit' }}>
+                    {product.title}
+                  </Link>
+                }
+                description={
+                  <div>
+                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#0071e3' }}>
+                      ${product.price}
+                    </div>
+                    {product.stock <= 0 && (
+                      <div style={{ color: 'red', marginTop: '8px' }}>Out of Stock</div>
+                    )}
+                  </div>
+                }
+              />
+            </Card>
+          </List.Item>
+        )}
+      />
+
+      <AuthModal
+        visible={authModalVisible}
+        onClose={() => {
+          setAuthModalVisible(false);
+          setPendingProductId(null);
+        }}
+        onSuccess={handleAuthSuccess}
+        productId={pendingProductId}
+      />
+    </>
   );
 };

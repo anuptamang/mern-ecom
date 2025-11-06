@@ -1,5 +1,5 @@
-import { IStatus } from 'types/status/statusTypes';
-import { IUser } from 'types/user/userType';
+import { IStatus } from '@/types/status/statusTypes';
+import { IUser } from '@/types/user/userType';
 
 export interface ILogin {
   email: string;

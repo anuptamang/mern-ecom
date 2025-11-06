@@ -1,12 +1,14 @@
-import { DashboardSummary } from 'components/DashboardSummary';
-import { useAuth } from 'hooks';
-import { usePageTitle } from 'hooks/usePageTitle';
-import { capitalizeText, getUserName } from 'utils';
+'use client';
+
+import { DashboardSummary } from '@/components/DashboardSummary';
+import { useAuth } from '@/hooks';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { capitalizeText, getUserName } from '@/utils';
 import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from 'redux/store';
-import { authSelector } from 'redux/slice';
-import { fetchUserProfile } from 'redux/action/auth/authAction';
-import { getToken } from 'utils/localStorage';
+import { useAppDispatch, useAppSelector } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
+import { fetchUserProfile } from '@/redux/action/auth/authAction';
+import { getToken } from '@/utils/localStorage';
 
 /**
  * This is the component for the user's dashboard page.

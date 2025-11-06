@@ -1,15 +1,17 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { Card, List, Tag, Button, message, Empty, Spin, Typography, Space, Modal, Image, Tabs, Descriptions, Alert, Input } from 'antd';
 import { CheckCircleOutlined, ClockCircleOutlined, EyeOutlined, DollarOutlined, BankOutlined, WarningOutlined } from '@ant-design/icons';
-import { useAuth } from 'hooks';
-import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/hooks';
+import { useSearchParams } from 'next/navigation';
 import {
   getReturnRequestApi,
-} from 'services/endPoints/return';
+} from '@/services/endPoints/return';
 import {
   getFinanceReturnsApi,
   processRefundApi,
-} from 'services/endPoints/return/returnWorkflowEndpoints';
+} from '@/services/endPoints/return/returnWorkflowEndpoints';
 import {
   getPendingPayoutsApi,
   getPayoutsApi,
@@ -17,7 +19,7 @@ import {
   processPayoutApi,
   cancelPayoutApi,
   IPayout,
-} from 'services/endPoints/payout/payoutEndpoints';
+} from '@/services/endPoints/payout/payoutEndpoints';
 import './FinanceDashboard.scss';
 
 const { Text, Title } = Typography;
@@ -42,7 +44,7 @@ interface IReturn {
 
 const FinanceDashboard = () => {
   const auth = useAuth();
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const [returns, setReturns] = useState<IReturn[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReturn, setSelectedReturn] = useState<IReturn | null>(null);

@@ -1,19 +1,21 @@
+'use client';
+
 import { Card, List, Tag, Spin, Empty, message, Button, Image, Modal, Popconfirm, Input, Space, Form, Checkbox, InputNumber, Upload, Typography } from 'antd';
 import { UploadOutlined, DeleteOutlined as DeleteIcon } from '@ant-design/icons';
 import type { UploadFile } from 'antd';
-import { Container } from 'components/UI';
-import { ProductImage } from 'components/ProductImage';
-import { usePageTitle } from 'hooks/usePageTitle';
+import { Container } from '@/components/UI';
+import { ProductImage } from '@/components/ProductImage';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { useEffect, useState } from 'react';
-import { getMyReturnsApi, cancelReturnApi, createReturnRequestApi } from 'services/endPoints/return';
-import { listMyOrdersApi } from 'services/endPoints/orders/ordersEndpoints';
-import { BACKEND_API } from 'configs/api';
-import { getToken } from 'utils/localStorage';
-import { useAppSelector } from 'redux/store';
-import { authSelector } from 'redux/slice';
+import { getMyReturnsApi, cancelReturnApi, createReturnRequestApi } from '@/services/endPoints/return';
+import { listMyOrdersApi } from '@/services/endPoints/orders/ordersEndpoints';
+import { BACKEND_API } from '@/configs/api';
+import { getToken } from '@/utils/localStorage';
+import { useAppSelector } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
 import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, EyeOutlined, StopOutlined, UndoOutlined, DeleteOutlined } from '@ant-design/icons';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { pageRoutes } from 'data/static/pageRoutes';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { pageRoutes } from '@/data/static/pageRoutes';
 import './ReturnsDashboard.scss';
 
 const { Text } = Typography;
@@ -22,8 +24,8 @@ type TProps = {};
 
 const ReturnsDashboard = (props: TProps) => {
   const title = usePageTitle();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const orderIdParam = searchParams.get('orderId');
   const orderItemIdParam = searchParams.get('orderItemId');
   const productIdParam = searchParams.get('productId');
@@ -158,7 +160,7 @@ const ReturnsDashboard = (props: TProps) => {
       setSelectedOrder(null);
       loadReturns();
       // Clear orderId from URL
-      navigate(`/${pageRoutes.userReturns}`, { replace: true });
+      router.replace(`/${pageRoutes.userReturns}`);
     } catch (error: any) {
       message.error(error?.response?.data?.message || 'Failed to create return request');
     }
@@ -199,82 +201,86 @@ const ReturnsDashboard = (props: TProps) => {
         icon: <ClockCircleOutlined />,
         text: 'Deliverer Assigned',
       },
+      in_pickup: {
+        color: 'processing',
+        icon: <ClockCircleOutlined />,
+        text: 'In Pickup',
+      },
       picked_up: {
         color: 'processing',
         icon: <ClockCircleOutlined />,
         text: 'Picked Up',
       },
-      submitted_to_support: {
-        color: 'success',
-        icon: <CheckCircleOutlined />,
-        text: 'Submitted to Support',
-      },
-      in_inspection: {
+      in_transit: {
         color: 'processing',
         icon: <ClockCircleOutlined />,
-        text: 'In Inspection',
+        text: 'In Transit',
       },
-      inspector_assigned: {
+      at_facility: {
+        color: 'processing',
+        icon: <ClockCircleOutlined />,
+        text: 'At Facility',
+      },
+      assigned_inspector: {
         color: 'processing',
         icon: <ClockCircleOutlined />,
         text: 'Inspector Assigned',
       },
-      inspection_accepted: {
-        color: 'processing',
-        icon: <CheckCircleOutlined />,
-        text: 'Inspection Accepted',
-      },
-      inspection_rejected: {
-        color: 'error',
-        icon: <CloseCircleOutlined />,
-        text: 'Inspection Rejected',
-      },
-      refund_processing: {
-        color: 'processing',
-        icon: <ClockCircleOutlined />,
-        text: 'Processing Refund',
-      },
-      refunded: {
-        color: 'success',
-        icon: <CheckCircleOutlined />,
-        text: 'Refunded',
-      },
-      re_delivery: {
+      inspection_pending: {
         color: 'warning',
-        icon: <UndoOutlined />,
-        text: 'Re-delivery',
+        icon: <ClockCircleOutlined />,
+        text: 'Inspection Pending',
       },
-      completed: {
+      inspection_completed: {
         color: 'success',
         icon: <CheckCircleOutlined />,
-        text: 'Completed',
+        text: 'Inspection Completed',
       },
-      cancelled: {
-        color: 'default',
-        icon: <StopOutlined />,
-        text: 'Cancelled',
-      },
-      // Legacy statuses
-      approved: {
-        color: 'processing',
+      accepted: {
+        color: 'success',
         icon: <CheckCircleOutlined />,
-        text: 'Approved',
+        text: 'Accepted',
       },
       rejected: {
         color: 'error',
         icon: <CloseCircleOutlined />,
         text: 'Rejected',
       },
-      processing: {
+      assigned_finance: {
         color: 'processing',
         icon: <ClockCircleOutlined />,
-        text: 'Processing',
+        text: 'Finance Assigned',
+      },
+      refund_processing: {
+        color: 'processing',
+        icon: <ClockCircleOutlined />,
+        text: 'Refund Processing',
+      },
+      refund_completed: {
+        color: 'success',
+        icon: <CheckCircleOutlined />,
+        text: 'Refund Completed',
+      },
+      cancelled: {
+        color: 'default',
+        icon: <StopOutlined />,
+        text: 'Cancelled',
+      },
+      re_delivery: {
+        color: 'processing',
+        icon: <UndoOutlined />,
+        text: 'Re-Delivery',
+      },
+      re_delivered: {
+        color: 'success',
+        icon: <CheckCircleOutlined />,
+        text: 'Re-Delivered',
       },
     };
 
     const config = statusConfig[status] || {
       color: 'default',
-      icon: null,
+      icon: <ClockCircleOutlined />,
       text: status,
     };
 
@@ -285,176 +291,143 @@ const ReturnsDashboard = (props: TProps) => {
     );
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const handleViewDetails = (returnItem: any) => {
+    setSelectedReturn(returnItem);
+    setReturnModalVisible(true);
+  };
+
+  const handleCreateReturnClick = () => {
+    // Load orders to select from
+    loadOrders();
+  };
+
+  const loadOrders = async () => {
+    try {
+      const token = getToken();
+      if (!token) return;
+      const { data } = await listMyOrdersApi(token);
+      const orders = data.orders || [];
+      
+      // Filter orders that have delivered items
+      const ordersWithDeliveredItems = orders.filter((order: any) => 
+        order.items.some((item: any) => item.deliveryStatus === 'delivered')
+      );
+
+      if (ordersWithDeliveredItems.length === 0) {
+        message.warning('No orders with delivered items found');
+        return;
+      }
+
+      // Show order selection modal or directly show first order
+      // For simplicity, show first order with delivered items
+      const firstOrder = ordersWithDeliveredItems[0];
+      const deliverableItems = firstOrder.items.filter((item: any) => item.deliveryStatus === 'delivered');
+      
+      const filteredOrder = {
+        ...firstOrder,
+        items: deliverableItems,
+      };
+      
+      setSelectedOrder(filteredOrder);
+      
+      // Initialize form
+      const items = deliverableItems.map((item: any) => ({
+        productId: item.productId,
+        return: false,
+        quantity: 0,
+        reason: '',
+      }));
+      form.setFieldsValue({ items, reason: '' });
+      setProofImages([]);
+      setCreateReturnModalVisible(true);
+    } catch (error: any) {
+      message.error('Failed to load orders');
+    }
   };
 
   return (
     <>
       {title}
-      <Container className="py-6">
-        <Card title="Returns & Refunds" className="returns-dashboard">
-          <Spin spinning={loading}>
-            {returns.length === 0 && !loading ? (
-              <Empty
-                description="No return requests yet"
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-              >
-                <p className="text-gray-500">
-                  Return requests for delivered orders will appear here
-                </p>
-              </Empty>
-            ) : (
-              <List
-                dataSource={returns}
-                renderItem={(returnRequest: any) => (
-                  <List.Item className="return-item">
-                    <Card className="return-card" style={{ width: '100%' }}>
-                      <div className="return-header">
-                        <div className="return-info">
-                          <div className="return-id">
-                            Return ID: <strong>{returnRequest._id.slice(-8)}</strong>
-                          </div>
-                          <div className="return-date">
-                            {formatDate(returnRequest.createdAt)}
-                          </div>
-                          {returnRequest.orderId && (
-                            <div className="return-order-id">
-                              Order ID: <strong>{returnRequest.orderId._id?.slice(-8) || returnRequest.orderId}</strong>
-                            </div>
-                          )}
+      <Container>
+        <Card
+          title="Returns & Refunds"
+          extra={
+            <Button type="primary" onClick={handleCreateReturnClick}>
+              Create Return Request
+            </Button>
+          }
+        >
+          {loading ? (
+            <Spin />
+          ) : returns.length === 0 ? (
+            <Empty description="No returns found" />
+          ) : (
+            <List
+              dataSource={returns}
+              renderItem={(returnItem: any) => (
+                <List.Item
+                  actions={[
+                    <Button
+                      key="view"
+                      icon={<EyeOutlined />}
+                      onClick={() => handleViewDetails(returnItem)}
+                    >
+                      View Details
+                    </Button>,
+                    returnItem.returnStatus === 'pending' ||
+                    returnItem.returnStatus === 'assigned_support' ? (
+                      <Popconfirm
+                        key="cancel"
+                        title="Cancel Return Request"
+                        description="Are you sure you want to cancel this return request?"
+                        onConfirm={() => {
+                          setCancellingReturnId(returnItem._id);
+                          setCancelReturnModalVisible(true);
+                        }}
+                      >
+                        <Button danger icon={<DeleteOutlined />}>
+                          Cancel
+                        </Button>
+                      </Popconfirm>
+                    ) : null,
+                  ].filter(Boolean)}
+                >
+                  <List.Item.Meta
+                    title={
+                      <Space>
+                        <Text strong>Return #{returnItem._id.slice(-6)}</Text>
+                        {getStatusTag(returnItem.returnStatus)}
+                      </Space>
+                    }
+                    description={
+                      <div>
+                        <div>
+                          Order ID: {returnItem.orderId?.slice(-6) || 'N/A'}
                         </div>
-                        <div className="return-status-section">
-                          {getStatusTag(returnRequest.returnStatus)}
-                          {returnRequest.refundStatus && (
-                            <Tag 
-                              color={returnRequest.refundStatus === 'succeeded' ? 'success' : returnRequest.refundStatus === 'failed' ? 'error' : 'warning'} 
-                              style={{ marginLeft: 8 }}
-                            >
-                              Refund: {returnRequest.refundStatus.replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                            </Tag>
-                          )}
-                          <div className="return-amount">
-                            ${((returnRequest.returnAmount || 0) / 100).toFixed(2)} {returnRequest.orderId?.currency?.toUpperCase() || 'USD'}
-                          </div>
+                        <div>
+                          Created: {new Date(returnItem.createdAt).toLocaleDateString()}
                         </div>
+                        {returnItem.items && returnItem.items.length > 0 && (
+                          <div>
+                            Items: {returnItem.items.length} item(s)
+                          </div>
+                        )}
                       </div>
-
-                      {returnRequest.reason && (
-                        <div className="return-reason" style={{ marginTop: 16 }}>
-                          <strong>Reason:</strong> {returnRequest.reason}
-                        </div>
-                      )}
-
-                      {returnRequest.proofImages && returnRequest.proofImages.length > 0 && (
-                        <div className="return-proof-images" style={{ marginTop: 16 }}>
-                          <strong>Proof Images:</strong>
-                          <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-                            {returnRequest.proofImages.map((image: string, index: number) => (
-                              <Image
-                                key={index}
-                                src={`${BACKEND_API}${image}`}
-                                alt={`Proof ${index + 1}`}
-                                width={100}
-                                height={100}
-                                style={{ objectFit: 'cover', borderRadius: 4 }}
-                                preview={{
-                                  src: `${BACKEND_API}${image}`,
-                                }}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="return-items" style={{ marginTop: 16 }}>
-                        <h4 className="return-items-title">Items:</h4>
-                        <List
-                          size="small"
-                          dataSource={returnRequest.items || []}
-                          renderItem={(item: any) => (
-                            <List.Item>
-                              <div className="flex items-center gap-4">
-                                <div className="flex-1">
-                                  <div className="font-medium">{item.title}</div>
-                                  <div className="text-sm text-gray-500">
-                                    Quantity: {item.quantity} × ${item.price} = ${(item.price * item.quantity).toFixed(2)}
-                                  </div>
-                                  {item.reason && (
-                                    <div className="text-sm text-gray-500 mt-1">
-                                      Reason: {item.reason}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </List.Item>
-                          )}
-                        />
-                      </div>
-
-                      <div className="return-actions" style={{ marginTop: 16, marginBottom: 16 }}>
-                        <Space>
-                          {(returnRequest.returnStatus === 'refunded' || returnRequest.refundStatus) && (
-                            <Button
-                              type="default"
-                              onClick={() => {
-                                setSelectedReturn(returnRequest);
-                                setReturnModalVisible(true);
-                              }}
-                            >
-                              View Refund Status
-                            </Button>
-                          )}
-                          {(returnRequest.returnStatus === 'pending' || returnRequest.returnStatus === 'approved') && (
-                            <Popconfirm
-                              title="Cancel Return Request"
-                              description="Are you sure you want to cancel this return request?"
-                              onConfirm={() => {
-                                setCancellingReturnId(returnRequest._id);
-                                setCancelReturnModalVisible(true);
-                              }}
-                              okText="Yes, Cancel"
-                              cancelText="No"
-                            >
-                              <Button type="default" danger icon={<DeleteOutlined />}>
-                                Cancel Return
-                              </Button>
-                            </Popconfirm>
-                          )}
-                        </Space>
-                      </div>
-
-                      {returnRequest.rejectionReason && (
-                        <div className="return-rejection" style={{ marginTop: 16 }}>
-                          <strong>Rejection Reason:</strong> {returnRequest.rejectionReason}
-                        </div>
-                      )}
-                    </Card>
-                  </List.Item>
-                )}
-              />
-            )}
-          </Spin>
+                    }
+                  />
+                </List.Item>
+              )}
+            />
+          )}
         </Card>
 
+        {/* Return Details Modal */}
         <Modal
-          title="Refund Status"
+          title="Return Details"
           open={returnModalVisible}
-          onCancel={() => {
-            setReturnModalVisible(false);
-            setSelectedReturn(null);
-          }}
+          onCancel={() => setReturnModalVisible(false)}
           footer={[
-            <Button key="close" onClick={() => {
-              setReturnModalVisible(false);
-              setSelectedReturn(null);
-            }}>
+            <Button key="close" onClick={() => setReturnModalVisible(false)}>
               Close
             </Button>,
           ]}
@@ -462,102 +435,81 @@ const ReturnsDashboard = (props: TProps) => {
         >
           {selectedReturn && (
             <div>
-              <Card>
-                <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                  {selectedReturn.refundId && (
-                    <div>
-                      <Text strong>Refund ID: </Text>
-                      <Text code copyable>{selectedReturn.refundId}</Text>
-                    </div>
-                  )}
-                  
+              <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                <div>
+                  <Text strong>Return ID:</Text> {selectedReturn._id}
+                </div>
+                <div>
+                  <Text strong>Status:</Text> {getStatusTag(selectedReturn.returnStatus)}
+                </div>
+                <div>
+                  <Text strong>Order ID:</Text> {selectedReturn.orderId}
+                </div>
+                <div>
+                  <Text strong>Reason:</Text> {selectedReturn.reason}
+                </div>
+                {selectedReturn.items && selectedReturn.items.length > 0 && (
                   <div>
-                    <Text strong>Refund Status: </Text>
-                    <Tag 
-                      color={
-                        selectedReturn.refundStatus === 'succeeded' ? 'success' :
-                        selectedReturn.refundStatus === 'failed' ? 'error' :
-                        selectedReturn.refundStatus === 'processing' ? 'processing' :
-                        'warning'
-                      }
-                    >
-                      {selectedReturn.refundStatus ? selectedReturn.refundStatus.replace(/\b\w/g, (l: string) => l.toUpperCase()) : 'Pending'}
-                    </Tag>
+                    <Text strong>Items:</Text>
+                    <List
+                      dataSource={selectedReturn.items}
+                      renderItem={(item: any) => (
+                        <List.Item>
+                          <List.Item.Meta
+                            avatar={
+                              <ProductImage
+                                src={item.product?.images?.[0] || ''}
+                                alt={item.product?.title}
+                                width={60}
+                                height={60}
+                              />
+                            }
+                            title={item.product?.title}
+                            description={
+                              <div>
+                                <div>Quantity: {item.quantity}</div>
+                                <div>Reason: {item.reason}</div>
+                              </div>
+                            }
+                          />
+                        </List.Item>
+                      )}
+                    />
                   </div>
-
-                  {(selectedReturn.refundAmount || selectedReturn.returnAmount) && (
-                    <div>
-                      <Text strong>Refund Amount: </Text>
-                      <Text style={{ fontSize: '16px', color: 'var(--theme-primary, #1890ff)' }}>
-                        ${(((selectedReturn.refundAmount || selectedReturn.returnAmount) || 0) / 100).toFixed(2)} {selectedReturn.orderId?.currency?.toUpperCase() || 'USD'}
-                      </Text>
+                )}
+                {selectedReturn.proofImages && selectedReturn.proofImages.length > 0 && (
+                  <div>
+                    <Text strong>Proof Images:</Text>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                      {selectedReturn.proofImages.map((image: string, index: number) => (
+                        <Image
+                          key={index}
+                          src={`${BACKEND_API}/uploads/${image}`}
+                          alt={`Proof ${index + 1}`}
+                          width={100}
+                          height={100}
+                          style={{ objectFit: 'cover' }}
+                        />
+                      ))}
                     </div>
-                  )}
-
-                  {selectedReturn.refundCreatedAt && (
-                    <div>
-                      <Text strong>Refund Requested: </Text>
-                      <Text>
-                        {new Date(selectedReturn.refundCreatedAt).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </Text>
-                    </div>
-                  )}
-
-                  {selectedReturn.refundCompletedAt && (
-                    <div>
-                      <Text strong>Refund Completed: </Text>
-                      <Text>
-                        {new Date(selectedReturn.refundCompletedAt).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </Text>
-                    </div>
-                  )}
-
-                  {selectedReturn.refundFailureReason && (
-                    <div>
-                      <Text strong style={{ color: 'var(--theme-error, #ff4d4f)' }}>Refund Failure Reason: </Text>
-                      <Text style={{ color: 'var(--theme-error, #ff4d4f)' }}>{selectedReturn.refundFailureReason}</Text>
-                    </div>
-                  )}
-
-                  {selectedReturn.returnStatus === 'refunded' && !selectedReturn.refundFailureReason && (
-                    <div>
-                      <Tag color="success" icon={<CheckCircleOutlined />}>
-                        Refund completed successfully
-                      </Tag>
-                    </div>
-                  )}
-                </Space>
-              </Card>
+                  </div>
+                )}
+                {selectedReturn.inspectionNote && (
+                  <div>
+                    <Text strong>Inspection Note:</Text> {selectedReturn.inspectionNote}
+                  </div>
+                )}
+                {selectedReturn.refundAmount && (
+                  <div>
+                    <Text strong>Refund Amount:</Text> ${selectedReturn.refundAmount.toFixed(2)}
+                  </div>
+                )}
+              </Space>
             </div>
           )}
         </Modal>
 
-        <Modal
-          title="Cancel Return Request"
-          open={cancelReturnModalVisible}
-          onOk={handleCancelReturn}
-          onCancel={() => {
-            setCancelReturnModalVisible(false);
-            setCancellingReturnId(null);
-          }}
-          okText="Confirm Cancellation"
-          okButtonProps={{ danger: true }}
-        >
-          <p>Are you sure you want to cancel this return request?</p>
-        </Modal>
-
+        {/* Create Return Modal */}
         <Modal
           title="Create Return Request"
           open={createReturnModalVisible}
@@ -566,128 +518,91 @@ const ReturnsDashboard = (props: TProps) => {
             form.resetFields();
             setProofImages([]);
             setSelectedOrder(null);
-            navigate(`/${pageRoutes.userReturns}`, { replace: true });
           }}
           footer={null}
-          width={700}
+          width={800}
         >
           {selectedOrder && (
             <Form
               form={form}
-              layout="vertical"
               onFinish={handleCreateReturn}
+              layout="vertical"
             >
-              <Form.Item
-                label="Return Reason"
-                name="reason"
-                rules={[{ required: true, message: 'Please provide a reason for return' }]}
-              >
-                <Input.TextArea rows={3} placeholder="Please explain why you want to return these items" />
+              <Form.Item label="Select Items to Return">
+                <Form.List name="items">
+                  {(fields) => (
+                    <>
+                      {fields.map((field, index) => {
+                        const item = selectedOrder.items[index];
+                        return (
+                          <Form.Item key={field.key}>
+                            <Space>
+                              <Form.Item
+                                name={[field.name, 'return']}
+                                valuePropName="checked"
+                                noStyle
+                              >
+                                <Checkbox />
+                              </Form.Item>
+                              <ProductImage
+                                src={item.product?.images?.[0] || ''}
+                                alt={item.product?.title}
+                                width={60}
+                                height={60}
+                              />
+                              <div>
+                                <div>{item.product?.title}</div>
+                                <div>Price: ${item.product?.price}</div>
+                                <Form.Item
+                                  name={[field.name, 'quantity']}
+                                  noStyle
+                                >
+                                  <InputNumber
+                                    min={0}
+                                    max={item.quantity}
+                                    placeholder="Quantity"
+                                  />
+                                </Form.Item>
+                                <Form.Item
+                                  name={[field.name, 'reason']}
+                                  noStyle
+                                >
+                                  <Input placeholder="Reason" />
+                                </Form.Item>
+                                <Form.Item
+                                  name={[field.name, 'productId']}
+                                  noStyle
+                                  initialValue={item.productId}
+                                >
+                                  <Input type="hidden" />
+                                </Form.Item>
+                              </div>
+                            </Space>
+                          </Form.Item>
+                        );
+                      })}
+                    </>
+                  )}
+                </Form.List>
               </Form.Item>
 
               <Form.Item
-                label="Proof Images"
-                help="Upload images as proof (e.g., damaged item, wrong item, etc.). Maximum 5 images."
+                name="reason"
+                label="Return Reason"
+                rules={[{ required: true, message: 'Please provide a reason for return' }]}
               >
+                <Input.TextArea rows={4} placeholder="Please provide a detailed reason for returning these items" />
+              </Form.Item>
+
+              <Form.Item label="Proof Images (Optional)">
                 <Upload
                   listType="picture-card"
                   fileList={proofImages}
                   onChange={({ fileList }) => setProofImages(fileList)}
-                  beforeUpload={() => false} // Prevent auto upload
-                  multiple
-                  maxCount={5}
-                  accept="image/*"
+                  beforeUpload={() => false}
                 >
-                  {proofImages.length < 5 && (
-                    <div>
-                      <UploadOutlined />
-                      <div style={{ marginTop: 8 }}>Upload</div>
-                    </div>
-                  )}
+                  {proofImages.length < 5 && <UploadOutlined />}
                 </Upload>
-              </Form.Item>
-
-              <Form.Item label="Select Items to Return" required>
-                <Form.List name="items" initialValue={selectedOrder.items.map((item: any) => ({
-                  productId: item.productId,
-                  title: item.title,
-                  price: item.price,
-                  maxQuantity: item.quantity,
-                  return: false,
-                  quantity: 0,
-                  reason: '',
-                }))}>
-                  {(fields) => (
-                    <div>
-                      {fields.map((field, index) => {
-                        const item = selectedOrder.items[index];
-                        return (
-                          <Card key={field.key} size="small" style={{ marginBottom: 16 }}>
-                            <Form.Item name={[field.name, 'productId']} hidden>
-                              <Input type="hidden" />
-                            </Form.Item>
-                            <div className="flex items-center gap-4 mb-2">
-                              <ProductImage
-                                thumbnail={item.thumbnail}
-                                title={item.title}
-                                width={60}
-                                height={60}
-                                style={{ objectFit: 'cover' }}
-                              />
-                              <div className="flex-1">
-                                <div className="font-medium">{item.title}</div>
-                                <div className="text-sm text-gray-500">
-                                  Purchased: {item.quantity} × ${item.price}
-                                </div>
-                              </div>
-                            </div>
-                            <Form.Item
-                              name={[field.name, 'return']}
-                              valuePropName="checked"
-                            >
-                              <Checkbox>Return this item</Checkbox>
-                            </Form.Item>
-                            <Form.Item
-                              noStyle
-                              shouldUpdate={(prevValues, currentValues) => 
-                                prevValues.items?.[index]?.return !== currentValues.items?.[index]?.return
-                              }
-                            >
-                              {({ getFieldValue }) => 
-                                getFieldValue(['items', index, 'return']) ? (
-                                  <>
-                                    <Form.Item
-                                      name={[field.name, 'quantity']}
-                                      label="Quantity to Return"
-                                      rules={[
-                                        { required: true, message: 'Please enter quantity' },
-                                        { type: 'number', min: 1, message: 'Minimum 1' },
-                                        { type: 'number', max: item.quantity, message: `Maximum ${item.quantity}` },
-                                      ]}
-                                    >
-                                      <InputNumber
-                                        min={1}
-                                        max={item.quantity}
-                                        style={{ width: '100%' }}
-                                        placeholder={`Max: ${item.quantity}`}
-                                      />
-                                    </Form.Item>
-                                    <Form.Item
-                                      name={[field.name, 'reason']}
-                                      label="Item-specific Reason (optional)"
-                                    >
-                                      <Input.TextArea rows={2} placeholder="Specific reason for returning this item" />
-                                    </Form.Item>
-                                  </>
-                                ) : null
-                              }
-                            </Form.Item>
-                          </Card>
-                        );
-                      })}
-                    </div>
-                  )}
-                </Form.List>
               </Form.Item>
 
               <Form.Item>
@@ -695,18 +610,33 @@ const ReturnsDashboard = (props: TProps) => {
                   <Button type="primary" htmlType="submit">
                     Submit Return Request
                   </Button>
-                  <Button onClick={() => {
-                    setCreateReturnModalVisible(false);
-                    form.resetFields();
-                    setSelectedOrder(null);
-                    navigate(`/${pageRoutes.userReturns}`, { replace: true });
-                  }}>
+                  <Button
+                    onClick={() => {
+                      setCreateReturnModalVisible(false);
+                      form.resetFields();
+                      setProofImages([]);
+                      setSelectedOrder(null);
+                    }}
+                  >
                     Cancel
                   </Button>
                 </Space>
               </Form.Item>
             </Form>
           )}
+        </Modal>
+
+        {/* Cancel Return Confirmation Modal */}
+        <Modal
+          title="Cancel Return Request"
+          open={cancelReturnModalVisible}
+          onOk={handleCancelReturn}
+          onCancel={() => {
+            setCancelReturnModalVisible(false);
+            setCancellingReturnId(null);
+          }}
+        >
+          <p>Are you sure you want to cancel this return request? This action cannot be undone.</p>
         </Modal>
       </Container>
     </>

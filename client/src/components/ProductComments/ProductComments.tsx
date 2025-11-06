@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { Input, Button, Card, Avatar, message, Spin } from 'antd';
 import { UserOutlined, LikeOutlined, CommentOutlined } from '@ant-design/icons';
 import axios from 'axios';
-import { getToken } from 'utils/localStorage';
-import { PRODUCTS_API } from 'services/servicesConstants';
-import { replyToCommentApi } from 'services/endPoints/products/productsEndpoints';
-import { authSelector } from 'redux/slice';
-import { useAppSelector } from 'redux/store';
+import { getToken } from '@/utils/localStorage';
+import { PRODUCTS_API } from '@/services/servicesConstants';
+import { replyToCommentApi } from '@/services/endPoints/products/productsEndpoints';
+import { authSelector } from '@/redux/slice';
+import { useAppSelector } from '@/redux/store';
 
 const { TextArea } = Input;
 

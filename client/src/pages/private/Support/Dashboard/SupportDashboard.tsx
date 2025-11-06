@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { Card, List, Tag, Button, message, Empty, Spin, Typography, Space, Modal, Select, Form, Input, Tabs } from 'antd';
 import { 
@@ -10,8 +12,8 @@ import {
   SwapOutlined,
   CloseCircleOutlined,
 } from '@ant-design/icons';
-import { useAuth } from 'hooks';
-import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/hooks';
+import { useSearchParams } from 'next/navigation';
 import { 
   getSupportReturnsApi,
   assignSupportUserApi,
@@ -20,7 +22,7 @@ import {
   assignFinanceApi,
   assignRedeliveryAgencyApi,
   getReturnRequestApi,
-} from 'services/endPoints/return';
+} from '@/services/endPoints/return';
 import {
   reassignSupportUserApi,
   reassignReturnDeliveryAgencyApi,
@@ -28,9 +30,9 @@ import {
   reassignFinanceApi,
   reassignInspectorApi,
   rejectReturnAssignmentApi,
-} from 'services/endPoints/return/returnWorkflowEndpoints';
-import { createUserApi, resetPasswordAdminApi, getUsersApi } from 'services/endPoints/user/userListEndpoints';
-import { WorkloadDashboard } from 'components';
+} from '@/services/endPoints/return/returnWorkflowEndpoints';
+import { createUserApi, resetPasswordAdminApi, getUsersApi } from '@/services/endPoints/user/userListEndpoints';
+import { WorkloadDashboard } from '@/components';
 import './SupportDashboard.scss';
 
 const { Text, Title } = Typography;
@@ -70,7 +72,7 @@ const SupportDashboard = () => {
   const userRole = auth?.result?.role;
   const isSupportUser = userRole === 'support_user';
   const isSupport = userRole === 'support';
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const [returns, setReturns] = useState<IReturn[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReturn, setSelectedReturn] = useState<IReturn | null>(null);
@@ -186,7 +188,7 @@ const SupportDashboard = () => {
 
   const loadSupportUsers = async () => {
     try {
-      const { getUsersApi } = await import('services/endPoints/user/userListEndpoints');
+      const { getUsersApi } = await import('@/services/endPoints/user/userListEndpoints');
       const { data } = await getUsersApi({ role: 'support_user' });
       setSupportUsers(data.users || []);
     } catch (error) {
@@ -196,7 +198,7 @@ const SupportDashboard = () => {
 
   const loadDeliveryAgencies = async () => {
     try {
-      const { getUsersApi } = await import('services/endPoints/user/userListEndpoints');
+      const { getUsersApi } = await import('@/services/endPoints/user/userListEndpoints');
       const { data } = await getUsersApi({ role: 'delivery_agency' });
       setDeliveryAgencies(data.users || []);
     } catch (error) {
@@ -206,7 +208,7 @@ const SupportDashboard = () => {
 
   const loadVerificationTeams = async () => {
     try {
-      const { getUsersApi } = await import('services/endPoints/user/userListEndpoints');
+      const { getUsersApi } = await import('@/services/endPoints/user/userListEndpoints');
       const { data } = await getUsersApi({ role: 'verification_team' });
       setVerificationTeams(data.users || []);
     } catch (error) {
@@ -216,7 +218,7 @@ const SupportDashboard = () => {
 
   const loadFinanceUsers = async () => {
     try {
-      const { getUsersApi } = await import('services/endPoints/user/userListEndpoints');
+      const { getUsersApi } = await import('@/services/endPoints/user/userListEndpoints');
       const { data } = await getUsersApi({ role: 'finance' });
       setFinanceUsers(data.users || []);
     } catch (error) {

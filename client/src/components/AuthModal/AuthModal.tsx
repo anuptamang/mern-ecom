@@ -1,9 +1,9 @@
 import { Modal, Tabs, message } from 'antd';
-import { LoginForm } from 'features/LoginForm';
-import { RegisterForm } from 'features/RegisterForm';
+import { LoginForm } from '@/features/LoginForm';
+import { RegisterForm } from '@/features/RegisterForm';
 import { useEffect, useState, useRef } from 'react';
-import { useAppSelector } from 'redux/store';
-import { authSelector } from 'redux/slice';
+import { useAppSelector } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
 import { MESSAGES } from '../../constants';
 
 interface AuthModalProps {

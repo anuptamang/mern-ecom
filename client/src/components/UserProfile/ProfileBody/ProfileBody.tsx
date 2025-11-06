@@ -1,7 +1,9 @@
+'use client';
+
 import { Button, Form, FormInstance, Input, Space, Divider } from 'antd';
 import { useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { AddressForm } from 'components/AddressForm/AddressForm';
+import { usePathname } from 'next/navigation';
+import { AddressForm } from '@/components/AddressForm/AddressForm';
 
 const formItemLayout = {
   labelCol: {
@@ -44,20 +46,17 @@ export const ProfileBody = ({
 }: TProfileBody) => {
   const formRef = useRef<FormInstance>(null);
   const [componentDisabled, setComponentDisabled] = useState<boolean>(true);
-  const { hash } = useLocation();
+  const pathname = usePathname();
   const [isEditing, setIsEditing] = useState(false);
 
+  // Extract hash from URL (e.g., /profile#update)
+  const hash = typeof window !== 'undefined' ? window.location.hash : '';
   const action = hash?.slice(1);
 
   useEffect(() => {
-    // Support both hash-based navigation and button-based editing
     if (action === 'update') {
       setComponentDisabled(false);
       setIsEditing(true);
-    } else if (action === 'view') {
-      setComponentDisabled(true);
-      setIsEditing(false);
-      formRef.current?.resetFields();
     }
   }, [action]);
 
@@ -69,158 +68,99 @@ export const ProfileBody = ({
   const handleCancel = () => {
     setComponentDisabled(true);
     setIsEditing(false);
-    // Reset form to original values
-    formRef.current?.resetFields();
-    // Call optional onCancel callback if provided
     if (onCancel) {
       onCancel();
     }
   };
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = (values: any) => {
     if (onFormSubmit) {
-      try {
-        await onFormSubmit(values);
-        // After successful submit, disable form to show saved state
-        // User can click Edit again if they want to make more changes
-        setIsEditing(false);
-        setComponentDisabled(true);
-      } catch (error) {
-        // Error handling is done in the parent component
-        // Keep form editable if there's an error so user can fix and retry
-      }
+      onFormSubmit(values);
+      setComponentDisabled(true);
+      setIsEditing(false);
     }
   };
 
   return (
-    <div className="pt-10">
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end' }}>
-        {!isEditing ? (
-          <Button type="primary" onClick={handleEdit}>
-            Edit Profile
-          </Button>
-        ) : (
-          <Space>
-            <Button onClick={handleCancel} disabled={loadingSubmit}>
-              Cancel
-            </Button>
-            <Button type="primary" onClick={() => formRef.current?.submit()} loading={loadingSubmit}>
-              Save Changes
-            </Button>
-          </Space>
-        )}
-      </div>
-      <Form
-        ref={formRef}
-        {...formItemLayout}
-        form={form}
-        disabled={componentDisabled}
-        onFinish={handleSubmit}
+    <Form
+      {...formItemLayout}
+      form={form || formRef.current}
+      onFinish={handleSubmit}
+      disabled={componentDisabled}
+      scrollToFirstError
+    >
+      <Form.Item
+        name="firstName"
+        label="First Name"
+        rules={[{ required: true, message: 'Please input your first name!' }]}
       >
-        <Form.Item
-          name="email"
-          label="E-mail"
-        >
-          <Input disabled />
-        </Form.Item>
-        <Form.Item
-          name="firstName"
-          label="First Name"
-          rules={[
-            {
-              required: true,
-              message: 'Please input your first name!',
-              whitespace: true,
-            },
-          ]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          name="lastName"
-          label="Last Name"
-          rules={[
-            {
-              required: true,
-              message: 'Please input your last name!',
-              whitespace: true,
-            },
-          ]}
-        >
-          <Input />
-        </Form.Item>
-        <Divider>Contact Information</Divider>
-        <Form.Item
-          name="phone"
-          label="Phone"
-        >
-          <Input placeholder="+1 234 567 8900" />
-        </Form.Item>
-        <Form.Item
-          name="secondaryPhone"
-          label="Secondary Phone"
-        >
-          <Input placeholder="+1 234 567 8900" />
-        </Form.Item>
-        <Form.Item
-          name="secondaryEmail"
-          label="Secondary Email"
-        >
-          <Input type="email" placeholder="secondary@example.com" />
-        </Form.Item>
-        <Divider>Addresses</Divider>
-        <AddressForm form={form} namePrefix="primaryAddress" label="Primary Address" />
-        <AddressForm form={form} namePrefix="secondaryAddress" label="Secondary Address" />
-        
-        {/* Bank Payout Information for Sellers */}
-        {userRole === 'seller' && (
-          <>
-            <Divider>Bank Payout Information</Divider>
-            <Form.Item
-              name={['bankPayout', 'accountHolderName']}
-              label="Account Holder Name"
-            >
-              <Input placeholder="Enter account holder name" />
-            </Form.Item>
-            <Form.Item
-              name={['bankPayout', 'accountNumber']}
-              label="Account Number"
-            >
-              <Input placeholder="Enter account number" />
-            </Form.Item>
-            <Form.Item
-              name={['bankPayout', 'bankName']}
-              label="Bank Name"
-            >
-              <Input placeholder="Enter bank name" />
-            </Form.Item>
-            <Form.Item
-              name={['bankPayout', 'routingNumber']}
-              label="Routing Number"
-            >
-              <Input placeholder="Enter routing number" />
-            </Form.Item>
-            <Form.Item
-              name={['bankPayout', 'swiftCode']}
-              label="SWIFT Code (Optional)"
-            >
-              <Input placeholder="Enter SWIFT code" />
-            </Form.Item>
-            <Form.Item
-              name={['bankPayout', 'iban']}
-              label="IBAN (Optional)"
-            >
-              <Input placeholder="Enter IBAN" />
-            </Form.Item>
-            <Form.Item
-              name={['bankPayout', 'accountType']}
-              label="Account Type"
-            >
-              <Input placeholder="checking or savings" />
-            </Form.Item>
-          </>
-        )}
-      </Form>
-    </div>
+        <Input />
+      </Form.Item>
+
+      <Form.Item
+        name="lastName"
+        label="Last Name"
+        rules={[{ required: true, message: 'Please input your last name!' }]}
+      >
+        <Input />
+      </Form.Item>
+
+      <Form.Item
+        name="email"
+        label="E-mail"
+        rules={[
+          { type: 'email', message: 'The input is not valid E-mail!' },
+          { required: true, message: 'Please input your E-mail!' },
+        ]}
+      >
+        <Input disabled />
+      </Form.Item>
+
+      <Form.Item
+        name="phone"
+        label="Phone Number"
+        rules={[
+          { required: true, message: 'Please input your phone number!' },
+        ]}
+      >
+        <Input />
+      </Form.Item>
+
+      <Divider>Address Information</Divider>
+
+      <AddressForm form={form || formRef.current} disabled={componentDisabled} />
+
+      {userRole === 'seller' && (
+        <>
+          <Divider>Seller Information</Divider>
+          <Form.Item
+            name="bankAccount"
+            label="Bank Account"
+            rules={[
+              { required: true, message: 'Please input your bank account!' },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+        </>
+      )}
+
+      <Form.Item {...tailFormItemLayout}>
+        <Space>
+          {isEditing ? (
+            <>
+              <Button type="primary" htmlType="submit" loading={loadingSubmit}>
+                Save Changes
+              </Button>
+              <Button onClick={handleCancel}>Cancel</Button>
+            </>
+          ) : (
+            <Button type="primary" onClick={handleEdit}>
+              Edit Profile
+            </Button>
+          )}
+        </Space>
+      </Form.Item>
+    </Form>
   );
 };

@@ -1,5 +1,5 @@
 import { Radio, Card, Typography, Space, Button, message } from 'antd';
-import { IAddress, IUser } from 'types/user/userType';
+import { IAddress, IUser } from '@/types/user/userType';
 import { EditOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 

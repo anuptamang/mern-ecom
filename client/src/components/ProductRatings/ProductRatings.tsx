@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { Rate, Button, Input, Card, Avatar, message, Spin } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import axios from 'axios';
-import { getToken } from 'utils/localStorage';
-import { PRODUCTS_API } from 'services/servicesConstants';
-import { authSelector } from 'redux/slice';
-import { useAppSelector } from 'redux/store';
+import { getToken } from '@/utils/localStorage';
+import { PRODUCTS_API } from '@/services/servicesConstants';
+import { authSelector } from '@/redux/slice';
+import { useAppSelector } from '@/redux/store';
 
 const { TextArea } = Input;
 

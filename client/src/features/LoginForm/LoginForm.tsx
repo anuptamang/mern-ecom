@@ -1,13 +1,15 @@
+'use client';
+
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Checkbox, Form, Input } from 'antd';
-import { pageRoutes } from 'data/static/pageRoutes';
+import { pageRoutes } from '@/data/static/pageRoutes';
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { login } from 'redux/action/auth/authAction';
-import { authSelector, resetLogin } from 'redux/slice';
-import { useAppDispatch, useAppSelector } from 'redux/store';
-import { ILogin } from 'types/store/auth/authSliceTypes';
-import { notify } from 'utils';
+import Link from 'next/link';
+import { login } from '@/redux/action/auth/authAction';
+import { authSelector, resetLogin } from '@/redux/slice';
+import { useAppDispatch, useAppSelector } from '@/redux/store';
+import { ILogin } from '@/types/store/auth/authSliceTypes';
+import { notify } from '@/utils';
 
 /**
  * This is the login form, which takes email and password as an input and sends a logn request to the server.
@@ -62,7 +64,7 @@ const LoginForm = () => {
             <Checkbox>Remember me</Checkbox>
           </Form.Item>
 
-          <Link to={`/${pageRoutes.forgotPassword}`}>Forgot Password!</Link>
+          <Link href={`/${pageRoutes.forgotPassword}`}>Forgot Password!</Link>
         </Form.Item>
 
         <Form.Item>
@@ -74,7 +76,7 @@ const LoginForm = () => {
           >
             Login
           </Button>
-          Or <Link to={`/${pageRoutes.register}`}>Register Now!</Link>
+          Or <Link href={`/${pageRoutes.register}`}>Register Now!</Link>
         </Form.Item>
       </Form>
     </>

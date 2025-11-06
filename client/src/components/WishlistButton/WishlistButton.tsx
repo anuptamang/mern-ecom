@@ -1,14 +1,14 @@
 import { HeartOutlined, HeartFilled } from "@ant-design/icons";
 import { Button, Tooltip, message } from "antd";
-import { useAppDispatch, useAppSelector } from "redux/store";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   addToWishlist,
   removeFromWishlist,
   checkWishlistStatus,
   fetchMyWishlist,
-} from "redux/slice/wishlist/wishlistSlice";
+} from "@/redux/slice/wishlist/wishlistSlice";
 import { useEffect, useState } from "react";
-import { authSelector } from "redux/slice";
+import { authSelector } from "@/redux/slice";
 import "./WishlistButton.scss";
 
 interface WishlistButtonProps {

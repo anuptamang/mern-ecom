@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Card,
   List,
@@ -12,19 +14,19 @@ import {
   Input,
   Typography,
 } from 'antd';
-import { Container } from 'components/UI';
-import { ProductImage } from 'components/ProductImage';
-import { usePageTitle } from 'hooks/usePageTitle';
+import { Container } from '@/components/UI';
+import { ProductImage } from '@/components/ProductImage';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { useEffect, useState } from 'react';
-import { listMyOrdersApi } from 'services/endPoints/orders/ordersEndpoints';
+import { listMyOrdersApi } from '@/services/endPoints/orders/ordersEndpoints';
 import {
   getDeliveryTrackingApi,
   cancelOrderApi,
-} from 'services/endPoints/delivery';
-import { getMyReturnsApi } from 'services/endPoints/return';
-import { getToken } from 'utils/localStorage';
-import { useAppSelector, useAppDispatch } from 'redux/store';
-import { authSelector } from 'redux/slice';
+} from '@/services/endPoints/delivery';
+
+import { getMyReturnsApi } from '@/services/endPoints/return';
+import { getToken } from '@/utils/localStorage';
+
 import {
   CheckCircleOutlined,
   ClockCircleOutlined,
@@ -33,10 +35,10 @@ import {
   StopOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { addToCart, fetchMyCart } from 'redux/slice/carts/cartsSlice';
-import { DeliveryTracking } from 'components';
-import { pageRoutes } from 'data/static/pageRoutes';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { addToCart, fetchMyCart } from '@/redux/slice/carts/cartsSlice';
+import { DeliveryTracking } from '@/components';
+import { pageRoutes } from '@/data/static/pageRoutes';
 import './OrdersDashboard.scss';
 
 const { Text } = Typography;
@@ -45,8 +47,8 @@ type TProps = {};
 
 const OrdersDashboard = (props: TProps) => {
   const title = usePageTitle();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
   const { result } = useAppSelector(authSelector);
   const isSeller = result?.role === 'seller';
@@ -440,7 +442,7 @@ const OrdersDashboard = (props: TProps) => {
                                       icon={<EyeOutlined />}
                                       size="small"
                                       onClick={() =>
-                                        navigate(`/products/${item.productId}`)
+                                        router.push(`/products/${item.productId}`)
                                       }
                                     >
                                       View
@@ -606,7 +608,7 @@ const OrdersDashboard = (props: TProps) => {
                                               size="small"
                                               icon={<UndoOutlined />}
                                               onClick={() =>
-                                                navigate(
+                                                router.push(
                                                   `/${pageRoutes.userReturns}?orderId=${order._id}&orderItemId=${item._id}&productId=${item.productId}`
                                                 )
                                               }
@@ -640,7 +642,7 @@ const OrdersDashboard = (props: TProps) => {
                                               size="small"
                                               icon={<UndoOutlined />}
                                               onClick={() =>
-                                                navigate(
+                                                router.push(
                                                   `/${pageRoutes.userReturns}?orderId=${order._id}&orderItemId=${item._id}&productId=${item.productId}`
                                                 )
                                               }

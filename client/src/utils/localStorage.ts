@@ -1,6 +1,11 @@
-import { IGenericObject } from "types";
+import { IGenericObject } from 'types';
+
+// Helper to check if we're in a browser environment
+const isBrowser = () =>
+  typeof window !== 'undefined' && typeof localStorage !== 'undefined';
 
 export function loadState(KEY: string) {
+  if (!isBrowser()) return undefined;
   try {
     const serializedState = localStorage.getItem(KEY);
     if (!serializedState) return undefined;
@@ -11,6 +16,7 @@ export function loadState(KEY: string) {
 }
 
 export async function saveState(state: IGenericObject, KEY: string) {
+  if (!isBrowser()) return;
   try {
     const serializedState = JSON.stringify(state);
     localStorage.setItem(KEY, serializedState);
@@ -20,6 +26,7 @@ export async function saveState(state: IGenericObject, KEY: string) {
 }
 
 export function getToken(): string | null {
+  if (!isBrowser()) return null;
   try {
     const raw = localStorage.getItem('user');
     if (!raw) return null;
@@ -33,6 +40,7 @@ export function getToken(): string | null {
 }
 
 export function setToken(token: string): void {
+  if (!isBrowser()) return;
   try {
     // Get existing state
     const raw = localStorage.getItem('user');
@@ -57,6 +65,7 @@ export function setToken(token: string): void {
 }
 
 export function removeToken(): void {
+  if (!isBrowser()) return;
   try {
     localStorage.removeItem('user');
   } catch (e) {

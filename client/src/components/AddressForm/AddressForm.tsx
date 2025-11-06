@@ -1,5 +1,5 @@
 import { Form, Input, Space } from 'antd';
-import { IAddress } from 'types/user/userType';
+import { IAddress } from '@/types/user/userType';
 
 interface AddressFormProps {
   form: any;

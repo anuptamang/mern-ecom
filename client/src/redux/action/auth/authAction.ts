@@ -1,8 +1,8 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { checkUserApi, forgotPasswordApi, loginApi, registerApi } from "services/endPoints/auth/authEndpoints";
-import { getUserApi, updateUserApi } from "services/endPoints/user/userEndpoints";
-import { getToken } from "utils/localStorage";
-import { IAuthSlice, ILogin, IRegister } from "types/store/auth/authSliceTypes";
+import { checkUserApi, forgotPasswordApi, loginApi, registerApi } from "@/services/endPoints/auth/authEndpoints";
+import { getUserApi, updateUserApi } from "@/services/endPoints/user/userEndpoints";
+import { getToken } from "@/utils/localStorage";
+import { IAuthSlice, ILogin, IRegister } from "@/types/store/auth/authSliceTypes";
 
 export type TError = {
   message: string;

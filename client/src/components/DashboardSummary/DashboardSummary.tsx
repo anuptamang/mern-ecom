@@ -5,9 +5,9 @@ import {
   WishlistStatus,
   CartsStatus,
   SettingsStatus,
-} from 'features';
-import { useAppSelector } from 'redux/store';
-import { authSelector } from 'redux/slice';
+} from '@/features';
+import { useAppSelector } from '@/redux/store';
+import { authSelector } from '@/redux/slice';
 
 export const DashboardSummary = () => {
   const { result } = useAppSelector(authSelector);

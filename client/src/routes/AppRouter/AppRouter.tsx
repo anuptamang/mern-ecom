@@ -1,20 +1,20 @@
-import { pageRoutes } from 'data/static/pageRoutes';
-import { useAuth } from 'hooks';
+import { pageRoutes } from '@/data/static/pageRoutes';
+import { useAuth } from '@/hooks';
 import { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import PrivateRoute from 'routes/PrivateRoute';
-import { SellerRoute } from 'routes/SellerRoute';
-import { BuyerOnlyRoute } from 'routes/BuyerOnlyRoute/BuyerOnlyRoute';
-import { BuyerSellerRoute } from 'routes/BuyerSellerRoute/BuyerSellerRoute';
-import { DeliveryAgencyRoute } from 'routes/DeliveryAgencyRoute/DeliveryAgencyRoute';
-import { DeliveryPersonRoute } from 'routes/DeliveryPersonRoute/DeliveryPersonRoute';
-import { WarehouseOperatorRoute } from 'routes/WarehouseOperatorRoute/WarehouseOperatorRoute';
-import { SupportRoute } from 'routes/SupportRoute/SupportRoute';
-import { VerificationRoute } from 'routes/VerificationRoute/VerificationRoute';
-import { InspectorRoute } from 'routes/InspectorRoute/InspectorRoute';
-import { FinanceRoute } from 'routes/FinanceRoute/FinanceRoute';
-import { ReturnDelivererRoute } from 'routes/ReturnDelivererRoute/ReturnDelivererRoute';
-import { AdminRoute } from 'routes/AdminRoute/AdminRoute';
+import PrivateRoute from '@/routes/PrivateRoute';
+import { SellerRoute } from '@/routes/SellerRoute';
+import { BuyerOnlyRoute } from '@/routes/BuyerOnlyRoute/BuyerOnlyRoute';
+import { BuyerSellerRoute } from '@/routes/BuyerSellerRoute/BuyerSellerRoute';
+import { DeliveryAgencyRoute } from '@/routes/DeliveryAgencyRoute/DeliveryAgencyRoute';
+import { DeliveryPersonRoute } from '@/routes/DeliveryPersonRoute/DeliveryPersonRoute';
+import { WarehouseOperatorRoute } from '@/routes/WarehouseOperatorRoute/WarehouseOperatorRoute';
+import { SupportRoute } from '@/routes/SupportRoute/SupportRoute';
+import { VerificationRoute } from '@/routes/VerificationRoute/VerificationRoute';
+import { InspectorRoute } from '@/routes/InspectorRoute/InspectorRoute';
+import { FinanceRoute } from '@/routes/FinanceRoute/FinanceRoute';
+import { ReturnDelivererRoute } from '@/routes/ReturnDelivererRoute/ReturnDelivererRoute';
+import { AdminRoute } from '@/routes/AdminRoute/AdminRoute';
 
 const GeneralLayout = lazy(() => import('layouts/General'));
 

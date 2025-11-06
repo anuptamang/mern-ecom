@@ -30,11 +30,11 @@ import {
 } from '@ant-design/icons';
 import type { UploadFile } from 'antd';
 import axios from 'axios';
-import { getToken } from 'utils/localStorage';
-import { BACKEND_API } from 'configs/api/api';
-import { useTheme } from 'hooks/useTheme';
-import { ColorScheme } from 'configs/theme/colorScheme';
-import { updateThemeApi, resetThemeApi } from 'services/endPoints/theme/themeEndpoints';
+import { getToken } from '@/utils/localStorage';
+import { BACKEND_API } from '@/configs/api/api';
+import { useTheme } from '@/hooks/useTheme';
+import { ColorScheme } from '@/configs/theme/colorScheme';
+import { updateThemeApi, resetThemeApi } from '@/services/endPoints/theme/themeEndpoints';
 import './ThemeManagement.scss';
 
 const { Title, Text } = Typography;

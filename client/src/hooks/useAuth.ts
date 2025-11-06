@@ -1,6 +1,6 @@
-import { authSelector } from 'redux/slice';
-import { useAppSelector } from 'redux/store';
-import { isTokenValid } from 'utils';
+import { authSelector } from '@/redux/slice';
+import { useAppSelector } from '@/redux/store';
+import { isTokenValid } from '@/utils';
 
 /**
  * This is the hook that will be used to get the auth state from the store.

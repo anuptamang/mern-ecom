@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { Card, List, Tag, Button, Modal, Select, message, Empty, Spin, Typography, Space, Image, Divider, Form, Input, Radio, Tabs } from 'antd';
 import { 
@@ -13,8 +15,8 @@ import {
   SwapOutlined,
   CloseCircleOutlined,
 } from '@ant-design/icons';
-import { useAuth } from 'hooks';
-import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/hooks';
+import { useSearchParams } from 'next/navigation';
 import { 
   getAgencyDeliveriesApi, 
   getAgencyPersonsApi, 
@@ -26,10 +28,10 @@ import {
   reassignDeliveryPersonApi,
   reassignWarehouseOperatorApi,
   rejectDeliveryAssignmentApi,
-} from 'services/endPoints/delivery';
-import { getAgencyReturnsApi, assignReturnDelivererApi, reassignReturnDelivererApi, rejectReturnAssignmentApi } from 'services/endPoints/return';
-import { createUserApi, getUsersApi, resetPasswordAdminApi } from 'services/endPoints/user/userListEndpoints';
-import { DeliveryTracking, WorkloadDashboard } from 'components';
+} from '@/services/endPoints/delivery';
+import { getAgencyReturnsApi, assignReturnDelivererApi, reassignReturnDelivererApi, rejectReturnAssignmentApi } from '@/services/endPoints/return';
+import { createUserApi, getUsersApi, resetPasswordAdminApi } from '@/services/endPoints/user/userListEndpoints';
+import { DeliveryTracking, WorkloadDashboard } from '@/components';
 import './DeliveryAgencyDashboard.scss';
 
 const { TextArea } = Input;
@@ -74,7 +76,7 @@ interface IReturn {
 
 const DeliveryAgencyDashboard = () => {
   const auth = useAuth();
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<string>('delivery');
   const [deliveries, setDeliveries] = useState<IDelivery[]>([]);
   const [returns, setReturns] = useState<IReturn[]>([]);
@@ -154,7 +156,7 @@ const DeliveryAgencyDashboard = () => {
   // Load return by ID if returnId is in URL
   const loadReturnById = async (returnId: string) => {
     try {
-      const { getReturnRequestApi } = await import('services/endPoints/return');
+      const { getReturnRequestApi } = await import('@/services/endPoints/return');
       const { data } = await getReturnRequestApi(returnId);
       if (data.returnRequest) {
         // Add to returns list if not already there

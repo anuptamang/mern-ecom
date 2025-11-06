@@ -1,18 +1,19 @@
+'use client';
+
 import { Button, Layout } from 'antd';
-import { Container, ContentLayout, ModalBox, SiderLayout } from 'components/UI';
-import { pageRoutes } from 'data/static/pageRoutes';
-import { UserSidePanel } from 'features';
-import { useAuth } from 'hooks';
+import { Container, ContentLayout, ModalBox, SiderLayout } from '@/components/UI';
+import { pageRoutes } from '@/data/static/pageRoutes';
+import { UserSidePanel } from '@/features';
+import { useAuth } from '@/hooks';
 import { useEffect, useState } from 'react';
-import { Outlet } from 'react-router';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { IChildren } from 'types';
+import { useRouter, usePathname } from 'next/navigation';
+import { IChildren } from '@/types';
 
 const PrivateLayout = ({ children }: IChildren) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const navigate = useNavigate();
-  let location = useLocation();
-  let auth = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const auth = useAuth();
 
   const showModal = () => {
     setIsModalOpen(true);
@@ -20,7 +21,7 @@ const PrivateLayout = ({ children }: IChildren) => {
 
   const handleOk = () => {
     setIsModalOpen(false);
-    navigate(`/${pageRoutes.login}`, { state: { from: location } });
+    router.push(`/${pageRoutes.login}`);
     localStorage.removeItem('user');
   };
 
@@ -43,7 +44,7 @@ const PrivateLayout = ({ children }: IChildren) => {
               margin: 0,
             }}
           >
-            {children ? children : <Outlet />}
+            {children}
           </ContentLayout>
         </Layout>
       </Container>
