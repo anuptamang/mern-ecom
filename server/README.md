@@ -11,9 +11,7 @@ server/
 ├── models/          # Database models
 ├── routes/          # API routes
 ├── middlewares/     # Express middlewares
-├── services/        # Business logic
 ├── utils/           # Utility functions
-├── validators/       # Input validation
 └── index.js         # Entry point
 ```
 
@@ -77,20 +75,6 @@ errorResponse(res, 400, 'Error message', errors);
 paginatedResponse(res, 200, data, pagination, 'Success message');
 ```
 
-### Pagination
-
-Pagination utilities:
-
-```javascript
-import { getPaginationParams, createPaginationResponse } from './utils/pagination.js';
-
-// Get pagination params from query
-const { page, limit, skip } = getPaginationParams(req.query);
-
-// Create paginated response
-const response = createPaginationResponse(data, { page, limit }, total);
-```
-
 ## Middlewares
 
 ### Authentication
@@ -104,9 +88,9 @@ router.get('/protected', Auth, handler);
 ### Admin Check
 
 ```javascript
-import checkAdmin from './middlewares/checkAdmin.js';
+import { requireAdmin } from './middlewares/rbac.js';
 
-router.post('/admin', Auth, checkAdmin, handler);
+router.post('/admin', Auth, requireAdmin, handler);
 ```
 
 ### Rate Limiting
@@ -119,20 +103,6 @@ app.use('/api/', defaultRateLimiter);
 
 // Strict rate limiter for auth
 router.post('/login', authRateLimiter, handler);
-```
-
-### Validation
-
-```javascript
-import { validate } from './middlewares/validation.js';
-import Joi from 'joi';
-
-const schema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().min(6).required(),
-});
-
-router.post('/register', validate(schema), handler);
 ```
 
 ## API Routes

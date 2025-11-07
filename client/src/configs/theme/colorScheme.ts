@@ -531,7 +531,33 @@ const fetchThemeFromAPI = async (): Promise<void> => {
   if (typeof window === 'undefined') return;
 
   try {
-    const response = await fetch(`${process.env.REACT_APP_BACKEND_API_URL || 'http://localhost:3010'}/theme/active`);
+    // Get API URL (user can include /api/v1 in REACT_APP_BACKEND_API_URL)
+    let baseUrl = process.env.REACT_APP_BACKEND_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:3010/api/v1';
+    
+    // Remove trailing slash if present
+    baseUrl = baseUrl.replace(/\/$/, '');
+    
+    // If URL doesn't include /api/, add /api/v1 prefix (backward compatibility)
+    if (!baseUrl.includes('/api/')) {
+      const apiVersion = process.env.REACT_APP_API_VERSION || 'v1';
+      baseUrl = `${baseUrl}/api/${apiVersion}`;
+    }
+    
+    const apiUrl = `${baseUrl}/theme/active`;
+    
+    // Get application token
+    const applicationToken = process.env.REACT_APP_APPLICATION_TOKEN || process.env.REACT_APP_API_KEY;
+    
+    // Build headers
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (applicationToken) {
+      headers['X-API-Key'] = applicationToken;
+    }
+    
+    const response = await fetch(apiUrl, { headers });
     if (response.ok) {
       const result = await response.json();
       if (result.success && result.data && result.data.theme) {

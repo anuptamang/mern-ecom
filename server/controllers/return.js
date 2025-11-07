@@ -2,6 +2,7 @@ import Return from "../models/return.js";
 import Order from "../models/order.js";
 import Product from "../models/product.js";
 import Stripe from "stripe";
+import config from "../config/index.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2024-11-20.acacia",
@@ -29,7 +30,7 @@ export const createReturnRequest = async (req, res) => {
     
     // Get proof images from uploaded files
     const proofImages = req.files 
-      ? req.files.map(file => `/uploads/${file.filename}`)
+      ? req.files.map(file => `${config.upload.imageBucketUrl}/${file.filename}`)
       : [];
 
     const order = await Order.findById(orderId);

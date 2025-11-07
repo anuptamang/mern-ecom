@@ -7,6 +7,7 @@ import { PRODUCTS_API } from 'services/servicesConstants';
 import { replyToCommentApi } from 'services/endPoints/products/productsEndpoints';
 import { authSelector } from 'redux/slice';
 import { useAppSelector } from 'redux/store';
+import { useNavigate } from 'react-router-dom';
 
 const { TextArea } = Input;
 
@@ -28,6 +29,7 @@ type CommentItem = {
 
 export const ProductComments = ({ productId }: ProductCommentsProps) => {
   const { result } = useAppSelector(authSelector);
+  const navigate = useNavigate();
   const isSeller = result?.role === 'seller';
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,8 +39,11 @@ export const ProductComments = ({ productId }: ProductCommentsProps) => {
   const [replyText, setReplyText] = useState('');
 
   useEffect(() => {
-    fetchComments();
-  }, [productId]);
+    // Only fetch comments if user is logged in
+    if (result) {
+      fetchComments();
+    }
+  }, [productId, result]);
 
   const fetchComments = async () => {
     try {
@@ -139,9 +144,23 @@ export const ProductComments = ({ productId }: ProductCommentsProps) => {
     }
   };
 
+  // If user is not logged in, show login prompt
+  if (!result) {
+    return (
+      <Card title="Comments" className="product-comments">
+        <div className="login-prompt">
+          <p>Please log in to comment</p>
+          <Button type="primary" onClick={() => navigate('/login')}>
+            Log In
+          </Button>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card title="Comments" className="product-comments">
-      {result && !isSeller && (
+      {!isSeller && (
         <div className="comment-form">
           <TextArea
             rows={4}
@@ -159,12 +178,6 @@ export const ProductComments = ({ productId }: ProductCommentsProps) => {
           >
             Post Comment
           </Button>
-        </div>
-      )}
-
-      {!result && (
-        <div className="login-prompt">
-          <p>Please log in to leave a comment</p>
         </div>
       )}
 

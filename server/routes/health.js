@@ -1,4 +1,66 @@
 /**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Health check endpoint
+ *     description: Returns the health status of the API and database
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: Service is healthy
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Service is healthy
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     status:
+ *                       type: string
+ *                       example: healthy
+ *                     timestamp:
+ *                       type: string
+ *                       example: 2024-01-01T00:00:00.000Z
+ *                     uptime:
+ *                       type: number
+ *                       example: 3600
+ *                     database:
+ *                       type: object
+ *                       properties:
+ *                         status:
+ *                           type: string
+ *                           example: connected
+ *                         readyState:
+ *                           type: number
+ *                           example: 1
+ *                     memory:
+ *                       type: object
+ *                       properties:
+ *                         used:
+ *                           type: number
+ *                           example: 100
+ *                         total:
+ *                           type: number
+ *                           example: 500
+ *                     environment:
+ *                       type: string
+ *                       example: development
+ *       503:
+ *         description: Service is unhealthy
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
+/**
  * Health check endpoint
  * Used for monitoring and load balancer health checks
  */

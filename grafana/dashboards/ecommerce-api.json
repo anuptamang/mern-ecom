@@ -1,0 +1,136 @@
+{
+  "dashboard": {
+    "title": "E-Commerce API Dashboard",
+    "tags": ["ecommerce", "api", "nodejs"],
+    "timezone": "browser",
+    "schemaVersion": 27,
+    "version": 1,
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Request Rate",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "{{method}} {{route}} ({{status_code}})",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          { "format": "reqps", "label": "Requests/sec" },
+          { "format": "short" }
+        ],
+        "xaxis": { "mode": "time" }
+      },
+      {
+        "id": 2,
+        "title": "Response Time (P95)",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "P95 - {{route}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [{ "format": "s", "label": "Seconds" }, { "format": "short" }],
+        "xaxis": { "mode": "time" }
+      },
+      {
+        "id": 3,
+        "title": "Error Rate",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+        "targets": [
+          {
+            "expr": "rate(http_request_errors_total[5m])",
+            "legendFormat": "{{method}} {{route}} ({{status_code}})",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          { "format": "reqps", "label": "Errors/sec" },
+          { "format": "short" }
+        ],
+        "xaxis": { "mode": "time" }
+      },
+      {
+        "id": 4,
+        "title": "Memory Usage",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+        "targets": [
+          {
+            "expr": "nodejs_nodejs_heap_size_used_bytes",
+            "legendFormat": "Used",
+            "refId": "A"
+          },
+          {
+            "expr": "nodejs_nodejs_heap_size_total_bytes",
+            "legendFormat": "Total",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          { "format": "bytes", "label": "Bytes" },
+          { "format": "short" }
+        ],
+        "xaxis": { "mode": "time" }
+      },
+      {
+        "id": 5,
+        "title": "CPU Usage",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+        "targets": [
+          {
+            "expr": "rate(nodejs_process_cpu_seconds_total[5m]) * 100",
+            "legendFormat": "CPU Usage %",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          { "format": "percent", "label": "Percentage" },
+          { "format": "short" }
+        ],
+        "xaxis": { "mode": "time" }
+      },
+      {
+        "id": 6,
+        "title": "Event Loop Lag",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+        "targets": [
+          {
+            "expr": "nodejs_nodejs_eventloop_lag_seconds",
+            "legendFormat": "Event Loop Lag",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [{ "format": "s", "label": "Seconds" }, { "format": "short" }],
+        "xaxis": { "mode": "time" }
+      },
+      {
+        "id": 7,
+        "title": "Top 10 Endpoints by Request Rate",
+        "type": "table",
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+        "targets": [
+          {
+            "expr": "topk(10, sum by (route) (rate(http_requests_total[5m])))",
+            "format": "table",
+            "refId": "A"
+          }
+        ]
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    }
+  }
+}

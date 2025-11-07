@@ -300,6 +300,39 @@
   }
   ```
 
+### 20. Application Token (X-API-Key)
+
+- **REQUIRED**: All API requests must include `X-API-Key` header
+- **CONFIGURATION**: Set `REACT_APP_APPLICATION_TOKEN` in client `.env`
+- **AUTO-INCLUDED**: Axios interceptor automatically adds `X-API-Key` header
+- **PATTERN**: Token is configured in both server and client `.env` files
+  - Server: `APPLICATION_TOKEN=your_token_here`
+  - Client: `REACT_APP_APPLICATION_TOKEN=your_token_here`
+- **NEVER** hardcode tokens in source code
+
+### 21. Role-Based Access Control (RBAC)
+
+- **REQUIRED**: All protected endpoints must use RBAC middleware
+- **PATTERN**: Use `requirePermission(resource, action)` middleware
+  ```javascript
+  router.post(
+    "/products",
+    Auth,
+    requirePermission("products", "create"),
+    createProduct
+  );
+  ```
+- **ROLES**: Admin has all permissions, other roles have specific permissions
+- **ALWAYS** check permissions at route level, not just controller level
+
+### 22. Rate Limiting
+
+- **CONFIGURED**: Rate limiting is enabled globally
+- **DEVELOPMENT**: More lenient limits for localhost
+- **PRODUCTION**: Stricter limits for production
+- **LOAD BALANCING**: Supports load balancers with proper IP extraction
+- **NEVER** bypass rate limiting in production
+
 ## Error Prevention Checklist
 
 ### Before Committing, Verify:
@@ -314,6 +347,11 @@
 - [ ] No TypeScript errors
 - [ ] No console errors in browser
 - [ ] Loading and error states are handled for all async operations
+- [ ] Application token (X-API-Key) is configured in both server and client `.env`
+- [ ] All protected endpoints use RBAC middleware
+- [ ] Image URLs use environment variables, not hardcoded values
+- [ ] Cloudflare credentials are properly configured (if using Cloudflare)
+- [ ] R2 endpoint format is correct (no bucket name in endpoint)
 
 ## Auto-Fix Patterns
 
@@ -335,10 +373,134 @@
 - ❌ Hardcoded values instead of config → Maintenance issues
 - ❌ Missing loading states → Poor UX
 - ❌ No error feedback → Users confused
+- ❌ Missing `X-API-Key` header → 401 Unauthorized errors
+- ❌ Hardcoded image URLs → Production issues
+- ❌ R2 endpoint with bucket name → SignatureDoesNotMatch errors
+- ❌ Missing RBAC middleware → Security vulnerabilities
+- ❌ Logging sensitive data → Security risks
+
+## Image Handling & Cloudflare Integration
+
+### 23. Image Upload & Storage
+
+- **REQUIRED**: Use Cloudflare R2 or Cloudflare Images for production
+- **FALLBACK**: System automatically falls back: Cloudflare Images → R2 → Local Storage
+- **CONFIGURATION**: Set Cloudflare credentials in server `.env`:
+  ```env
+  CLOUDFLARE_ACCOUNT_ID=your_account_id
+  CLOUDFLARE_R2_ACCESS_KEY_ID=your_r2_key
+  CLOUDFLARE_R2_SECRET_ACCESS_KEY=your_r2_secret
+  CLOUDFLARE_R2_BUCKET_NAME=your_bucket_name
+  CLOUDFLARE_R2_ENDPOINT=https://{accountId}.r2.cloudflarestorage.com
+  CLOUDFLARE_IMAGES_API_TOKEN=your_images_token
+  CLOUDFLARE_IMAGES_ACCOUNT_HASH=your_account_hash
+  ```
+- **ENDPOINT FORMAT**: R2 endpoint must NOT include bucket name
+  - ✅ Correct: `https://{accountId}.r2.cloudflarestorage.com`
+  - ❌ Wrong: `https://bucket-name.{accountId}.r2.cloudflarestorage.com`
+- **UPLOAD MIDDLEWARE**: Use `uploadToCloudflare` middleware for file uploads
+- **PATTERN**: Files are automatically uploaded to Cloudflare if configured
+
+### 24. Image Optimization & Responsive Images
+
+- **REQUIRED**: Use `ProductImage` component for all product images
+- **FEATURES**: Automatic responsive images, WebP/AVIF support, lazy loading
+- **UTILITIES**: Use `imageUtils.ts` for generating optimized image URLs
+- **PATTERN**:
+
+  ```typescript
+  import { ProductImage } from "@/components/ProductImage";
+  import { getImageFormats, generateSrcSet } from "@/utils/imageUtils";
+
+  <ProductImage
+    thumbnail={product.thumbnail}
+    title={product.title}
+    responsive={true}
+    modernFormats={true}
+  />;
+  ```
+
+- **LOCAL URLS**: Local `localhost` URLs skip transformations (not supported)
+- **ALWAYS** use responsive images for better performance
+
+### 25. Image URL Configuration
+
+- **REQUIRED**: Use `IMAGE_BUCKET_URL` environment variable for image URLs
+- **CONFIGURATION**: Set in server `.env`:
+  ```env
+  IMAGE_BUCKET_URL=http://localhost:3010/uploads
+  # Or for production:
+  IMAGE_BUCKET_URL=https://cdn.yourdomain.com
+  ```
+- **NEVER** hardcode image URLs - always use environment variables
+- **CLOUDFLARE**: If using Cloudflare, URLs are automatically generated
+
+## API Documentation & Monitoring
+
+### 26. API Documentation (Swagger)
+
+- **AVAILABLE**: Interactive API documentation at `/api-docs`
+- **DEVELOPMENT**: Publicly accessible in development
+- **PRODUCTION**: Protected by application token in production
+- **USAGE**: Visit `http://localhost:3010/api-docs` to view documentation
+- **JSDOC**: All routes should have JSDoc comments for auto-documentation
+- **PATTERN**:
+  ```javascript
+  /**
+   * @swagger
+   * /api/v1/products:
+   *   get:
+   *     summary: Get all products
+   *     tags: [Products]
+   *     responses:
+   *       200:
+   *         description: List of products
+   */
+  ```
+
+### 27. Metrics & Observability
+
+- **ENDPOINT**: Prometheus metrics available at `/metrics`
+- **DEVELOPMENT**: Publicly accessible in development
+- **PRODUCTION**: Protected by application token in production
+- **VISUALIZATION**: Use Grafana for visual dashboards (port 3001)
+- **MONITORING**: Track HTTP requests, response times, errors, etc.
+- **USAGE**: Visit `http://localhost:3010/metrics` for raw metrics
+
+### 28. Request Tracking & Logging
+
+- **REQUIRED**: All requests have unique request IDs (`X-Request-ID` header)
+- **LOGGING**: Structured logging with request/response tracking
+- **CORRELATION**: Use request ID to correlate logs across services
+- **PATTERN**: Request IDs are automatically generated and logged
+- **NEVER** log sensitive data (passwords, tokens, etc.)
+
+## Configuration Management
+
+### 29. Environment Variables
+
+- **REQUIRED**: All configuration must use environment variables
+- **NEVER** hardcode URLs, ports, or credentials
+- **PATTERN**: Use `config` object from `server/config/index.js`
+- **CLIENT**: Client environment variables must have `REACT_APP_` prefix
+- **BACKEND URL**: Use `REACT_APP_BACKEND_API_URL` with full path:
+  ```env
+  REACT_APP_BACKEND_API_URL=http://localhost:3010/api/v1
+  ```
+- **VALIDATION**: Always validate required environment variables on startup
+
+### 30. Error Handling & Response Format
+
+- **REQUIRED**: All API responses follow standard format
+- **PATTERN**: Use `responseHandler` utility for consistent responses
+- **ERROR CODES**: Use appropriate HTTP status codes
+- **ERROR MESSAGES**: Provide clear, user-friendly error messages
+- **LOGGING**: Log errors with full context (request ID, user, etc.)
+- **NEVER** expose internal error details to clients
 
 ## Development Workflow & Scripts
 
-### 20. Reset Database & Restart Dev Server
+### 31. Reset Database & Restart Dev Server
 
 - **USE**: `npm run reset-and-restart` for one-command reset and restart
 - **PURPOSE**: Stops dev server, resets database with seed data, restarts dev server
@@ -348,11 +510,20 @@
 - **WHEN TO USE**: After database schema changes, for fresh test data, or when starting fresh
 - **NOTE**: Always stops processes on ports 3000 and 3010 before proceeding
 
-### 21. Dev Server Management
+### 32. Dev Server Management
 
 - **START**: `npm run dev` (runs client and server concurrently)
 - **STOP**: `npm run dev:stop` (kills all dev server processes)
 - **PATTERN**: Use `reset-and-restart` when you need fresh data; use `dev:stop` + `dev` when you just need to restart
+
+### 33. Monitoring & Metrics
+
+- **START MONITORING**: `npm run monitoring` (starts Prometheus and Grafana)
+- **GRAFANA**: Available at `http://localhost:3001` (not 3000 - that's the frontend)
+- **PROMETHEUS**: Available at `http://localhost:9090`
+- **METRICS**: API metrics available at `http://localhost:3010/metrics`
+- **GENERATE METRICS**: `npm run generate-metrics` (generates sample API traffic)
+- **STOP MONITORING**: Stop Prometheus and Grafana processes manually
 
 ## Success Criteria
 
@@ -367,3 +538,9 @@ Code is considered "fail-proof" when:
 - ✅ All imports resolve correctly
 - ✅ No unused variables or imports
 - ✅ All components are properly typed
+- ✅ Application token is configured and working
+- ✅ All protected endpoints use RBAC
+- ✅ Image handling uses environment variables
+- ✅ Cloudflare credentials are properly configured (if used)
+- ✅ API documentation is up to date
+- ✅ Metrics and monitoring are working

@@ -4,8 +4,41 @@ import { signOut } from 'redux/slice';
 import { getToken, removeToken } from 'utils/localStorage';
 import { message } from 'antd';
 
+// Get application token from environment
+const getApplicationToken = (): string | undefined => {
+  return process.env.REACT_APP_APPLICATION_TOKEN || process.env.REACT_APP_API_KEY;
+};
+
+// Set up request interceptor to add X-API-Key header to all requests
+axios.interceptors.request.use(
+  (config) => {
+    // Add application token (X-API-Key) to all requests
+    const applicationToken = getApplicationToken();
+    if (applicationToken) {
+      config.headers['X-API-Key'] = applicationToken;
+    } else {
+      // Log warning if token is missing (only in development)
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('X-API-Key header not added - REACT_APP_APPLICATION_TOKEN not set in environment');
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Set up axios interceptor for handling 401 responses and auto-logout
 let isLoggingOut = false;
+let lastLoginTime = 0; // Track when user last logged in
+const LOGIN_GRACE_PERIOD = 10000; // 10 seconds grace period after login
+
+// Track successful login
+export const setLastLoginTime = () => {
+  lastLoginTime = Date.now();
+  console.log('Login time set for grace period:', lastLoginTime);
+};
 
 axios.interceptors.response.use(
   (response) => {
@@ -15,9 +48,25 @@ axios.interceptors.response.use(
   async (error) => {
     // Handle 401 Unauthorized responses
     if (error?.response?.status === 401) {
-      // Don't auto-logout for auth endpoints (login/register) - let them handle the error
       const requestUrl = error?.config?.url || '';
-      const isAuthEndpoint = requestUrl.includes('/user/login') || requestUrl.includes('/user/register') || requestUrl.includes('/user/check-user');
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.message || '';
+      
+      // Check if this is an application token error (not authentication error)
+      const isApplicationTokenError = errorMessage.includes('Application token') || 
+                                      errorMessage.includes('X-API-Key') ||
+                                      errorMessage.includes('application token');
+      
+      if (isApplicationTokenError) {
+        // Application token error - don't logout, just show error
+        console.error('Application token error:', errorMessage);
+        message.error('API configuration error. Please contact support.');
+        return Promise.reject(error);
+      }
+      
+      // Don't auto-logout for auth endpoints (login/register) - let them handle the error
+      const isAuthEndpoint = requestUrl.includes('/user/login') || 
+                              requestUrl.includes('/user/register') || 
+                              requestUrl.includes('/user/check-user');
       
       if (isAuthEndpoint) {
         // For auth endpoints, just reject the promise - let the login/register handlers deal with it
@@ -29,6 +78,28 @@ axios.interceptors.response.use(
       // Check if this is a cart endpoint - if so, don't redirect when no token
       // Let the component handle it with the auth modal
       const isCartEndpoint = requestUrl.includes('/carts/');
+      
+      // Grace period after login - don't logout immediately after login
+      const timeSinceLogin = lastLoginTime > 0 ? Date.now() - lastLoginTime : Infinity;
+      const isInGracePeriod = timeSinceLogin < LOGIN_GRACE_PERIOD;
+      
+      // Additional check: if we just logged in and this is a profile/user endpoint, don't logout
+      // This handles cases where profile fetch happens immediately after login
+      const isUserProfileEndpoint = requestUrl.includes('/user/') && 
+                                     (requestUrl.includes('/profile') || 
+                                      requestUrl.includes('/profile-completion') ||
+                                      requestUrl.match(/\/user\/[a-f0-9]{24}$/)); // User ID endpoint
+      
+      if (isInGracePeriod || (isUserProfileEndpoint && timeSinceLogin < LOGIN_GRACE_PERIOD * 2)) {
+        // Just logged in - don't logout, just reject the error
+        console.warn('Request failed during login grace period, not logging out:', {
+          url: requestUrl,
+          error: errorMessage,
+          timeSinceLogin: timeSinceLogin,
+          isUserProfileEndpoint,
+        });
+        return Promise.reject(error);
+      }
       
       // Only logout if we have a token (meaning user was logged in)
       if (token && !isLoggingOut) {
@@ -122,10 +193,23 @@ export const startTokenValidation = () => {
       if (currentUser?._id) {
         try {
           // Try to fetch user profile - if this fails with 401, user doesn't exist or token is invalid
+          // Note: X-API-Key header is automatically added by the request interceptor
           await axios.get(`${AUTH_API}/${currentUser._id}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
         } catch (error: any) {
+          // Check if this is an application token error (not authentication error)
+          const errorMessage = error?.response?.data?.error || error?.response?.data?.message || '';
+          const isApplicationTokenError = errorMessage.includes('Application token') || 
+                                          errorMessage.includes('X-API-Key') ||
+                                          errorMessage.includes('application token');
+          
+          // Don't logout on application token errors - just log it
+          if (isApplicationTokenError) {
+            console.error('Application token error during token validation:', errorMessage);
+            return; // Don't logout, just skip this validation
+          }
+          
           // If 401 or 404, user doesn't exist or token is invalid - logout
           if (error?.response?.status === 401 || error?.response?.status === 404) {
             if (!isLoggingOut) {

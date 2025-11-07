@@ -2,15 +2,28 @@ import mongoose from "mongoose";
 import Product from "../models/product.js";
 import User from "../models/user.js";
 import { createNotification } from "./notifications.js";
+import config from "../config/index.js";
 // Environment variables are loaded by server/config/index.js
 // No need to load dotenv here - it's already loaded when the server starts
 
-const PORT = process.env.PORT || 3010;
-
 export const getProduct = async (req, res) => {
   const { id } = req.params;
+
+  // Validate ObjectId format before querying
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid product ID format" });
+  }
+
   try {
-    const product = await Product.findById(id).populate('userID', 'fullName email profilePhoto');
+    const product = await Product.findById(id).populate(
+      "userID",
+      "fullName email profilePhoto"
+    );
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
     res.status(200).json(product);
   } catch (error) {
     console.log(error);
@@ -24,7 +37,7 @@ export const getRelatedProducts = async (req, res) => {
   try {
     const product = await Product.findById(id);
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({ message: "Product not found" });
     }
 
     // Find products with similar categories, excluding current product
@@ -32,7 +45,7 @@ export const getRelatedProducts = async (req, res) => {
       _id: { $ne: id },
       categories: { $in: product.categories },
     })
-      .populate('userID', 'fullName email profilePhoto')
+      .populate("userID", "fullName email profilePhoto")
       .limit(Number(limit))
       .sort({ createdAt: -1 });
 
@@ -67,39 +80,53 @@ export const getProducts = async (req, res) => {
 export const createProduct = async (req, res) => {
   const thumbnailFile = req.files?.thumbnail?.[0] || req.file;
   if (!thumbnailFile) {
-    return res.status(400).json({ message: "Error: No thumbnail file selected!" });
+    return res
+      .status(400)
+      .json({ message: "Error: No thumbnail file selected!" });
   }
 
   const { title, body, tag, categories, slug, price, stock } = req.body;
-  const fullUrl = `http://localhost:${PORT}/uploads/${thumbnailFile.filename}`;
-  
+  // Use Cloudflare URL if available, otherwise fallback to constructed URL
+  const fullUrl =
+    thumbnailFile.url ||
+    thumbnailFile.cloudflareUrl ||
+    `${config.upload.imageBucketUrl}/${thumbnailFile.filename}`;
+
   // Handle gallery images
   let images = [];
   if (req.files?.images && req.files.images.length > 0) {
-    images = req.files.images.map(file => `http://localhost:${PORT}/uploads/${file.filename}`);
+    images = req.files.images.map(
+      (file) =>
+        file.url ||
+        file.cloudflareUrl ||
+        `${config.upload.imageBucketUrl}/${file.filename}`
+    );
   }
 
   // Parse body if it's a JSON string
   let bodyObj = body;
-  if (typeof body === 'string') {
+  if (typeof body === "string") {
     try {
       bodyObj = JSON.parse(body);
     } catch (e) {
-      bodyObj = { description: body, summary: body.substring(0, 200).replace(/<[^>]*>/g, '') };
+      bodyObj = {
+        description: body,
+        summary: body.substring(0, 200).replace(/<[^>]*>/g, ""),
+      };
     }
   }
 
   // Parse categories and tags if they're strings
   let categoriesArr = categories;
-  if (typeof categories === 'string') {
-    categoriesArr = categories.split(',').filter(Boolean);
+  if (typeof categories === "string") {
+    categoriesArr = categories.split(",").filter(Boolean);
   } else if (Array.isArray(categories)) {
     categoriesArr = categories;
   }
 
   let tagsArr = tag;
-  if (typeof tagsArr === 'string') {
-    tagsArr = tagsArr.split(',').filter(Boolean);
+  if (typeof tagsArr === "string") {
+    tagsArr = tagsArr.split(",").filter(Boolean);
   } else if (Array.isArray(tagsArr)) {
     tagsArr = tagsArr;
   }
@@ -111,7 +138,7 @@ export const createProduct = async (req, res) => {
     body: bodyObj,
     tag: tagsArr,
     categories: categoriesArr,
-    slug: slug || title?.toLowerCase().replace(/\s+/g, '-'),
+    slug: slug || title?.toLowerCase().replace(/\s+/g, "-"),
     thumbnail: fullUrl,
     images,
     price: price ? parseFloat(price) : undefined,
@@ -121,7 +148,10 @@ export const createProduct = async (req, res) => {
   try {
     await newProduct.save();
     // Populate userID before returning
-    const populatedProduct = await Product.findById(newProduct._id).populate('userID', 'fullName email profilePhoto');
+    const populatedProduct = await Product.findById(newProduct._id).populate(
+      "userID",
+      "fullName email profilePhoto"
+    );
     res.status(201).json(populatedProduct);
   } catch (error) {
     res.status(409).json({ message: error.message || error });
@@ -132,41 +162,48 @@ export const updateProduct = async (req, res) => {
   const { id: _id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(_id))
     return res.status(404).json({ message: "No product with that ID" });
-  
+
   const existingProduct = await Product.findById(_id);
   if (!existingProduct) {
     return res.status(404).json({ message: "No product with that ID" });
   }
-  
+
   // Check ownership - only the product creator can update
   if (String(existingProduct.userID) !== String(req.userId)) {
-    return res.status(403).json({ message: "You can only update your own products" });
+    return res
+      .status(403)
+      .json({ message: "You can only update your own products" });
   }
 
   const { title, body, tag, categories, slug, price, stock } = req.body;
-  
+
   // Handle thumbnail update
   let thumbnail = existingProduct.thumbnail;
   const thumbnailFile = req.files?.thumbnail?.[0] || req.file;
   if (thumbnailFile) {
-    thumbnail = `http://localhost:${PORT}/uploads/${thumbnailFile.filename}`;
+    thumbnail = `${config.upload.imageBucketUrl}/${thumbnailFile.filename}`;
   }
 
   // Handle gallery images
   let images = existingProduct.images || [];
   if (req.files?.images && req.files.images.length > 0) {
-    const newImages = req.files.images.map(file => `http://localhost:${PORT}/uploads/${file.filename}`);
+    const newImages = req.files.images.map(
+      (file) => `${config.upload.imageBucketUrl}/${file.filename}`
+    );
     images = [...images, ...newImages];
   }
 
   // Parse body if it's a JSON string
   let bodyObj = body;
   if (body) {
-    if (typeof body === 'string') {
+    if (typeof body === "string") {
       try {
         bodyObj = JSON.parse(body);
       } catch (e) {
-        bodyObj = { description: body, summary: body.substring(0, 200).replace(/<[^>]*>/g, '') };
+        bodyObj = {
+          description: body,
+          summary: body.substring(0, 200).replace(/<[^>]*>/g, ""),
+        };
       }
     } else {
       bodyObj = body;
@@ -176,8 +213,8 @@ export const updateProduct = async (req, res) => {
   // Parse categories and tags if they're strings
   let categoriesArr = categories;
   if (categories) {
-    if (typeof categories === 'string') {
-      categoriesArr = categories.split(',').filter(Boolean);
+    if (typeof categories === "string") {
+      categoriesArr = categories.split(",").filter(Boolean);
     } else if (Array.isArray(categories)) {
       categoriesArr = categories;
     }
@@ -185,8 +222,8 @@ export const updateProduct = async (req, res) => {
 
   let tagsArr = tag;
   if (tagsArr) {
-    if (typeof tagsArr === 'string') {
-      tagsArr = tagsArr.split(',').filter(Boolean);
+    if (typeof tagsArr === "string") {
+      tagsArr = tagsArr.split(",").filter(Boolean);
     } else if (Array.isArray(tagsArr)) {
       tagsArr = tagsArr;
     }
@@ -202,12 +239,10 @@ export const updateProduct = async (req, res) => {
   if (stock !== undefined) updateData.stock = parseInt(stock);
   if (thumbnail) updateData.thumbnail = thumbnail;
   if (images.length > 0) updateData.images = images;
-  
-  const updatedProduct = await Product.findByIdAndUpdate(
-    _id,
-    updateData,
-    { new: true }
-  ).populate('userID', 'fullName email profilePhoto');
+
+  const updatedProduct = await Product.findByIdAndUpdate(_id, updateData, {
+    new: true,
+  }).populate("userID", "fullName email profilePhoto");
   res.json(updatedProduct);
 };
 
@@ -215,17 +250,19 @@ export const deleteProduct = async (req, res) => {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id))
     return res.status(404).send("No product with that ID");
-  
+
   const product = await Product.findById(id);
   if (!product) {
     return res.status(404).send("No product with that ID");
   }
-  
+
   // Check ownership - only the product creator can delete
   if (String(product.userID) !== String(req.userId)) {
-    return res.status(403).json({ message: "You can only delete your own products" });
+    return res
+      .status(403)
+      .json({ message: "You can only delete your own products" });
   }
-  
+
   await Product.findByIdAndRemove(id);
   res.json({ message: "Product deleted successfully" });
 };
@@ -264,11 +301,14 @@ export const addCommentToProduct = async (req, res) => {
     if (!user) {
       userId = "ghost";
     }
-    const product = await Product.findById(req.params.id).populate('userID', 'fullName email');
+    const product = await Product.findById(req.params.id).populate(
+      "userID",
+      "fullName email"
+    );
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-    
+
     product.comments.push({ text: req.body.text, userId: userId });
     await product.save();
 
@@ -279,7 +319,9 @@ export const addCommentToProduct = async (req, res) => {
           userId: product.userID._id,
           type: "comment",
           title: "New Comment on Your Product",
-          message: `${user?.fullName || "Someone"} commented on "${product.title}"`,
+          message: `${user?.fullName || "Someone"} commented on "${
+            product.title
+          }"`,
           relatedEntity: {
             entityType: "product",
             entityId: product._id,
@@ -308,7 +350,10 @@ export const addCommentToProduct = async (req, res) => {
 
 export const allComments = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate("comments.userId", "fullName profilePhoto");
+    const product = await Product.findById(req.params.id).populate(
+      "comments.userId",
+      "fullName profilePhoto"
+    );
     res.status(201).json(product.comments);
   } catch (error) {
     res.status(404).json({ message: "Product not found" });
@@ -329,11 +374,13 @@ export const likeComment = async (req, res) => {
 
 export const replyComment = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate('comments.userId', 'fullName email').populate('userID', 'fullName email');
+    const product = await Product.findById(req.params.id)
+      .populate("comments.userId", "fullName email")
+      .populate("userID", "fullName email");
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-    
+
     const comment = product.comments.id(req.params.commentId);
     if (!comment) {
       return res.status(404).json({ message: "Comment not found" });
@@ -353,7 +400,9 @@ export const replyComment = async (req, res) => {
           userId: commentUserId,
           type: "reply",
           title: "Reply to Your Comment",
-          message: `${user?.fullName || "Someone"} replied to your comment on "${product.title}"`,
+          message: `${
+            user?.fullName || "Someone"
+          } replied to your comment on "${product.title}"`,
           relatedEntity: {
             entityType: "comment",
             entityId: comment._id,
@@ -396,11 +445,11 @@ export const viewCount = async (req, res) => {
 export const getMyProducts = async (req, res) => {
   try {
     const userId = req.userId;
-    
+
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }
-    
+
     // Convert userId to ObjectId - since schema uses ObjectId with ref
     let objectIdUserId;
     try {
@@ -409,37 +458,37 @@ export const getMyProducts = async (req, res) => {
       } else {
         // If not a valid ObjectId, try string comparison for backward compatibility
         const products = await Product.find({
-          $or: [
-            { userID: String(userId) },
-            { userID: userId }
-          ]
+          $or: [{ userID: String(userId) }, { userID: userId }],
         }).sort({ _id: -1 });
         return res.status(200).json({ data: products });
       }
     } catch (e) {
-      console.error('Error converting userId to ObjectId:', e);
+      console.error("Error converting userId to ObjectId:", e);
       // Fallback to string query
-      const products = await Product.find({ userID: String(userId) }).sort({ _id: -1 });
+      const products = await Product.find({ userID: String(userId) }).sort({
+        _id: -1,
+      });
       return res.status(200).json({ data: products });
     }
-    
+
     // Query with ObjectId first (new format)
-    let products = await Product.find({ userID: objectIdUserId }).sort({ _id: -1 });
-    
+    let products = await Product.find({ userID: objectIdUserId }).sort({
+      _id: -1,
+    });
+
     // If no products found with ObjectId, try string format for backward compatibility
     if (products.length === 0) {
       products = await Product.find({
-        $or: [
-          { userID: String(userId) },
-          { userID: userId }
-        ]
+        $or: [{ userID: String(userId) }, { userID: userId }],
       }).sort({ _id: -1 });
     }
-    
+
     res.status(200).json({ data: products });
   } catch (error) {
-    console.error('Error in getMyProducts:', error);
-    res.status(500).json({ message: error.message || 'Failed to fetch products' });
+    console.error("Error in getMyProducts:", error);
+    res
+      .status(500)
+      .json({ message: error.message || "Failed to fetch products" });
   }
 };
 
@@ -450,10 +499,15 @@ export const addRating = async (req, res) => {
     const userId = req.userId;
 
     if (!rating || rating < 1 || rating > 5) {
-      return res.status(400).json({ message: "Rating must be between 1 and 5" });
+      return res
+        .status(400)
+        .json({ message: "Rating must be between 1 and 5" });
     }
 
-    const product = await Product.findById(id).populate('userID', 'fullName email');
+    const product = await Product.findById(id).populate(
+      "userID",
+      "fullName email"
+    );
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
@@ -462,7 +516,7 @@ export const addRating = async (req, res) => {
 
     // Check if user already rated this product
     const existingRatingIndex = product.ratings.findIndex(
-      r => String(r.userId) === String(userId)
+      (r) => String(r.userId) === String(userId)
     );
 
     const isNewRating = existingRatingIndex < 0;
@@ -470,11 +524,17 @@ export const addRating = async (req, res) => {
     if (existingRatingIndex >= 0) {
       // Update existing rating
       product.ratings[existingRatingIndex].rating = rating;
-      product.ratings[existingRatingIndex].review = review || product.ratings[existingRatingIndex].review;
+      product.ratings[existingRatingIndex].review =
+        review || product.ratings[existingRatingIndex].review;
       product.ratings[existingRatingIndex].createdAt = new Date();
     } else {
       // Add new rating
-      product.ratings.push({ userId, rating, review: review || "", createdAt: new Date() });
+      product.ratings.push({
+        userId,
+        rating,
+        review: review || "",
+        createdAt: new Date(),
+      });
     }
 
     // Calculate average rating
@@ -485,14 +545,22 @@ export const addRating = async (req, res) => {
     await product.save();
 
     // Create notification for seller if it's a new rating (not update) and product has a seller
-    if (isNewRating && product.userID && String(product.userID._id) !== String(userId)) {
+    if (
+      isNewRating &&
+      product.userID &&
+      String(product.userID._id) !== String(userId)
+    ) {
       try {
         const notificationType = review ? "review" : "rating";
         await createNotification({
           userId: product.userID._id,
           type: notificationType,
-          title: review ? "New Review on Your Product" : "New Rating on Your Product",
-          message: `${user?.fullName || "Someone"} ${review ? "reviewed" : "rated"} "${product.title}" with ${rating} star${rating !== 1 ? 's' : ''}`,
+          title: review
+            ? "New Review on Your Product"
+            : "New Rating on Your Product",
+          message: `${user?.fullName || "Someone"} ${
+            review ? "reviewed" : "rated"
+          } "${product.title}" with ${rating} star${rating !== 1 ? "s" : ""}`,
           relatedEntity: {
             entityType: "product",
             entityId: product._id,
@@ -523,8 +591,11 @@ export const addRating = async (req, res) => {
 export const getRatings = async (req, res) => {
   try {
     const { id } = req.params;
-    const product = await Product.findById(id).populate("ratings.userId", "fullName profilePhoto");
-    
+    const product = await Product.findById(id).populate(
+      "ratings.userId",
+      "fullName profilePhoto"
+    );
+
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
@@ -540,17 +611,17 @@ export const getAllTags = async (req, res) => {
   try {
     const products = await Product.find({}, { tag: 1 }).lean();
     const allTags = new Set();
-    
-    products.forEach(product => {
+
+    products.forEach((product) => {
       if (product.tag && Array.isArray(product.tag)) {
-        product.tag.forEach(tag => {
-          if (tag && typeof tag === 'string') {
+        product.tag.forEach((tag) => {
+          if (tag && typeof tag === "string") {
             allTags.add(tag.trim());
           }
         });
       }
     });
-    
+
     const uniqueTags = Array.from(allTags).sort();
     res.status(200).json({ tags: uniqueTags });
   } catch (error) {

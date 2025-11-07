@@ -3,9 +3,9 @@ import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 
 import User from "../models/user.js";
+import config from "../config/index.js";
 // Environment variables are loaded by server/config/index.js
 // No need to load dotenv here - it's already loaded when the server starts
-const PORT = process.env.PORT || 3010;
 import Order from "../models/order.js";
 import Product from "../models/product.js";
 
@@ -28,29 +28,32 @@ export const login = async (req, res) => {
 
     const token = jwt.sign(
       { email: existingUser.email, id: existingUser._id },
-      "some very secret key",
-      { expiresIn: "24h" }
+      config.jwt.secret,
+      { expiresIn: config.jwt.expiresIn || "7d" }
     );
 
     // Calculate profile completion
     const completion = calculateProfileCompletion(existingUser);
-    const isComplete = completion === 100 && (existingUser.role !== 'seller' || (existingUser.bankPayout && existingUser.bankPayout.accountNumber));
-    
+    const isComplete =
+      completion === 100 &&
+      (existingUser.role !== "seller" ||
+        (existingUser.bankPayout && existingUser.bankPayout.accountNumber));
+
     // Update profileCompleted flag if complete
     if (isComplete && !existingUser.profileCompleted) {
       await User.findByIdAndUpdate(existingUser._id, {
         profileCompleted: true,
-        profileCompletedAt: new Date()
+        profileCompletedAt: new Date(),
       });
       existingUser.profileCompleted = true;
       existingUser.profileCompletedAt = new Date();
     }
 
-    res.status(200).json({ 
-      result: existingUser, 
+    res.status(200).json({
+      result: existingUser,
       token,
       profileCompletion: completion,
-      profileCompleted: existingUser.profileCompleted || isComplete
+      profileCompleted: existingUser.profileCompleted || isComplete,
     });
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
@@ -82,8 +85,8 @@ export const registration = async (req, res) => {
 
     const token = jwt.sign(
       { email: result.email, id: result._id },
-      "some very secret key",
-      { expiresIn: "24h" }
+      config.jwt.secret,
+      { expiresIn: config.jwt.expiresIn || "7d" }
     );
 
     res.status(200).json({
@@ -110,19 +113,29 @@ export const createUser = async (req, res) => {
   try {
     const userId = req.userId;
     const userRole = req.userRole;
-    const { email, password, fullName, phone, role, delivererType, deliveryAgencyId } = req.body;
+    const {
+      email,
+      password,
+      fullName,
+      phone,
+      role,
+      delivererType,
+      deliveryAgencyId,
+    } = req.body;
 
     // Validation
     if (!email || !password || !fullName || !role) {
-      return res.status(400).json({ 
-        message: "Email, password, fullName, and role are required" 
+      return res.status(400).json({
+        message: "Email, password, fullName, and role are required",
       });
     }
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "User with this email already exists" });
+      return res
+        .status(400)
+        .json({ message: "User with this email already exists" });
     }
 
     // Role-based authorization hierarchy
@@ -148,21 +161,37 @@ export const createUser = async (req, res) => {
     }
 
     if (!canCreate) {
-      return res.status(403).json({ 
-        message: `You are not authorized to create users with role '${role}'. ${userRole === "admin" ? "Admin can create: delivery_agency, support, finance" : userRole === "support" ? "Support can create: support_user, verification_team" : userRole === "verification_team" ? "Verification team can create: return_inspector" : userRole === "delivery_agency" ? "Delivery agency can create: warehouse_operator, delivery_person" : "Unauthorized"}` 
+      return res.status(403).json({
+        message: `You are not authorized to create users with role '${role}'. ${
+          userRole === "admin"
+            ? "Admin can create: delivery_agency, support, finance"
+            : userRole === "support"
+            ? "Support can create: support_user, verification_team"
+            : userRole === "verification_team"
+            ? "Verification team can create: return_inspector"
+            : userRole === "delivery_agency"
+            ? "Delivery agency can create: warehouse_operator, delivery_person"
+            : "Unauthorized"
+        }`,
       });
     }
 
     // Validate delivererType for delivery_person role (this shouldn't happen in normal flow, but validate just in case)
     if (role === "delivery_person") {
-      if (!delivererType || !["warehouse", "customer_delivery", "customer_return"].includes(delivererType)) {
-        return res.status(400).json({ 
-          message: "delivererType is required for delivery_person and must be 'warehouse', 'customer_delivery', or 'customer_return'" 
+      if (
+        !delivererType ||
+        !["warehouse", "customer_delivery", "customer_return"].includes(
+          delivererType
+        )
+      ) {
+        return res.status(400).json({
+          message:
+            "delivererType is required for delivery_person and must be 'warehouse', 'customer_delivery', or 'customer_return'",
         });
       }
       if (!deliveryAgencyId) {
-        return res.status(400).json({ 
-          message: "deliveryAgencyId is required for delivery_person" 
+        return res.status(400).json({
+          message: "deliveryAgencyId is required for delivery_person",
         });
       }
     }
@@ -199,13 +228,15 @@ export const createUser = async (req, res) => {
     // Remove password from response
     const { password: _, ...userResponse } = newUser.toObject();
 
-    return res.status(201).json({ 
+    return res.status(201).json({
       message: `User created successfully`,
-      user: userResponse
+      user: userResponse,
     });
   } catch (error) {
     console.error("Error creating user:", error);
-    return res.status(500).json({ message: "Failed to create user", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Failed to create user", error: error.message });
   }
 };
 
@@ -233,7 +264,9 @@ export const updateUserProfile = async (req, res) => {
 
     // Ensure user can only update their own profile
     if (String(userId) !== String(_id)) {
-      return res.status(403).json({ message: "You can only update your own profile" });
+      return res
+        .status(403)
+        .json({ message: "You can only update your own profile" });
     }
 
     // Remove _id from update data (immutable field)
@@ -242,19 +275,22 @@ export const updateUserProfile = async (req, res) => {
     // Email is used as username/identifier and should not be changed
     // Prevent email updates for security
     if (profile.email) {
-      console.warn(`Attempt to update email for user ${_id} - email updates are not allowed`);
+      console.warn(
+        `Attempt to update email for user ${_id} - email updates are not allowed`
+      );
     }
 
     // Validate required fields
     if (!updateData.fullName && Object.keys(updateData).length === 0) {
-      return res.status(400).json({ message: "At least fullName must be provided" });
+      return res
+        .status(400)
+        .json({ message: "At least fullName must be provided" });
     }
 
-    const updatedProfile = await User.findByIdAndUpdate(
-      _id,
-      updateData,
-      { new: true, runValidators: true }
-    );
+    const updatedProfile = await User.findByIdAndUpdate(_id, updateData, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!updatedProfile) {
       return res.status(404).json({ message: "User not found" });
@@ -262,13 +298,16 @@ export const updateUserProfile = async (req, res) => {
 
     // Recalculate profile completion
     const completion = calculateProfileCompletion(updatedProfile);
-    const isComplete = completion === 100 && (updatedProfile.role !== 'seller' || (updatedProfile.bankPayout && updatedProfile.bankPayout.accountNumber));
+    const isComplete =
+      completion === 100 &&
+      (updatedProfile.role !== "seller" ||
+        (updatedProfile.bankPayout && updatedProfile.bankPayout.accountNumber));
 
     // Update profileCompleted flag if complete
     if (isComplete && !updatedProfile.profileCompleted) {
       await User.findByIdAndUpdate(_id, {
         profileCompleted: true,
-        profileCompletedAt: new Date()
+        profileCompletedAt: new Date(),
       });
       updatedProfile.profileCompleted = true;
       updatedProfile.profileCompletedAt = new Date();
@@ -280,11 +319,13 @@ export const updateUserProfile = async (req, res) => {
     return res.json({
       ...profileResponse,
       profileCompletion: completion,
-      profileCompleted: updatedProfile.profileCompleted || isComplete
+      profileCompleted: updatedProfile.profileCompleted || isComplete,
     });
   } catch (error) {
     console.error("Error updating user profile:", error);
-    return res.status(500).json({ message: "Failed to update profile", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Failed to update profile", error: error.message });
   }
 };
 
@@ -292,8 +333,16 @@ export const uploadProfilePhoto = async (req, res) => {
   try {
     const { id } = req.params;
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
-    const fullUrl = `http://localhost:${PORT}/uploads/${req.file.filename}`;
-    const updated = await User.findByIdAndUpdate(id, { profilePhoto: fullUrl }, { new: true });
+    // Use Cloudflare URL if available, otherwise fallback to constructed URL
+    const fullUrl =
+      req.file.url ||
+      req.file.cloudflareUrl ||
+      `${config.upload.imageBucketUrl}/${req.file.filename}`;
+    const updated = await User.findByIdAndUpdate(
+      id,
+      { profilePhoto: fullUrl },
+      { new: true }
+    );
     return res.json(updated);
   } catch (e) {
     return res.status(500).json({ message: "Failed to upload profile photo" });
@@ -304,8 +353,16 @@ export const uploadCoverPhoto = async (req, res) => {
   try {
     const { id } = req.params;
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
-    const fullUrl = `http://localhost:${PORT}/uploads/${req.file.filename}`;
-    const updated = await User.findByIdAndUpdate(id, { coverPhoto: fullUrl }, { new: true });
+    // Use Cloudflare URL if available, otherwise fallback to constructed URL
+    const fullUrl =
+      req.file.url ||
+      req.file.cloudflareUrl ||
+      `${config.upload.imageBucketUrl}/${req.file.filename}`;
+    const updated = await User.findByIdAndUpdate(
+      id,
+      { coverPhoto: fullUrl },
+      { new: true }
+    );
     return res.json(updated);
   } catch (e) {
     return res.status(500).json({ message: "Failed to upload cover photo" });
@@ -314,12 +371,36 @@ export const uploadCoverPhoto = async (req, res) => {
 
 export const getUser = async (req, res) => {
   const { id } = req.params;
+  const userId = req.userId;
+  const userRole = req.userRole;
+
   try {
-    const user = await User.findById(id);
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    // Check if user is viewing their own profile or is admin
+    if (String(userId) !== String(id) && userRole !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden - You can only view your own profile",
+        error: "Insufficient permissions",
+      });
+    }
+
+    const user = await User.findById(id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     res.status(200).json(user);
   } catch (error) {
     console.log(error);
-    res.status(404).json({ message: error.message });
+    res
+      .status(500)
+      .json({ message: "Something went wrong", error: error.message });
   }
 };
 
@@ -328,25 +409,38 @@ export const getUsers = async (req, res) => {
     const userRole = req.userRole;
     const userId = req.userId;
     const { role } = req.query; // Optional role filter
-    
+
     // Only admin, support, support_user, verification_team, and delivery_agency roles can list users
-    if (userRole !== "admin" && userRole !== "support" && userRole !== "support_user" && userRole !== "verification_team" && userRole !== "delivery_agency") {
+    if (
+      userRole !== "admin" &&
+      userRole !== "support" &&
+      userRole !== "support_user" &&
+      userRole !== "verification_team" &&
+      userRole !== "delivery_agency"
+    ) {
       return res.status(403).json({ message: "Unauthorized" });
     }
-    
+
     // Build query based on role hierarchy
     let query = {};
-    
+
     if (role) {
       query.role = role;
     }
-    
+
     // Role-based filtering
     if (userRole === "support" || userRole === "support_user") {
       // Support can see support_user, verification_team, delivery_agency, and finance (for return workflow assignments)
-      const allowedRoles = ["support_user", "verification_team", "delivery_agency", "finance"];
+      const allowedRoles = [
+        "support_user",
+        "verification_team",
+        "delivery_agency",
+        "finance",
+      ];
       if (role && !allowedRoles.includes(role)) {
-        return res.status(403).json({ message: "Unauthorized to view users of this role" });
+        return res
+          .status(403)
+          .json({ message: "Unauthorized to view users of this role" });
       }
       if (!role) {
         // If no role filter, limit to allowed roles
@@ -355,7 +449,9 @@ export const getUsers = async (req, res) => {
     } else if (userRole === "verification_team") {
       // Verification team can only see return_inspector
       if (role && role !== "return_inspector") {
-        return res.status(403).json({ message: "Unauthorized to view users of this role" });
+        return res
+          .status(403)
+          .json({ message: "Unauthorized to view users of this role" });
       }
       if (!role) {
         query.role = "return_inspector";
@@ -363,13 +459,15 @@ export const getUsers = async (req, res) => {
     } else if (userRole === "delivery_agency") {
       // Delivery agency can only see warehouse_operator and delivery_person assigned to them
       if (role && !["warehouse_operator", "delivery_person"].includes(role)) {
-        return res.status(403).json({ message: "Unauthorized to view users of this role" });
+        return res
+          .status(403)
+          .json({ message: "Unauthorized to view users of this role" });
       }
       if (!role) {
         // Show both warehouse_operator and delivery_person assigned to this agency
         query.$or = [
           { role: "warehouse_operator", deliveryAgencyId: userId },
-          { role: "delivery_person", deliveryAgencyId: userId }
+          { role: "delivery_person", deliveryAgencyId: userId },
         ];
       } else {
         // Filter by role and agency
@@ -378,14 +476,18 @@ export const getUsers = async (req, res) => {
     } else if (userRole === "admin") {
       // Admin can see delivery_agency, support, finance
       if (role && !["delivery_agency", "support", "finance"].includes(role)) {
-        return res.status(403).json({ message: "Unauthorized to view users of this role" });
+        return res
+          .status(403)
+          .json({ message: "Unauthorized to view users of this role" });
       }
       if (!role) {
         query.role = { $in: ["delivery_agency", "support", "finance"] };
       }
     }
-    
-    const users = await User.find(query).select("fullName email role phone delivererType deliveryAgencyId");
+
+    const users = await User.find(query).select(
+      "fullName email role phone delivererType deliveryAgencyId"
+    );
     const privateFields = users.map((user) => {
       const userObj = user.toObject();
       delete userObj.password;
@@ -446,11 +548,15 @@ export const changePassword = async (req, res) => {
     const { oldPassword, newPassword } = req.body;
 
     if (!oldPassword || !newPassword) {
-      return res.status(400).json({ message: "Old password and new password are required" });
+      return res
+        .status(400)
+        .json({ message: "Old password and new password are required" });
     }
 
     if (newPassword.length < 6) {
-      return res.status(400).json({ message: "New password must be at least 6 characters" });
+      return res
+        .status(400)
+        .json({ message: "New password must be at least 6 characters" });
     }
 
     const user = await User.findById(userId);
@@ -468,7 +574,11 @@ export const changePassword = async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, 12);
 
     // Update password
-    await User.findByIdAndUpdate(userId, { password: hashedPassword }, { new: true });
+    await User.findByIdAndUpdate(
+      userId,
+      { password: hashedPassword },
+      { new: true }
+    );
 
     return res.status(200).json({ message: "Password changed successfully" });
   } catch (error) {
@@ -485,11 +595,15 @@ export const resetPassword = async (req, res) => {
     const { userId, newPassword } = req.body;
 
     if (!userId || !newPassword) {
-      return res.status(400).json({ message: "User ID and new password are required" });
+      return res
+        .status(400)
+        .json({ message: "User ID and new password are required" });
     }
 
     if (newPassword.length < 6) {
-      return res.status(400).json({ message: "New password must be at least 6 characters" });
+      return res
+        .status(400)
+        .json({ message: "New password must be at least 6 characters" });
     }
 
     // Verify admin can reset password for this user
@@ -503,10 +617,14 @@ export const resetPassword = async (req, res) => {
 
     if (adminRole === "admin") {
       // Admin can reset: delivery_agency, support, finance
-      canReset = ["delivery_agency", "support", "finance"].includes(targetUser.role);
+      canReset = ["delivery_agency", "support", "finance"].includes(
+        targetUser.role
+      );
     } else if (adminRole === "support") {
       // Support admin can reset: support_user, verification_team
-      canReset = ["support_user", "verification_team"].includes(targetUser.role);
+      canReset = ["support_user", "verification_team"].includes(
+        targetUser.role
+      );
     } else if (adminRole === "verification_team") {
       // Verification team can reset: return_inspector
       canReset = targetUser.role === "return_inspector";
@@ -523,14 +641,20 @@ export const resetPassword = async (req, res) => {
     }
 
     if (!canReset) {
-      return res.status(403).json({ message: "You are not authorized to reset password for this user" });
+      return res.status(403).json({
+        message: "You are not authorized to reset password for this user",
+      });
     }
 
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 12);
 
     // Update password
-    await User.findByIdAndUpdate(userId, { password: hashedPassword }, { new: true });
+    await User.findByIdAndUpdate(
+      userId,
+      { password: hashedPassword },
+      { new: true }
+    );
 
     return res.status(200).json({ message: "Password reset successfully" });
   } catch (error) {
@@ -544,24 +668,30 @@ export const calculateProfileCompletion = (user) => {
   if (!user) return 0;
 
   const fields = {
-    basic: ['fullName', 'email', 'phone'],
-    address: ['primaryAddress.street', 'primaryAddress.city', 'primaryAddress.state', 'primaryAddress.zipCode', 'primaryAddress.country'],
-    profile: ['profilePhoto'],
+    basic: ["fullName", "email", "phone"],
+    address: [
+      "primaryAddress.street",
+      "primaryAddress.city",
+      "primaryAddress.state",
+      "primaryAddress.zipCode",
+      "primaryAddress.country",
+    ],
+    profile: ["profilePhoto"],
   };
 
   let completedFields = 0;
   let totalFields = 0;
 
   // Basic fields
-  fields.basic.forEach(field => {
+  fields.basic.forEach((field) => {
     totalFields++;
     if (user[field]) completedFields++;
   });
 
   // Address fields
-  fields.address.forEach(field => {
+  fields.address.forEach((field) => {
     totalFields++;
-    const [parent, child] = field.split('.');
+    const [parent, child] = field.split(".");
     if (user[parent] && user[parent][child]) completedFields++;
   });
 
@@ -570,16 +700,23 @@ export const calculateProfileCompletion = (user) => {
   if (user.profilePhoto) completedFields++;
 
   // For sellers, also check bank payout info
-  if (user.role === 'seller') {
-    const bankFields = ['bankPayout.accountHolderName', 'bankPayout.accountNumber', 'bankPayout.bankName', 'bankPayout.routingNumber'];
-    bankFields.forEach(field => {
+  if (user.role === "seller") {
+    const bankFields = [
+      "bankPayout.accountHolderName",
+      "bankPayout.accountNumber",
+      "bankPayout.bankName",
+      "bankPayout.routingNumber",
+    ];
+    bankFields.forEach((field) => {
       totalFields++;
-      const [parent, child] = field.split('.');
+      const [parent, child] = field.split(".");
       if (user[parent] && user[parent][child]) completedFields++;
     });
   }
 
-  return totalFields > 0 ? Math.round((completedFields / totalFields) * 100) : 0;
+  return totalFields > 0
+    ? Math.round((completedFields / totalFields) * 100)
+    : 0;
 };
 
 // Get profile completion status
@@ -587,19 +724,22 @@ export const getProfileCompletion = async (req, res) => {
   try {
     const userId = req.userId;
     const user = await User.findById(userId);
-    
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     const completion = calculateProfileCompletion(user);
-    const isComplete = completion === 100 && (user.role !== 'seller' || (user.bankPayout && user.bankPayout.accountNumber));
+    const isComplete =
+      completion === 100 &&
+      (user.role !== "seller" ||
+        (user.bankPayout && user.bankPayout.accountNumber));
 
     // Update profileCompleted flag if complete
     if (isComplete && !user.profileCompleted) {
       await User.findByIdAndUpdate(userId, {
         profileCompleted: true,
-        profileCompletedAt: new Date()
+        profileCompletedAt: new Date(),
       });
     }
 
@@ -608,15 +748,17 @@ export const getProfileCompletion = async (req, res) => {
       isComplete,
       profileCompleted: user.profileCompleted || isComplete,
       requiredFields: {
-        basic: ['fullName', 'email', 'phone'],
-        address: ['primaryAddress'],
-        profile: ['profilePhoto'],
-        ...(user.role === 'seller' ? { bankPayout: ['bankPayout'] } : {})
-      }
+        basic: ["fullName", "email", "phone"],
+        address: ["primaryAddress"],
+        profile: ["profilePhoto"],
+        ...(user.role === "seller" ? { bankPayout: ["bankPayout"] } : {}),
+      },
     });
   } catch (error) {
     console.error("Error getting profile completion:", error);
-    return res.status(500).json({ message: "Failed to get profile completion" });
+    return res
+      .status(500)
+      .json({ message: "Failed to get profile completion" });
   }
 };
 
@@ -624,72 +766,85 @@ export const getUserStats = async (req, res) => {
   try {
     const userId = req.userId;
     const user = await User.findById(userId);
-    const isSeller = user?.role === 'seller';
-    
+    const isSeller = user?.role === "seller";
+
     const orders = await Order.find({ userId });
     const totalOrders = orders.length;
-    const totalSpent = orders.reduce((sum, o) => sum + (o.amount / 100), 0);
-    
+    const totalSpent = orders.reduce((sum, o) => sum + o.amount / 100, 0);
+
     // Handle both string and ObjectId userID for backward compatibility
     const mongoose = (await import("mongoose")).default;
     const userProducts = await Product.find({
       $or: [
         { userID: userId },
         { userID: String(userId) },
-        { userID: new mongoose.Types.ObjectId(userId) }
-      ]
+        { userID: new mongoose.Types.ObjectId(userId) },
+      ],
     });
     const totalProducts = userProducts.length;
-    
+
     if (isSeller) {
       // Seller stats: orders containing seller's products
-      const productIds = userProducts.map(p => p._id);
-      const productIdStrings = productIds.map(id => String(id));
-      
+      const productIds = userProducts.map((p) => p._id);
+      const productIdStrings = productIds.map((id) => String(id));
+
       if (productIds.length > 0) {
         const sellerOrders = await Order.find({
-          "items.productId": { $in: productIds }
+          "items.productId": { $in: productIds },
         });
         const totalSales = sellerOrders.length;
         const totalRevenue = sellerOrders.reduce((sum, order) => {
-          const sellerItems = order.items.filter(item => 
+          const sellerItems = order.items.filter((item) =>
             productIdStrings.includes(String(item.productId))
           );
-          return sum + sellerItems.reduce((itemSum, item) => itemSum + (item.price * item.quantity), 0);
+          return (
+            sum +
+            sellerItems.reduce(
+              (itemSum, item) => itemSum + item.price * item.quantity,
+              0
+            )
+          );
         }, 0);
-        
+
         // Count items in carts
         const Cart = (await import("../models/cart.js")).default;
         const cartsWithSellerProducts = await Cart.find({
-          "items.productId": { $in: productIds }
+          "items.productId": { $in: productIds },
         });
         const cartItemsCount = cartsWithSellerProducts.reduce((count, cart) => {
-          return count + cart.items.filter(item => 
-            productIdStrings.includes(String(item.productId))
-          ).length;
+          return (
+            count +
+            cart.items.filter((item) =>
+              productIdStrings.includes(String(item.productId))
+            ).length
+          );
         }, 0);
-      
-        return res.json({ 
-          totalOrders, 
-          totalSpent, 
-          totalProducts, 
+
+        return res.json({
+          totalOrders,
+          totalSpent,
+          totalProducts,
           totalSales,
           totalRevenue,
-          cartItemsCount
+          cartItemsCount,
         });
       } else {
-        return res.json({ 
-          totalOrders, 
-          totalSpent, 
-          totalProducts, 
+        return res.json({
+          totalOrders,
+          totalSpent,
+          totalProducts,
           totalSales: 0,
           totalRevenue: 0,
-          cartItemsCount: 0
+          cartItemsCount: 0,
         });
       }
     } else {
       // Buyer stats
-      const totalSales = orders.filter(o => userProducts.some(p => String(p._id) === String(o.items?.[0]?.productId))).length;
+      const totalSales = orders.filter((o) =>
+        userProducts.some(
+          (p) => String(p._id) === String(o.items?.[0]?.productId)
+        )
+      ).length;
       return res.json({ totalOrders, totalSpent, totalProducts, totalSales });
     }
   } catch (e) {

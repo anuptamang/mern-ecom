@@ -60,6 +60,11 @@ export const authSlice = createSlice({
       if (payload.token) {
         setToken(payload.token);
       }
+      // Set login time for grace period (prevents immediate logout after login)
+      // Import dynamically to avoid circular dependency
+      import('configs/axios/axiosInterceptor').then(({ setLastLoginTime }) => {
+        setLastLoginTime();
+      });
       // Start token validation after successful login
       startTokenValidation();
     });
@@ -85,6 +90,10 @@ export const authSlice = createSlice({
       if (action.payload.token) {
         setToken(action.payload.token);
       }
+      // Set login time for grace period (prevents immediate logout after registration)
+      import('configs/axios/axiosInterceptor').then(({ setLastLoginTime }) => {
+        setLastLoginTime();
+      });
       // Start token validation after successful registration
       startTokenValidation();
     });

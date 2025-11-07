@@ -54,7 +54,7 @@ Complete index and navigation guide for all project documentation.
 
 ## 🔗 Quick Links
 
-- [Main README](../../index.md)
-- [Getting Started](../getting-started/index.md)
-- [API Documentation](../API/index.md)
-- [Development Guide](../development/index.md)
+- [Main README](../../changelog-index.md)
+- [Getting Started](../getting-started/getting-started-index.md)
+- [API Documentation](../API/API-index.md)
+- [Development Guide](../development/development-index.md)

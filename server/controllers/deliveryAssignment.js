@@ -1,6 +1,7 @@
 import Delivery from "../models/delivery.js";
 import Order from "../models/order.js";
 import User from "../models/user.js";
+import config from "../config/index.js";
 
 /**
  * Assign delivery to a delivery agency
@@ -356,7 +357,7 @@ export const markAsDelivered = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { note, orderItemId, productId } = req.body; // Support per-item delivery
-    const deliveryProof = req.file ? `/uploads/${req.file.filename}` : null;
+    const deliveryProof = req.file ? `${config.upload.imageBucketUrl}/${req.file.filename}` : null;
     const userId = req.userId;
     const userRole = req.userRole;
 

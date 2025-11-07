@@ -1,0 +1,18 @@
+{
+	"ulid": "01K9ERPMS3R4AZ39ZJY8F857AE",
+	"minTime": 1762495203152,
+	"maxTime": 1762502400000,
+	"stats": {
+		"numSamples": 500584,
+		"numFloatSamples": 500584,
+		"numSeries": 1106,
+		"numChunks": 4180
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01K9ERPMS3R4AZ39ZJY8F857AE"
+		]
+	},
+	"version": 1
+}

@@ -1,17 +1,46 @@
+// Get application token from environment
+const getApplicationToken = (): string | undefined => {
+  return process.env.REACT_APP_APPLICATION_TOKEN || process.env.REACT_APP_API_KEY;
+};
+
 export const configHeaders = (token: string | null) => {
-  return {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  // Add application token (X-API-Key) to all requests
+  const applicationToken = getApplicationToken();
+  if (applicationToken) {
+    headers['X-API-Key'] = applicationToken;
   }
-}
+  
+  // Add JWT token (Authorization) if available
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  
+  return {
+    headers,
+  };
+};
 
 export const multiPartConfigHeaders = (token: string | null) => {
-  return {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-      Authorization: `Bearer ${token}`,
-    },
+  const headers: Record<string, string> = {
+    'Content-Type': 'multipart/form-data',
+  };
+  
+  // Add application token (X-API-Key) to all requests
+  const applicationToken = getApplicationToken();
+  if (applicationToken) {
+    headers['X-API-Key'] = applicationToken;
   }
+  
+  // Add JWT token (Authorization) if available
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  
+  return {
+    headers,
+  };
 }

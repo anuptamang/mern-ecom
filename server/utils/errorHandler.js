@@ -4,7 +4,6 @@
  */
 
 import logger from './logger.js';
-import { errorHandlerWithAutoFix } from './autoFix.js';
 
 class AppError extends Error {
   constructor(message, statusCode, isOperational = true) {
@@ -22,23 +21,10 @@ export const createError = (message, statusCode = 500) => {
 };
 
 /**
- * Enhanced error handler with auto-fix capability
- * First attempts to auto-fix, then falls back to standard handling
+ * Error handler middleware
+ * Handles all errors and returns consistent error responses
  */
-export const errorHandler = async (err, req, res, next) => {
-  // Try auto-fix first
-  await errorHandlerWithAutoFix(err, req, res, next);
-  
-  // If auto-fix didn't handle it, continue with standard error handling
-  if (!res.headersSent) {
-    standardErrorHandler(err, req, res, next);
-  }
-};
-
-/**
- * Standard error handler (fallback)
- */
-const standardErrorHandler = (err, req, res, next) => {
+export const errorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
 

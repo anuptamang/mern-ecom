@@ -1,6 +1,7 @@
 import Return from "../models/return.js";
 import Order from "../models/order.js";
 import User from "../models/user.js";
+import config from "../config/index.js";
 
 /**
  * Get return requests for support team
@@ -484,7 +485,7 @@ export const markReturnPickedUp = async (req, res) => {
     }
     
     // Get pickup proof from uploaded file
-    const pickupProof = req.file ? `/uploads/${req.file.filename}` : null;
+    const pickupProof = req.file ? `${config.upload.imageBucketUrl}/${req.file.filename}` : null;
     
     // Determine pickup context
     const isReDelivery = returnRequest.returnStatus === "re_delivery";

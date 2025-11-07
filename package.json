@@ -19,6 +19,9 @@
     "docker:run": "docker run -p 3010:3010 --env-file server/.env ecommerce-app",
     "docker:compose": "docker-compose up -d",
     "docker:down": "docker-compose down",
+    "start-monitoring": "./scripts/start-monitoring.sh",
+    "monitoring": "./scripts/start-monitoring.sh",
+    "generate-metrics": "./scripts/generate-metrics.sh",
     "prepare": "husky install"
   },
   "keywords": [
@@ -34,7 +37,6 @@
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2",
-    "express-rate-limit": "^8.2.1",
     "husky": "^8.0.3"
   },
   "engines": {

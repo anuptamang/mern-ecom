@@ -23,9 +23,13 @@
 - **Scalable Architecture**: Microservices-ready structure
 - **Type Safety**: TypeScript throughout frontend
 - **Error Handling**: Centralized error management
-- **Logging**: Structured logging system
-- **Security**: JWT auth, input validation, CORS
-- **Performance**: Optimized queries, caching ready
+- **Logging**: Structured logging system with request/response tracking
+- **API Documentation**: Interactive Swagger/OpenAPI documentation with JSON/YAML export
+- **Metrics & Observability**: Prometheus metrics endpoint for monitoring
+- **Security**: Enterprise-grade security with JWT auth, application tokens, RBAC, rate limiting, input validation, CORS, security headers
+- **Performance**: Optimized queries, response compression, request timeouts, graceful shutdown
+- **Request Tracking**: Unique request IDs for correlation and debugging
+- **Image Handling**: Cloudflare R2 storage, Cloudflare Images optimization, responsive images, WebP/AVIF support, lazy loading
 - **Docker Support**: Containerized deployment
 - **CI/CD Ready**: GitHub Actions/CircleCI configuration
 
@@ -63,7 +67,7 @@
    # Client and server use separate .env files for independent deployment
    cp client/.env.example client/.env
    cp server/.env.example server/.env
-   
+
    # Edit both files with your configuration
    # - client/.env: Frontend configuration (REACT_APP_* variables)
    # - server/.env: Backend configuration (MONGODB_URI, JWT_SECRET, etc.)
@@ -151,7 +155,8 @@ ecommerce/
 ### Environment Variables
 
 **Important:** Client and server use separate `.env` files:
-- `client/.env` - Frontend configuration (REACT_APP_* variables only)
+
+- `client/.env` - Frontend configuration (REACT*APP*\* variables only)
 - `server/.env` - Backend configuration (all server variables)
 
 Key environment variables (see `server/.env.example` and `client/.env.example`):
@@ -168,6 +173,37 @@ CORS_ORIGIN=http://localhost:3000
 
 Update `client/src/configs/api/api.ts` for API endpoints.
 
+## 📖 API Documentation
+
+The API provides interactive documentation and exportable specifications:
+
+### Interactive Documentation
+
+- **Swagger UI**: `http://localhost:3010/api-docs/`
+  - Browse all endpoints
+  - Test APIs directly in the browser
+  - View request/response schemas
+  - Authenticate with API key and JWT token
+
+### Exportable Specifications
+
+- **JSON Format**: `http://localhost:3010/api-docs/swagger.json`
+  - Import into Postman, Insomnia, or other API tools
+- **YAML Format**: `http://localhost:3010/api-docs/swagger.yaml`
+  - Alternative format for tools that prefer YAML
+
+### Quick Start
+
+```bash
+# View interactive documentation
+open http://localhost:3010/api-docs/
+
+# Download JSON spec for Postman
+curl http://localhost:3010/api-docs/swagger.json -o swagger.json
+```
+
+See [API_DOCS_URLS.md](./docs/API/API_DOCS_URLS.md) for complete documentation and [POSTMAN_IMPORT.md](./docs/API/POSTMAN_IMPORT.md) for Postman import guide.
+
 ## 🧪 Testing
 
 ```bash
@@ -183,9 +219,37 @@ npm test
 
 ## 📚 Documentation
 
-Complete documentation is available in the [`docs`](./docs/README.md) folder.
+Complete documentation is available in the [`docs`](./docs/README.md) folder and root-level guides.
+
+### API Documentation
+
+- [API Documentation URLs](./docs/API/API_DOCS_URLS.md) - All available `/api-docs/` endpoints
+- [Postman Import Guide](./docs/API/POSTMAN_IMPORT.md) - Import API into Postman
+- [Interactive API Docs](http://localhost:3010/api-docs/) - Swagger UI (when server is running)
+
+### Enterprise Features
+
+- [Enterprise Implementation Checklist](./docs/enterprise/ENTERPRISE_IMPLEMENTATION_CHECKLIST.md) - Track enterprise features
+- [Implementation Guide](./docs/enterprise/IMPLEMENTATION_GUIDE.md) - Step-by-step implementation guide
+- [Image Handling Analysis](./docs/enterprise/IMAGE_HANDLING_ANALYSIS.md) - Current image handling vs enterprise standards
+- [Image Handling Improvements](./docs/enterprise/IMAGE_HANDLING_IMPROVEMENTS.md) - Enterprise-grade image optimization guide
+- [Quick Start Enterprise](./docs/getting-started/QUICK_START_ENTERPRISE.md) - Quick start for enterprise features
+- [Installation Guide](./docs/getting-started/INSTALLATION.md) - Package installation guide
+
+### Security & Configuration
+
+- [Security Implementation](./docs/security/SECURITY_IMPLEMENTATION.md) - Complete security setup
+- [Application Token Setup](./docs/security/APPLICATION_TOKEN_SETUP.md) - Application token configuration
+- [Rate Limiting](./docs/security/RATE_LIMITING.md) - Rate limiting configuration
+- [Load Balancing](./docs/security/LOAD_BALANCING.md) - Load balancer configuration
+
+### Troubleshooting
+
+- [Troubleshooting 401 Errors](./docs/security/TROUBLESHOOTING_401.md) - Fix 401 Unauthorized errors
+- [Login Redirect Fix](./docs/security/LOGIN_REDIRECT_FIX.md) - Fix login redirect loops
 
 ### Quick Links
+
 - [Getting Started](./docs/getting-started/QUICK_START.md) - Get up and running in 5 minutes
 - [Architecture Documentation](./docs/architecture/ARCHITECTURE.md) - System architecture and design decisions
 - [API Documentation](./docs/API/API.md) - Complete API reference
@@ -196,32 +260,64 @@ Complete documentation is available in the [`docs`](./docs/README.md) folder.
 - [Template Guide](./docs/getting-started/PROJECT_TEMPLATE.md) - Using this as a template
 
 ### Documentation Index
+
 - [Complete Documentation Index](./docs/index/INDEX.md) - Browse all documentation
 - [Documentation Structure](./docs/README.md) - Documentation organization
 
 ## 🔐 Security
 
-- JWT-based authentication
-- Role-based access control (RBAC)
-- Input validation and sanitization
-- CORS configuration
-- Rate limiting (ready)
-- SQL injection protection (MongoDB)
-- XSS protection (React)
+### Authentication & Authorization
+
+- **Application Token (X-API-Key)** - All endpoints require application token
+- **JWT-based authentication** - Secure user authentication with refresh tokens
+- **Role-based access control (RBAC)** - Granular permissions per role (buyer, seller, admin, etc.)
+
+### Protection Mechanisms
+
+- **Input validation and sanitization** - XSS and injection attack prevention
+- **Rate limiting** - Configurable limits with IPv6 support and load balancer support (Redis-ready)
+- **Security headers** - Comprehensive security headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, etc.)
+- **CORS configuration** - Cross-origin resource sharing with whitelist support
+- **SQL injection protection** - MongoDB parameterized queries
+- **XSS protection** - React built-in + input sanitization
+
+### Observability & Monitoring
+
+- **Request ID tracking** - Unique correlation IDs for each request
+- **Request/Response logging** - Comprehensive logging with sensitive data masking
+- **Metrics endpoint** - Prometheus metrics at `/metrics` for monitoring
+- **Graceful shutdown** - Clean server shutdown with connection cleanup
+
+### Performance & Reliability
+
+- **Response compression** - Gzip/Brotli compression for faster responses
+- **Request timeout** - Configurable request timeouts to prevent hanging requests
+- **Error handling** - Centralized error handling with proper HTTP status codes
+
+See [SECURITY_IMPLEMENTATION.md](./docs/security/SECURITY_IMPLEMENTATION.md) for complete security documentation.
 
 ## 🚀 Deployment
 
 ### Production Checklist
 
 - [ ] Update environment variables
-- [ ] Set secure JWT secrets
+- [ ] Set secure JWT secrets and application tokens
 - [ ] Configure CORS for production domain
-- [ ] Enable rate limiting
+- [x] Enable rate limiting (✅ Implemented with IPv6 and load balancer support)
+- [x] API Documentation (✅ Swagger/OpenAPI with JSON/YAML export)
+- [x] Metrics & Observability (✅ Prometheus metrics endpoint)
+- [x] Request Tracking (✅ Request ID correlation)
+- [x] Request/Response Logging (✅ Comprehensive logging with masking)
+- [x] Response Compression (✅ Gzip/Brotli compression)
+- [x] Request Timeout (✅ Configurable timeouts)
+- [x] Graceful Shutdown (✅ Clean shutdown handling)
 - [ ] Set up SSL/TLS
 - [ ] Configure database backups
-- [ ] Set up monitoring
-- [ ] Configure logging
+- [ ] Set up monitoring (Prometheus/Grafana)
+- [ ] Configure logging aggregation (ELK/CloudWatch)
 - [ ] Review security headers
+- [ ] Set up load balancer (if using multiple instances)
+- [ ] Configure Redis for distributed rate limiting (if using load balancer)
 
 ### Deployment Options
 

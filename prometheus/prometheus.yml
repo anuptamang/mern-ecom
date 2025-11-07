@@ -1,0 +1,39 @@
+# Prometheus Configuration
+# Scrapes metrics from your Node.js application
+
+global:
+  scrape_interval: 15s # Scrape metrics every 15 seconds
+  evaluation_interval: 15s # Evaluate rules every 15 seconds
+  external_labels:
+    monitor: 'ecommerce-api'
+    environment: 'development'
+
+# Alertmanager configuration (optional)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           # - alertmanager:9093
+
+# Load rules once and periodically evaluate them
+# rule_files:
+#   - "alerts.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Scrape metrics from your Node.js API
+  - job_name: 'ecommerce-api'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['localhost:3010']
+        labels:
+          instance: 'ecommerce-api-dev'
+          service: 'api'
+          environment: 'development'
+
+  # Optional: Scrape Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

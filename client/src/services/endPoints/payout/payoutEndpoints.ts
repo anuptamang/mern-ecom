@@ -1,5 +1,6 @@
 import axios from "axios";
 import { BACKEND_API } from "configs/api";
+import { getToken } from "utils/localStorage";
 
 export const PAYOUT_API = `${BACKEND_API}/payouts`;
 
@@ -32,28 +33,50 @@ export interface IPayout {
 }
 
 export const getPendingPayoutsApi = async (): Promise<{ payouts: IPayout[]; count: number }> => {
-  const { data } = await axios.get(`${PAYOUT_API}/pending`);
+  const token = getToken() || "";
+  const { data } = await axios.get(`${PAYOUT_API}/pending`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return data;
 };
 
 export const getPayoutsApi = async (status?: string): Promise<{ payouts: IPayout[]; count: number }> => {
+  const token = getToken() || "";
   const { data } = await axios.get(`${PAYOUT_API}`, {
     params: status ? { status } : undefined,
+    headers: { Authorization: `Bearer ${token}` },
   });
   return data;
 };
 
 export const getPayoutApi = async (payoutId: string): Promise<{ payout: IPayout }> => {
-  const { data } = await axios.get(`${PAYOUT_API}/${payoutId}`);
+  const token = getToken() || "";
+  const { data } = await axios.get(`${PAYOUT_API}/${payoutId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return data;
 };
 
 export const processPayoutApi = async (payoutId: string, notes?: string): Promise<{ payout: IPayout; message: string }> => {
-  const { data } = await axios.post(`${PAYOUT_API}/${payoutId}/process`, { notes });
+  const token = getToken() || "";
+  const { data } = await axios.post(
+    `${PAYOUT_API}/${payoutId}/process`,
+    { notes },
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
   return data;
 };
 
 export const cancelPayoutApi = async (payoutId: string, reason?: string): Promise<{ payout: IPayout; message: string }> => {
-  const { data } = await axios.post(`${PAYOUT_API}/${payoutId}/cancel`, { reason });
+  const token = getToken() || "";
+  const { data } = await axios.post(
+    `${PAYOUT_API}/${payoutId}/cancel`,
+    { reason },
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
   return data;
 };

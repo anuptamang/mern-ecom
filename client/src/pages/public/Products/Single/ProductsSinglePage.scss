@@ -225,6 +225,20 @@
 
 // Styles for ProductRatings component
 .product-ratings {
+  .login-prompt {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--theme-text-secondary, #666);
+    background: var(--theme-background-secondary, #f9f9f9);
+    border-radius: 4px;
+
+    p {
+      margin-bottom: 16px;
+      font-size: 16px;
+      color: var(--theme-text-secondary, #666);
+    }
+  }
+
   .rating-summary {
     margin-bottom: 24px;
     padding-bottom: 16px;
@@ -333,11 +347,16 @@
 
   .login-prompt {
     text-align: center;
-    padding: 20px;
-    color: var(--theme-text-secondary, #999);
-    margin-bottom: 24px;
+    padding: 40px 20px;
+    color: var(--theme-text-secondary, #666);
     background: var(--theme-background-secondary, #f9f9f9);
     border-radius: 4px;
+
+    p {
+      margin-bottom: 16px;
+      font-size: 16px;
+      color: var(--theme-text-secondary, #666);
+    }
   }
 
   .comments-list {

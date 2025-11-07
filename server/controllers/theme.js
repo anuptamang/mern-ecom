@@ -232,7 +232,7 @@ export const uploadLogo = async (req, res, next) => {
     }
 
     // Generate the full URL for the uploaded logo
-    const logoUrl = `${config.server.baseUrl}/uploads/${req.file.filename}`;
+    const logoUrl = `${config.upload.imageBucketUrl}/${req.file.filename}`;
 
     logger.info('Logo uploaded successfully', {
       userId,

@@ -6,6 +6,7 @@ import { getToken } from 'utils/localStorage';
 import { PRODUCTS_API } from 'services/servicesConstants';
 import { authSelector } from 'redux/slice';
 import { useAppSelector } from 'redux/store';
+import { useNavigate } from 'react-router-dom';
 
 const { TextArea } = Input;
 
@@ -28,6 +29,7 @@ type RatingItem = {
 
 export const ProductRatings = ({ productId, productRating = 0 }: ProductRatingsProps) => {
   const { result } = useAppSelector(authSelector);
+  const navigate = useNavigate();
   const isSeller = result?.role === 'seller';
   const [ratings, setRatings] = useState<RatingItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,8 +39,11 @@ export const ProductRatings = ({ productId, productRating = 0 }: ProductRatingsP
   const [showReviewForm, setShowReviewForm] = useState(false);
 
   useEffect(() => {
-    fetchRatings();
-  }, [productId]);
+    // Only fetch ratings if user is logged in
+    if (result) {
+      fetchRatings();
+    }
+  }, [productId, result]);
 
   const fetchRatings = async () => {
     try {
@@ -100,6 +105,20 @@ export const ProductRatings = ({ productId, productRating = 0 }: ProductRatingsP
   const averageRating = ratings.length > 0
     ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
     : productRating;
+
+  // If user is not logged in, show login prompt
+  if (!result) {
+    return (
+      <Card title="Ratings & Reviews" className="product-ratings">
+        <div className="login-prompt">
+          <p>Please log in to review</p>
+          <Button type="primary" onClick={() => navigate('/login')}>
+            Log In
+          </Button>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card title="Ratings & Reviews" className="product-ratings">

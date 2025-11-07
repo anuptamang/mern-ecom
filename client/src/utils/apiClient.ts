@@ -28,6 +28,13 @@ class ApiClient {
     // Request interceptor
     this.client.interceptors.request.use(
       (config) => {
+        // Add application token (X-API-Key) to all requests
+        const applicationToken = process.env.REACT_APP_APPLICATION_TOKEN || process.env.REACT_APP_API_KEY;
+        if (applicationToken) {
+          config.headers['X-API-Key'] = applicationToken;
+        }
+        
+        // Add JWT token (Authorization) if available
         const token = getToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
